@@ -37,22 +37,11 @@ const pickProvider = async (page: Page, name: string) => {
 		.click();
 };
 
-type Scrollable = {
-	scrollTop: number;
-	scrollHeight: number;
-	clientHeight: number;
-};
-
 /** The popup keeps still while its list scrolls to the last option. */
 const expectListScrollsInside = async (page: Page, popup: Locator) => {
 	const list = popup.getByRole("listbox");
 	await expect
-		.poll(() =>
-			list.evaluate((node) => {
-				const scrollable = node as unknown as Scrollable;
-				return scrollable.scrollHeight > scrollable.clientHeight;
-			}),
-		)
+		.poll(() => list.evaluate((node) => node.scrollHeight > node.clientHeight))
 		.toBe(true);
 	await list.hover();
 	await page.mouse.wheel(0, 5000);
@@ -70,9 +59,7 @@ const expectListScrollsInside = async (page: Page, popup: Locator) => {
 			);
 		})
 		.toBe(true);
-	expect(
-		await popup.evaluate((node) => (node as unknown as Scrollable).scrollTop),
-	).toBe(0);
+	expect(await popup.evaluate((node) => node.scrollTop)).toBe(0);
 };
 
 const removeButton = (scope: Locator | Page, label: string) =>

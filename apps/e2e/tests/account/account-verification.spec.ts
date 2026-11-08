@@ -6,19 +6,17 @@ import {
 	latestVerificationId,
 	waitForNewVerificationLink,
 } from "../../fixtures/account/outbox";
-import { createAccountUser } from "../../fixtures/account/users";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
+import { createMember } from "../../fixtures/users";
 
 test("account: a user sends the verification email and the link verifies the address", async ({
 	api,
-	appBaseURL,
 	outbox,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "verify",
 		admin: api.as("admin"),
 	});

@@ -9,13 +9,15 @@ import {
 } from "../../fixtures/chat/chat";
 import {
 	askEcho,
-	completionBodies,
 	createBot,
 	createBotChat,
 	GEN_UI,
-	offeredTools,
 } from "../../fixtures/gen-ui/gen-ui";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import {
+	completionRequests,
+	offeredTools,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
@@ -32,8 +34,9 @@ const openChatSettings = async (page: Page) => {
 	});
 };
 
-const lastOfferedTools = (inference: Parameters<typeof completionBodies>[0]) =>
-	offeredTools(completionBodies(inference).at(-1));
+const lastOfferedTools = (
+	inference: Parameters<typeof completionRequests>[0],
+) => offeredTools(completionRequests(inference).at(-1));
 
 test("gen-ui: the bot editor saves Generative UI and its chats offer the checklist", async ({
 	api,
@@ -92,7 +95,7 @@ test("gen-ui: a plain chat's switch saves at once and decides the tools offered"
 	await openChat(page, chatId);
 
 	await askEcho(page, "No features yet");
-	expect(completionBodies(inference).at(-1)?.tools).toBeUndefined();
+	expect(completionRequests(inference).at(-1)?.tools).toBeUndefined();
 
 	const settings = await openChatSettings(page);
 	let releaseUpdate!: () => void;

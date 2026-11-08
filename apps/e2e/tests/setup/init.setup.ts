@@ -1,3 +1,4 @@
+import { INFERENCE_MOCK_MODELS } from "@orcai/ai/testing";
 import type { Page } from "@playwright/test";
 import { createApiClient } from "../../fixtures/api";
 import {
@@ -7,7 +8,6 @@ import {
 import { baseURL } from "../../fixtures/env";
 import { submitForm } from "../../fixtures/forms";
 import { expect, signIn, test } from "../../fixtures/index";
-import { INFERENCE_MOCK_MODELS } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 

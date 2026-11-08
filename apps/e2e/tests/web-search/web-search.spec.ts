@@ -7,21 +7,19 @@ import {
 	turnFinished,
 } from "../../fixtures/chat/chat";
 import { submitForm } from "../../fixtures/forms";
+import { ask, createBot, createBotChat } from "../../fixtures/gen-ui/gen-ui";
+import { expect, test } from "../../fixtures/index";
 import {
-	ask,
-	completionBodies,
-	createBot,
-	createBotChat,
+	completionRequests,
 	offeredTools,
+	searchRequests,
 	toolResults,
-} from "../../fixtures/gen-ui/gen-ui";
-import { expect, test } from "../../fixtures/inference/fixture";
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import { openGuarded } from "../../fixtures/orgs/navigation";
 import {
 	SEARCH_API_KEY,
-	searchBodies,
 	setUpSearchProvider,
 } from "../../fixtures/web-search/web-search";
 
@@ -85,7 +83,7 @@ test("web-search: a bot cites a page from the search provider, also after a relo
 	await ask(page, "How do orcas live?");
 	await turnFinished(page);
 
-	const [search] = searchBodies(inference);
+	const [search] = searchRequests(inference);
 	expect(search?.headers.authorization).toBe(`Bearer ${SEARCH_API_KEY}`);
 	expect(search?.body).toMatchObject({
 		query: "orca pods",
@@ -94,10 +92,10 @@ test("web-search: a bot cites a page from the search provider, also after a relo
 			"docs.example.org",
 		],
 	});
-	expect(offeredTools(completionBodies(inference)[0])).toContain("searchWeb");
-	expect(JSON.stringify(toolResults(completionBodies(inference)[1]))).toContain(
-		`<web-result ref=${RESULT_REF}`,
-	);
+	expect(offeredTools(completionRequests(inference)[0])).toContain("searchWeb");
+	expect(
+		JSON.stringify(toolResults(completionRequests(inference)[1])),
+	).toContain(`<web-result ref=${RESULT_REF}`);
 
 	const citation = page.getByRole("log").getByRole("button", {
 		name: message("ai_elements_cite_web_aria_label", {
@@ -193,10 +191,10 @@ test("web-search: a bot with web search warns while the organisation's search is
 				exact: true,
 			}),
 	).toBeVisible();
-	expect(offeredTools(completionBodies(inference).at(-1))).not.toContain(
+	expect(offeredTools(completionRequests(inference).at(-1))).not.toContain(
 		"searchWeb",
 	);
-	expect(searchBodies(inference)).toEqual([]);
+	expect(searchRequests(inference)).toEqual([]);
 });
 
 test("web-search: a search provider has no models, meters requests and only admins choose it", async ({

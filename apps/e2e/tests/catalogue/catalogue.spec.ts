@@ -7,22 +7,14 @@ import {
 	skipChatTour,
 } from "../../fixtures/chat/chat";
 import type { Api } from "../../fixtures/index";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { runId, type WorkerOrganisation } from "../../fixtures/organisation";
 
 const tiles = (page: Page) => page.locator('[data-slot="tile"]');
 
-const scrollTop = (page: Page) =>
-	page.evaluate(
-		() =>
-			(
-				globalThis as unknown as {
-					scrollY: number;
-				}
-			).scrollY,
-	);
+const scrollTop = (page: Page) => page.evaluate(() => window.scrollY);
 
 const stepHeading = (
 	page: Page,

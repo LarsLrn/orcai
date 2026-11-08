@@ -5,21 +5,24 @@ import {
 	BOTS_TOOLS,
 	expandWorkLog,
 	heldTurnRequest,
-	historyToolCallsOf,
 	isRecord,
-	offeredTools,
 	openConversation,
 	quoted,
 	setUpAssistantModel,
+	sortedNames,
 	startTitledConversation,
 	toolMessages,
-	toolResultsOf,
-	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import { approvePlan } from "../../fixtures/assistant/plan";
 import { chatName, messageText, turnFinished } from "../../fixtures/chat/chat";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import {
+	historyToolCalls,
+	offeredTools,
+	toolResults,
+	turnRequests,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -203,7 +206,9 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 
 	const requests = turnRequests(inference);
 	expect(requests).toHaveLength(7);
-	expect(offeredTools(requests[1])).toEqual(expect.arrayContaining(BOTS_TOOLS));
+	expect(sortedNames(offeredTools(requests[1]))).toEqual(
+		expect.arrayContaining(BOTS_TOOLS),
+	);
 	// Read after the save in the same turn, so the draft is already visible.
 	expect(toolMessages(requests[5]).at(-1)).toMatchObject({
 		total: 1,
@@ -284,7 +289,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	await turnFinished(page);
 
 	const [next] = turnRequests(inference);
-	expect(historyToolCallsOf(next)).toEqual(
+	expect(historyToolCalls(next)).toEqual(
 		expect.arrayContaining([
 			"createBehaviour",
 			"createRepository",
@@ -293,7 +298,9 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 		]),
 	);
 	// The group loaded in the earlier turn stays loaded.
-	expect(offeredTools(next)).toEqual(expect.arrayContaining(BOTS_TOOLS));
-	expect(toolResultsOf(next)).toContain(botLine);
+	expect(sortedNames(offeredTools(next))).toEqual(
+		expect.arrayContaining(BOTS_TOOLS),
+	);
+	expect(toolResults(next)).toContain(botLine);
 	expect(toolMessages(next)).not.toContainEqual(createdBot);
 });

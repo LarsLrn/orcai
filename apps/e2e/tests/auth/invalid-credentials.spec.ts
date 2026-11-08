@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { Page } from "@playwright/test";
-import { submitFormUntilVisible } from "../../fixtures/auth/forms";
 import { EMAIL_DOMAIN, USER_PASSWORD } from "../../fixtures/constants";
+import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
@@ -20,7 +20,7 @@ test("the login form rejects a wrong password and stays on the login page", asyn
 }) => {
 	await open(page, "/login");
 
-	await submitFormUntilVisible(page, {
+	await submitForm(page, {
 		fill: async () => {
 			await emailField(page).fill(org.users.member.email);
 			await passwordField(page).fill(`${USER_PASSWORD}-wrong`);
@@ -42,7 +42,7 @@ test("the login form rejects an unknown email address", async ({ page }) => {
 
 	await open(page, "/login");
 
-	await submitFormUntilVisible(page, {
+	await submitForm(page, {
 		fill: async () => {
 			await emailField(page).fill(unknown);
 			await passwordField(page).fill(USER_PASSWORD);

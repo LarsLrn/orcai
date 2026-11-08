@@ -1,3 +1,4 @@
+import type { JsonValue } from "@orcai/ai/testing";
 import {
 	attachRepository,
 	chatName,
@@ -6,15 +7,14 @@ import {
 	setUpChatModel,
 	turnFinished,
 } from "../../fixtures/chat/chat";
+import { ask, createGenUiChat } from "../../fixtures/gen-ui/gen-ui";
+import { expect, test } from "../../fixtures/index";
 import {
-	ask,
-	completionBodies,
-	createGenUiChat,
+	completionRequests,
 	historyToolCalls,
 	offeredTools,
 	toolResults,
-} from "../../fixtures/gen-ui/gen-ui";
-import { expect, type JsonValue, test } from "../../fixtures/inference/fixture";
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -171,14 +171,14 @@ test("gen-ui: a checklist renders in the answer between the turn's text", async 
 	await expect(title).toBeVisible();
 	await expect(messageText(page, CLOSING)).toBeVisible();
 
-	const [first, second] = completionBodies(inference);
+	const [first, second] = completionRequests(inference);
 	expect(offeredTools(first)).toContain("showChecklist");
 	expect(toolResults(second).map(String).join("")).toContain('{"shown":true}');
 
 	await openChat(page, chatId);
 	await ask(page, "Thanks");
 	await turnFinished(page);
-	expect(historyToolCalls(completionBodies(inference).at(-1))).toContain(
+	expect(historyToolCalls(completionRequests(inference).at(-1))).toContain(
 		"showChecklist",
 	);
 });

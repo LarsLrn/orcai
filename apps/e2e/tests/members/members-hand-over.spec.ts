@@ -6,12 +6,12 @@ import {
 	addMember,
 	adoptZedToken,
 	behaviourInput,
-	createThrowawayUser,
 	memberRow,
 	reachPage,
 } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
+import { createUser } from "../../fixtures/users";
 
 /** Swap the preselected receiver for the member with `email`. */
 const chooseReceiver = async (dialog: Locator, email: string) => {
@@ -40,7 +40,7 @@ test("members: removing a member hands their block to the member chosen", async 
 	pageAs,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "handing");
+	const user = await createUser("handing");
 	await addMember(api, org, user, "member", zedTokens);
 	const client = createApiClient(
 		baseURL(),
@@ -110,7 +110,7 @@ test("members: deleting an account in the instance hands its content to the orga
 	pageAsWellKnownAdmin,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "leaving");
+	const user = await createUser("leaving");
 	await addMember(api, org, user, "member", zedTokens);
 	const client = createApiClient(
 		baseURL(),

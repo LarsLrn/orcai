@@ -1,14 +1,14 @@
 import type { Page } from "@playwright/test";
 import {
 	chatName,
-	completionRequests,
 	composer,
 	createChat,
 	openChat,
 	sendTurn,
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import { completionRequests } from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 

@@ -7,14 +7,11 @@ import { rejection } from "../../fixtures/authorization";
 import { WELL_KNOWN_ADMIN } from "../../fixtures/constants";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
-import {
-	addMember,
-	createThrowawayUser,
-	memberRow,
-} from "../../fixtures/members/members";
+import { addMember, memberRow } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
+import { createUser } from "../../fixtures/users";
 
 test.describe.configure({
 	mode: "serial",
@@ -29,8 +26,8 @@ test("instance: the users page lists accounts from several organisations", async
 }) => {
 	const suffix = runId();
 	const other = await orgs.create(`E2E Users ${suffix}`);
-	const first = await createThrowawayUser(baseURL(), `inst-${suffix}-a`);
-	const second = await createThrowawayUser(baseURL(), `inst-${suffix}-b`);
+	const first = await createUser(`inst-${suffix}-a`);
+	const second = await createUser(`inst-${suffix}-b`);
 	await addMember(api, org, first);
 	await addMember(api, other, second, "manager");
 
@@ -73,8 +70,8 @@ test("instance: the search narrows the users page", async ({
 	pageAsWellKnownAdmin,
 }) => {
 	const suffix = runId();
-	const wanted = await createThrowawayUser(baseURL(), `search-${suffix}`);
-	const other = await createThrowawayUser(baseURL(), `hidden-${suffix}`);
+	const wanted = await createUser(`search-${suffix}`);
+	const other = await createUser(`hidden-${suffix}`);
 	await addMember(api, org, wanted);
 	await addMember(api, org, other);
 
@@ -97,7 +94,7 @@ test("instance: the users page bans and unbans an account", async ({
 	org,
 	pageAsWellKnownAdmin,
 }) => {
-	const user = await createThrowawayUser(baseURL(), `banned-${runId()}`);
+	const user = await createUser(`banned-${runId()}`);
 	await addMember(api, org, user);
 
 	const page = await pageAsWellKnownAdmin();
@@ -148,7 +145,7 @@ test("instance: the users page deletes an account", async ({
 	org,
 	pageAsWellKnownAdmin,
 }) => {
-	const user = await createThrowawayUser(baseURL(), `deleted-${runId()}`);
+	const user = await createUser(`deleted-${runId()}`);
 	await addMember(api, org, user);
 
 	const page = await pageAsWellKnownAdmin();
@@ -195,7 +192,7 @@ test("instance: the users page resets an account's two-factor authentication", a
 	outbox,
 	pageAsWellKnownAdmin,
 }) => {
-	const user = await createThrowawayUser(baseURL(), `two-factor-${runId()}`);
+	const user = await createUser(`two-factor-${runId()}`);
 	await addMember(api, org, user);
 	await enrolTwoFactor(baseURL(), user.session, user.password);
 	// A password alone now only reaches the second step.
@@ -242,7 +239,7 @@ test("instance: the users page makes an account an instance admin and back", asy
 	outbox,
 	pageAsWellKnownAdmin,
 }) => {
-	const user = await createThrowawayUser(baseURL(), `instance-role-${runId()}`);
+	const user = await createUser(`instance-role-${runId()}`);
 	await addMember(api, org, user);
 	const asUser = createApiClient(baseURL(), user.session.cookieHeader);
 	const listUsers = () =>
@@ -349,7 +346,7 @@ test("instance: nobody changes their own instance role, and only instance admins
 		reason: "SELF_INSTANCE_ROLE_CHANGE_FORBIDDEN",
 	});
 
-	const user = await createThrowawayUser(baseURL(), `self-promote-${runId()}`);
+	const user = await createUser(`self-promote-${runId()}`);
 	await addMember(api, org, user);
 	const selfPromotion = await rejection(
 		createApiClient(baseURL(), user.session.cookieHeader).user.setInstanceRole({

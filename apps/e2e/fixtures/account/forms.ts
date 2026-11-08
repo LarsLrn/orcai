@@ -1,8 +1,11 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { ApiClient } from "../api";
-import { submitFormUntilVisible } from "../auth/forms";
+import { submitForm } from "../forms";
 import { message } from "../messages";
-import { nameOf } from "./users";
+
+/** The name `user.me` reports, for asserting a profile change server side. */
+export const nameOf = async (api: ApiClient): Promise<string> =>
+	(await api.user.me({})).data.name;
 
 /** Fill the change-password form and confirm the dialog it opens. */
 export const submitPasswordChange = async (
@@ -18,7 +21,7 @@ export const submitPasswordChange = async (
 		name: message("common_confirm_button"),
 	});
 
-	await submitFormUntilVisible(page, {
+	await submitForm(page, {
 		fill: async () => {
 			await page
 				.getByLabel(message("auth_change_password_form_current_password_label"))

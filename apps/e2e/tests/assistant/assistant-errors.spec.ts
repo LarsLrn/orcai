@@ -12,13 +12,12 @@ import {
 	openConversation,
 	setUpAssistantModel,
 	startTitledConversation,
-	toolResultsOf,
-	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import { approvePlan } from "../../fixtures/assistant/plan";
 import { ask, chatName, messageText } from "../../fixtures/chat/chat";
 import { createBot } from "../../fixtures/gen-ui/gen-ui";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import { toolResults, turnRequests } from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -79,7 +78,7 @@ test("assistant: an approved grant on a bot the member cannot manage fails with 
 	).toBe(relayed);
 
 	const [request] = turnRequests(inference);
-	expect(toolResultsOf(request).at(-1)).toContain("PERMISSION_DENIED: ");
+	expect(toolResults(request).at(-1)).toContain("PERMISSION_DENIED: ");
 
 	const resumed = await lastRow(member, chatId);
 	expect(resumed.id).toBe(paused.id);
@@ -163,7 +162,7 @@ test("assistant: attaching an asset the member cannot read relays ASSET_LINK_FOR
 
 	const requests = turnRequests(inference);
 	expect(requests).toHaveLength(3);
-	expect(toolResultsOf(requests[2]).at(-1)).toContain("ASSET_LINK_FORBIDDEN: ");
+	expect(toolResults(requests[2]).at(-1)).toContain("ASSET_LINK_FORBIDDEN: ");
 
 	const repositories = await member.block.list({
 		pageIndex: 0,

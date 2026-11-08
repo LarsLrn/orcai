@@ -1,10 +1,10 @@
+import type { ScriptedStep, ScriptedToolCall } from "@orcai/ai/testing";
 import type { BotId, ChatId, ChatMessageId } from "@orcai/core";
 import type { ORPCError } from "@orpc/client";
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { ApiClient } from "../api";
 import { rejection } from "../authorization";
 import { ask, chatName, streamedText } from "../chat/chat";
-import type { ScriptedStep, ScriptedToolCall } from "../inference/fixture";
 import { message } from "../messages";
 import { expandWorkLog, pluralMessage, quoted } from "./assistant";
 

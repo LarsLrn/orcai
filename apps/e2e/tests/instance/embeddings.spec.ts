@@ -1,8 +1,8 @@
+import { INFERENCE_MOCK_MODELS } from "@orcai/ai/testing";
 import type { AssetId, BlockId } from "@orcai/core";
 import type { Page } from "@playwright/test";
 import { uploadAsset } from "../../fixtures/assets";
 import { expect, test } from "../../fixtures/index";
-import { INFERENCE_MOCK_MODELS } from "../../fixtures/inference/fixture";
 import { failWithMissingExtraction } from "../../fixtures/instance/missing-extraction";
 import { message } from "../../fixtures/messages";
 import { awaitHydration, open } from "../../fixtures/navigation";

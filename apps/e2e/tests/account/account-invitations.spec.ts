@@ -2,21 +2,19 @@ import {
 	accountCard,
 	openAccountPage,
 } from "../../fixtures/account/navigation";
-import { createAccountUser } from "../../fixtures/account/users";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
+import { createMember } from "../../fixtures/users";
 
 /** How long the app's own invitation form gives an invitation. */
 const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
 test("account: the invitations card shows a pending invitation and accepting it adds the membership", async ({
 	api,
-	appBaseURL,
 	orgs,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "invite",
 		admin: api.as("admin"),
 	});
@@ -79,12 +77,10 @@ test("account: the invitations card shows a pending invitation and accepting it 
 
 test("account: the invitations card names the inviting organisation", async ({
 	api,
-	appBaseURL,
 	orgs,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "invite-name",
 		admin: api.as("admin"),
 	});

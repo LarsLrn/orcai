@@ -1,5 +1,5 @@
+import type { JsonValue, ScriptedToolCall } from "@orcai/ai/testing";
 import type { Locator, Page } from "@playwright/test";
-import type { JsonValue, ScriptedToolCall } from "../inference/fixture";
 import { message } from "../messages";
 
 export const QUESTIONS = {

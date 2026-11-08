@@ -1,9 +1,5 @@
-import {
-	expect,
-	INFERENCE_MOCK_MODELS,
-	startInferenceMock,
-	test,
-} from "../../fixtures/inference/fixture";
+import { INFERENCE_MOCK_MODELS, startInferenceMock } from "@orcai/ai/testing";
+import { expect, test } from "../../fixtures/index";
 
 test.describe.configure({
 	mode: "serial",

@@ -11,8 +11,9 @@ import {
 	invitationEmail,
 	inviteEmail,
 } from "../../fixtures/orgs/invitations";
-import { addMember, createOrgsUser } from "../../fixtures/orgs/members";
+import { addMember } from "../../fixtures/orgs/members";
 import { openGuarded } from "../../fixtures/orgs/navigation";
+import { createUser } from "../../fixtures/users";
 
 /**
  * The first address field. By role, because a label also matches the hidden
@@ -145,7 +146,7 @@ test("orgs: an API invitation without a language uses the inviter's stored langu
 	zedTokens,
 }) => {
 	// A dedicated inviter, so the worker's shared admin keeps its language.
-	const inviter = await createOrgsUser(appBaseURL, "locale-inviter");
+	const inviter = await createUser("locale-inviter");
 	await addMember(api.as("admin"), {
 		user: inviter,
 		role: "admin",

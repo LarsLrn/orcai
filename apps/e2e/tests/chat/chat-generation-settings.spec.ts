@@ -1,6 +1,6 @@
+import { INFERENCE_MOCK_MODELS, type InferenceMock } from "@orcai/ai/testing";
 import type { ChatId } from "@orcai/core";
 import type { Page } from "@playwright/test";
-import { turnRequests } from "../../fixtures/assistant/assistant";
 import { rejection } from "../../fixtures/authorization";
 import {
 	chatName,
@@ -12,11 +12,8 @@ import {
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
 import type { ApiClient } from "../../fixtures/index";
-import { expect, test } from "../../fixtures/inference/fixture";
-import {
-	INFERENCE_MOCK_MODELS,
-	type InferenceMock,
-} from "../../fixtures/inference/server";
+import { expect, test } from "../../fixtures/index";
+import { turnRequests } from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 

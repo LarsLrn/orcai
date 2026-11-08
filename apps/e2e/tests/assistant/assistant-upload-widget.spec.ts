@@ -14,15 +14,12 @@ import {
 } from "../../fixtures/assistant/approval";
 import {
 	isRecord,
-	offeredToolsOf,
 	openConversation,
 	pluralMessage,
 	reasonOf,
 	setUpAssistantModel,
 	startTitledConversation,
 	toolMessages,
-	toolResultsOf,
-	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import {
 	continueButton,
@@ -35,7 +32,12 @@ import {
 import { adoptPageZedToken } from "../../fixtures/authz/resources";
 import { chatName, messageText, turnFinished } from "../../fixtures/chat/chat";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import {
+	offeredTools,
+	toolResults,
+	turnRequests,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { awaitHydration, enterApp } from "../../fixtures/navigation";
 
@@ -161,8 +163,8 @@ test("assistant: requestUpload lists uploads until Continue, keeps them over a r
 
 	const requests = turnRequests(inference);
 	expect(requests).toHaveLength(3);
-	expect(offeredToolsOf(requests[0])).not.toContain("requestUpload");
-	expect(offeredToolsOf(requests[1])).toContain("requestUpload");
+	expect(offeredTools(requests[0])).not.toContain("requestUpload");
+	expect(offeredTools(requests[1])).toContain("requestUpload");
 	const result = toolMessages(requests[2]).at(-1);
 	expect(result).toMatchObject({
 		status: "saved",
@@ -424,7 +426,7 @@ test("assistant: a new message instead of an upload skips the widget", async ({
 
 	const requests = turnRequests(inference);
 	expect(requests).toHaveLength(3);
-	expect(toolResultsOf(requests[2]).at(-1)).toContain(SKIPPED_SENTENCE);
+	expect(toolResults(requests[2]).at(-1)).toContain(SKIPPED_SENTENCE);
 	expect(await assetCount()).toBe(assetsBefore);
 
 	await page.reload();

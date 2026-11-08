@@ -1,11 +1,13 @@
 # Mock inference server
 
 An OpenAI-compatible endpoint for the e2e suite, on the host, in the
-Playwright process. It answers deterministically, so a spec may assert on the
-exact text it returns.
+Playwright process. The server is `startInferenceMock` from
+`@orcai/ai/testing` (`packages/ai/test/inference-mock.ts`), whose contract
+tests run with the unit tests. It answers deterministically, so a spec may
+assert on the exact text it returns.
 
 ```ts
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 
 test("my area talks to the mock", async ({ api, inference }) => {
 	const provider = await api.as("admin").provider.create({
@@ -26,9 +28,12 @@ test("my area talks to the mock", async ({ api, inference }) => {
 });
 ```
 
-`test` from `fixtures/inference/fixture.ts` is `test` from `fixtures/index.ts`
-plus one worker-scoped `inference` fixture, so every core fixture stays
-available. Import from here only when a spec needs an endpoint that answers.
+Each worker starts its mock the first time a test asks for `inference`.
+`fixtures/inference/requests.ts` reads what it received: `completionRequests`
+and `turnRequests` as typed OpenAI request bodies, `searchRequests`, and
+readers for the offered tools, tool calls, tool results, and conversation of
+one request. Constants and types such as `INFERENCE_MOCK_MODELS` and
+`ScriptedStep` come from `@orcai/ai/testing`.
 
 ## Endpoints
 
@@ -75,9 +80,9 @@ a 401.
 - `release()` lets every held response go; later steps hold again. `held()`
   counts responses still waiting, `abandoned()` counts requests the client
   closed before their response ended, on any endpoint.
-- `reset()` clears requests, scripted replies and search results, failures, and steps, destroys
-  held responses, and restarts the counters. Call it at the top of a spec: the
-  fixture is worker-scoped, so the mock outlives a single test.
+- `reset()` clears requests, scripted replies and search results, failures, and steps, drops
+  the connections of held responses, and restarts the counters. The `inference`
+  fixture calls it before and after each test.
 
 ## The embedding endpoint
 

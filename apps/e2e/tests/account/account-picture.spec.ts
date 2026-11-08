@@ -1,3 +1,4 @@
+import { initialsOf } from "@orcai/core";
 import {
 	ANIMATED_GIF,
 	centrePixel,
@@ -9,19 +10,18 @@ import {
 	openAccountPage,
 	userMenu,
 } from "../../fixtures/account/navigation";
-import { createAccountUser } from "../../fixtures/account/users";
 import { EMAIL_DOMAIN, USER_PASSWORD } from "../../fixtures/constants";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { runId } from "../../fixtures/organisation";
+import { createMember } from "../../fixtures/users";
 
 test("account: a user crops a picture, sees it in the menu and removes it", async ({
 	api,
 	appBaseURL,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "picture",
 		admin: api.as("admin"),
 	});
@@ -76,18 +76,18 @@ test("account: a user crops a picture, sees it in the menu and removes it", asyn
 		})
 		.click();
 	await expect(picture).toHaveCount(0);
-	await expect(userMenu(page, user.name).getByText("EP")).toBeVisible();
+	await expect(
+		userMenu(page, user.name).getByText(initialsOf(user.name)),
+	).toBeVisible();
 	expect((await user.api.user.me({})).data.image).toBeNull();
 	expect((await page.request.get(src)).status()).toBe(404);
 });
 
 test("account: an animated GIF keeps its first frame", async ({
 	api,
-	appBaseURL,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "gif",
 		admin: api.as("admin"),
 	});
@@ -115,8 +115,7 @@ test("account: Better Auth takes no picture URL", async ({
 	api,
 	appBaseURL,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "picture-url",
 		admin: api.as("admin"),
 	});
@@ -179,11 +178,9 @@ test("account: Better Auth takes no picture URL", async ({
 
 test("account: the crop dialog keeps Save on a phone screen", async ({
 	api,
-	appBaseURL,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "picture-phone",
 		admin: api.as("admin"),
 	});

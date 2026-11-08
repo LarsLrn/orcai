@@ -7,9 +7,11 @@ config throws when the stack environment is missing.
 
 ## Writing a spec
 
-- Import `test` and `expect` from `fixtures/index.ts`. A spec that needs an
-  inference endpoint that answers imports them from
-  `fixtures/inference/fixture.ts` instead; see `fixtures/inference/README.md`.
+- Import `test` and `expect` from `fixtures/index.ts`. Its `inference`
+  fixture is a mock endpoint that answers; see `fixtures/inference/README.md`.
+  Read what the mock received through `fixtures/inference/requests.ts`.
+- Create users with `fixtures/users.ts`: `createUser` for one in no
+  organisation, `createMember` for a member of the caller's organisation.
 - Locate by role and accessible English name; the browser locale is `en`.
 - Mutate only inside your worker's organisations. Lists paginate and
   `--no-reset` reruns accumulate rows, so find your own rows by a unique name.
@@ -18,9 +20,9 @@ config throws when the stack environment is missing.
 
 ## Waiting
 
-- `open` waits until React has hydrated the whole page, every Suspense
-  boundary included. After a reload `open` did not make, call
-  `awaitHydration` before interacting.
+- `open` and `submitForm` wait until React has hydrated the whole page, every
+  Suspense boundary included. After a reload `open` did not make, call
+  `awaitHydration` before any other interaction.
 - Permission changes can lag a second or two behind writes. After writing over
   the API, call `seedZedToken(page)` before the browser reads; retry calls that
   are safe to repeat with `untilAllowed`, `expect.poll` or `toPass`.
@@ -28,7 +30,7 @@ config throws when the stack environment is missing.
 ## Servers
 
 `playwright.config.ts` starts three `webServer` entries in order: the mock
-inference server (`fixtures/inference/serve.ts`), the app's production build
+inference server (`fixtures/inference/serve.ts`, serving `@orcai/ai/testing`), the app's production build
 on `PORT`, and the docs site's production build on `WEB_PORT`. The assistant
 reads that docs site through `WEB_INTERNAL_URL`, so assistant specs fetch what
 it serves rather than pinning docs text. The app and the docs site reuse a

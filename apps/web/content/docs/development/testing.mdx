@@ -97,11 +97,13 @@ Specs import `test` and `expect` from `apps/e2e/fixtures/index.ts` and get their
 | `api.as(role)` | test | A typed oRPC client against `/api/rpc`, built from the shared contracts. `api.asWellKnownAdmin()` covers instance-level calls. |
 | `orgs.create(name)` | worker | An additional organisation owned by the worker, for seam tests that need two. |
 | `outbox.latestFor(email, type)` | test | The newest link for an address from the notification outbox table, for invitation and password-reset flows. |
-| `inference` | worker | A mock OpenAI-compatible inference server on an ephemeral port, from `fixtures/inference/fixture.ts`. Its URL is a valid provider endpoint, and it records every request and can script replies and failures. |
+| `inference` | test | The worker's mock OpenAI-compatible inference server from `@orcai/ai/testing`, on an ephemeral port. Its URL is a valid provider endpoint, and it records every request and can script replies and failures. `fixtures/inference/requests.ts` reads the recorded requests. |
 
 Every page from these fixtures fails its test when it throws an uncaught error, and React reports a hydration mismatch that way too. The test fails at its end with every such error and the address of the page that threw it. Specs get no `browser` or `playwright` fixture, and lint refuses Playwright's browser launchers and `.browser()` in specs, so `newContext` is the only way to open another context.
 
-The `inference` fixture's scripted replies and failures reset before and after every test, including failed tests, and other workers keep their own scenarios.
+The `inference` fixture's scripted replies and failures reset before and after every test that uses it, including failed tests, and other workers keep their own scenarios. The mock's own contract tests are unit tests in `packages/ai/test`.
+
+`fixtures/users.ts` creates the users a test may change: `createUser` for one in no organisation, `createMember` for a member of the caller's organisation. `open` and `submitForm` wait until the page has hydrated; after a reload `open` did not make, call `awaitHydration` before interacting.
 
 The suite does not cover email delivery, real AI endpoints or OCR. Background workers run only for the pipeline specs.
 

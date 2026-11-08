@@ -3,13 +3,13 @@ import type { ApiClient } from "../../fixtures/api";
 import { rejection } from "../../fixtures/authorization";
 import {
 	type ChatModel,
-	completionRequests,
 	openChat,
 	sendTurn,
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
 import { createBot, createBotChat } from "../../fixtures/gen-ui/gen-ui";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import { completionRequests } from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
@@ -78,12 +78,7 @@ test("bots: a required model locks the picker and every turn uses it", async ({
 			reply: "The required one.",
 		},
 	});
-	const body = completionRequests(inference).at(-1)?.body as
-		| {
-				model?: string;
-		  }
-		| undefined;
-	expect(body?.model).toBe(REQUIRED_MODEL);
+	expect(completionRequests(inference).at(-1)?.model).toBe(REQUIRED_MODEL);
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);

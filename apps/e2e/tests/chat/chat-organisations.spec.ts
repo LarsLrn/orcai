@@ -1,11 +1,11 @@
 import { createApiClient } from "../../fixtures/api";
 import { untilAllowed } from "../../fixtures/authorization";
 import { skipChatTour } from "../../fixtures/chat/chat";
-import { signIn } from "../../fixtures/index";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, signIn, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
-import { addMember, createOrgsUser } from "../../fixtures/orgs/members";
+import { addMember } from "../../fixtures/orgs/members";
+import { createUser } from "../../fixtures/users";
 
 test("chat: the chat list follows the active organisation, and another organisation's chat is read-only", async ({
 	api,
@@ -19,7 +19,7 @@ test("chat: the chat list follows the active organisation, and another organisat
 	test.slow();
 
 	const other = await orgs.create("E2E Chat Second");
-	const user = await createOrgsUser(appBaseURL, "chat-two-orgs");
+	const user = await createUser("chat-two-orgs");
 	await addMember(api.as("admin"), {
 		user,
 		role: "member",
@@ -93,7 +93,7 @@ test("chat: after leaving their only organisation a user reads their chats in th
 }) => {
 	test.slow();
 
-	const user = await createOrgsUser(appBaseURL, "chat-history");
+	const user = await createUser("chat-history");
 	await addMember(api.as("admin"), {
 		user,
 		role: "member",

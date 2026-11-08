@@ -4,7 +4,8 @@ import { createApiClient } from "../../fixtures/api";
 import { rejection } from "../../fixtures/authorization";
 import { expect, test } from "../../fixtures/index";
 import { invitationEmail, inviteEmail } from "../../fixtures/orgs/invitations";
-import { createOrgsUser, memberRole } from "../../fixtures/orgs/members";
+import { memberRole } from "../../fixtures/orgs/members";
+import { createUser } from "../../fixtures/users";
 
 test("orgs: validating an invitation reports why it cannot be used", async ({
 	api,
@@ -58,7 +59,7 @@ test("orgs: accepting an invitation makes the invitee a member with the invited 
 	appBaseURL,
 	zedTokens,
 }) => {
-	const user = await createOrgsUser(appBaseURL, "accepts");
+	const user = await createUser("accepts");
 	const invitation = await inviteEmail(api.as("admin"), {
 		email: user.email,
 		role: "viewer",
@@ -118,7 +119,7 @@ test("orgs: a spent invitation does not return a removed member", async ({
 	appBaseURL,
 	zedTokens,
 }) => {
-	const user = await createOrgsUser(appBaseURL, "removed-after-accept");
+	const user = await createUser("removed-after-accept");
 	const invitation = await inviteEmail(api.as("admin"), {
 		email: user.email,
 		role: "member",
@@ -172,7 +173,7 @@ test("orgs: rejecting an invitation leaves the invitee outside the organisation"
 	appBaseURL,
 	zedTokens,
 }) => {
-	const user = await createOrgsUser(appBaseURL, "rejects");
+	const user = await createUser("rejects");
 	const invitation = await inviteEmail(api.as("admin"), {
 		email: user.email,
 		role: "member",
@@ -229,7 +230,7 @@ test("orgs: only the invited address may respond to an invitation", async ({
 		role: "member",
 	});
 
-	const stranger = await createOrgsUser(appBaseURL, "stranger");
+	const stranger = await createUser("stranger");
 	const asStranger = createApiClient(
 		appBaseURL,
 		stranger.session.cookieHeader,
@@ -258,7 +259,7 @@ test("orgs: an expired invitation cannot be accepted", async ({
 	appBaseURL,
 	zedTokens,
 }) => {
-	const user = await createOrgsUser(appBaseURL, "expired");
+	const user = await createUser("expired");
 	const invitation = await inviteEmail(api.as("admin"), {
 		email: user.email,
 		role: "member",
@@ -298,7 +299,7 @@ test("orgs: an invitation reaches the invitee whatever case it was sent to", asy
 	appBaseURL,
 	zedTokens,
 }) => {
-	const user = await createOrgsUser(appBaseURL, "mixed-case");
+	const user = await createUser("mixed-case");
 	const [local, domain] = user.email.split("@");
 	const mixedCase = `${local.toUpperCase()}@${domain}`;
 
@@ -351,7 +352,7 @@ test("orgs: finding an invitation is scoped to its sender, recipient and invitin
 
 	// A signed-in user who neither sent nor received it is answered as if it
 	// were not there, unless they may invite to its organisation.
-	const stranger = await createOrgsUser(appBaseURL, "find-stranger");
+	const stranger = await createUser("find-stranger");
 	const asStranger = createApiClient(
 		appBaseURL,
 		stranger.session.cookieHeader,
@@ -400,7 +401,7 @@ test("orgs: listMine carries the invitations addressed to the caller, not those 
 		role: "member",
 	});
 
-	const user = await createOrgsUser(appBaseURL, "list-mine");
+	const user = await createUser("list-mine");
 	const received = await inviteEmail(api.as("admin"), {
 		email: user.email,
 		role: "member",
@@ -438,7 +439,7 @@ test("orgs: member and invitation procedures need an active organisation", async
 	appBaseURL,
 	zedTokens,
 }) => {
-	const user = await createOrgsUser(appBaseURL, "no-active");
+	const user = await createUser("no-active");
 	const asUser = createApiClient(
 		appBaseURL,
 		user.session.cookieHeader,
@@ -467,7 +468,7 @@ test("orgs: only an admin changes or revokes an admin invitation", async ({
 	appBaseURL,
 	zedTokens,
 }) => {
-	const user = await createOrgsUser(appBaseURL, "admin-invite");
+	const user = await createUser("admin-invite");
 	const refusedCreate = await rejection(
 		inviteEmail(api.as("manager"), {
 			email: user.email,

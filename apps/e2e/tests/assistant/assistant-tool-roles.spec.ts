@@ -11,7 +11,6 @@ import {
 } from "../../fixtures/assistant/approval";
 import {
 	BOTS_TOOLS,
-	offeredTools,
 	PEOPLE_TOOLS,
 	SHARING_TOOLS,
 	setUpAssistantModel,
@@ -19,12 +18,12 @@ import {
 	startConversation,
 	startTitledConversation,
 	toolMessages,
-	turnRequests,
 	VIEWER_TOOLS,
 } from "../../fixtures/assistant/assistant";
 import { withoutCreates } from "../../fixtures/assistant/plan";
 import { ask } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import { offeredTools, turnRequests } from "../../fixtures/inference/requests";
 
 const EXPECTED = {
 	viewer: sortedNames(VIEWER_TOOLS),
@@ -69,7 +68,7 @@ test("assistant: each role is offered its core tools and no deferred tool before
 		);
 
 		const [request] = turnRequests(inference);
-		expect(offeredTools(request), role).toEqual(EXPECTED[role]);
+		expect(sortedNames(offeredTools(request)), role).toEqual(EXPECTED[role]);
 	}
 });
 
@@ -91,8 +90,8 @@ test("assistant: a member loading bots gets the bots group but no create tool, l
 
 	const bots = turnRequests(inference);
 	expect(bots).toHaveLength(2);
-	expect(offeredTools(bots[0])).toEqual(EXPECTED.member);
-	expect(offeredTools(bots[1])).toEqual(
+	expect(sortedNames(offeredTools(bots[0]))).toEqual(EXPECTED.member);
+	expect(sortedNames(offeredTools(bots[1]))).toEqual(
 		sortedNames([
 			...EXPECTED.member,
 			...withoutCreates(BOTS_TOOLS),
@@ -113,10 +112,10 @@ test("assistant: a member loading bots gets the bots group but no create tool, l
 		...EXPECTED.member,
 		...withoutCreates(BOTS_TOOLS),
 	]);
-	expect(offeredTools(people[0])).toEqual(withBots);
-	expect(offeredTools(people[1])).toEqual(withBots);
+	expect(sortedNames(offeredTools(people[0]))).toEqual(withBots);
+	expect(sortedNames(offeredTools(people[1]))).toEqual(withBots);
 	for (const name of PEOPLE_TOOLS) {
-		expect(offeredTools(people[1])).not.toContain(name);
+		expect(sortedNames(offeredTools(people[1]))).not.toContain(name);
 	}
 	expect(toolMessages(people[1]).at(-1)).toEqual({
 		groups: [
@@ -163,8 +162,8 @@ test("assistant: a loaded group stays offered in the next turn and after an appr
 
 	const turn = turnRequests(inference);
 	expect(turn).toHaveLength(2);
-	expect(offeredTools(turn[0])).toEqual(withBots);
-	expect(offeredTools(turn[1])).toEqual(withBotsAndSharing);
+	expect(sortedNames(offeredTools(turn[0]))).toEqual(withBots);
+	expect(sortedNames(offeredTools(turn[1]))).toEqual(withBotsAndSharing);
 
 	inference.reset();
 	const done = "The bot is gone.";
@@ -199,7 +198,7 @@ test("assistant: a loaded group stays offered in the next turn and after an appr
 	const resumed = turnRequests(inference);
 	expect(resumed).toHaveLength(2);
 	for (const request of resumed) {
-		expect(offeredTools(request)).toEqual(withBotsAndSharing);
+		expect(sortedNames(offeredTools(request))).toEqual(withBotsAndSharing);
 	}
 	expect(toolParts(await lastRow(member, chatId), "deleteBot")).toMatchObject([
 		{

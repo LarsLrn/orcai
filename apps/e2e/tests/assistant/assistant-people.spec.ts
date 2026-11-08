@@ -1,3 +1,4 @@
+import type { ScriptedToolCall } from "@orcai/ai/testing";
 import type { ChatId } from "@orcai/core";
 import type { Page } from "@playwright/test";
 import {
@@ -16,16 +17,11 @@ import {
 	startTitledConversation,
 } from "../../fixtures/assistant/assistant";
 import { messageText, turnFinished } from "../../fixtures/chat/chat";
-import { baseURL } from "../../fixtures/env";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
 import { groupsName } from "../../fixtures/groups/groups";
 import type { ApiClient } from "../../fixtures/index";
-import {
-	expect,
-	type ScriptedToolCall,
-	test,
-} from "../../fixtures/inference/fixture";
-import { addMember, createThrowawayUser } from "../../fixtures/members/members";
+import { expect, test } from "../../fixtures/index";
+import { addMember } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import {
@@ -33,6 +29,7 @@ import {
 	invitationEmail,
 } from "../../fixtures/orgs/invitations";
 import { memberRole } from "../../fixtures/orgs/members";
+import { createUser } from "../../fixtures/users";
 
 const DONE = "That is done.";
 
@@ -122,7 +119,7 @@ test("assistant: a manager changes a member's role through the card", async ({
 }) => {
 	await setUpAssistantModel(api, org, inference);
 	const manager = api.as("manager");
-	const user = await createThrowawayUser(baseURL(), "assistant-role");
+	const user = await createUser("assistant-role");
 	await addMember(api, org, user, "member", zedTokens);
 	const chatId = await startTitledConversation(manager, inference);
 	const call = {
@@ -172,7 +169,7 @@ test("assistant: a manager adds a member to a group through the card", async ({
 }) => {
 	await setUpAssistantModel(api, org, inference);
 	const manager = api.as("manager");
-	const user = await createThrowawayUser(baseURL(), "assistant-group");
+	const user = await createUser("assistant-group");
 	await addMember(api, org, user, "member", zedTokens);
 	const groupName = groupsName("Assistant");
 	const group = await manager.group.create({

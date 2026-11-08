@@ -4,7 +4,6 @@ import {
 	accountCard,
 	openAccountPage,
 } from "../../fixtures/account/navigation";
-import { createAccountUser } from "../../fixtures/account/users";
 import { uploadAsset } from "../../fixtures/assets";
 import {
 	chatName,
@@ -12,22 +11,21 @@ import {
 	sendTurn,
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { pipelineName } from "../../fixtures/pipeline/repository";
+import { createMember } from "../../fixtures/users";
 
 const NOTES = "# Field notes\n\nSoil samples from the north plot.\n";
 
 test("pipeline: a user exports their data from the account page and downloads the archive", async ({
 	api,
-	appBaseURL,
 	inference,
 	outbox,
 	pageForSession,
 }) => {
 	const model = await setUpChatModel(api, inference);
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "export",
 		admin: api.as("admin"),
 	});

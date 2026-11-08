@@ -1,3 +1,4 @@
+import { INFERENCE_MOCK_MODELS } from "@orcai/ai/testing";
 import { modelPickerDialog } from "../../fixtures/assistant/assistant";
 import {
 	chatName,
@@ -6,8 +7,7 @@ import {
 	openChat,
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
-import { INFERENCE_MOCK_MODELS } from "../../fixtures/inference/server";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 

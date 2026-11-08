@@ -1,13 +1,12 @@
 import {
-	offeredToolsOf,
 	openConversation,
 	setUpAssistantModel,
 	startTitledConversation,
-	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import { messageText, turnFinished } from "../../fixtures/chat/chat";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import { offeredTools, turnRequests } from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -57,7 +56,7 @@ test("assistant: a checklist renders in the assistant's answer", async ({
 	await ask(page, "Is my bot ready to publish?");
 	await turnFinished(page);
 
-	expect(offeredToolsOf(turnRequests(inference)[0])).toContain("showChecklist");
+	expect(offeredTools(turnRequests(inference)[0])).toContain("showChecklist");
 	const log = page.getByRole("log");
 	await expect(
 		log.getByText(TITLE, {

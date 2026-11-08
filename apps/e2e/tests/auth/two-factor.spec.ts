@@ -4,17 +4,17 @@ import {
 	signInToChallenge,
 	totpCode,
 } from "../../fixtures/auth/two-factor";
-import { createAuthUser } from "../../fixtures/auth/users";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
+import { createUser } from "../../fixtures/users";
 
 test("a user with two-factor authentication signs in with an authenticator code, then with a backup code", async ({
 	appBaseURL,
 	newContext,
 }) => {
-	const user = await createAuthUser(appBaseURL, "2fa-challenge");
+	const user = await createUser("2fa-challenge");
 	const { setupKey, backupCodes } = await enrolTwoFactor(
 		appBaseURL,
 		user.session,
@@ -42,7 +42,7 @@ test("a trusted device skips the second step on the next sign-in", async ({
 	appBaseURL,
 	newContext,
 }) => {
-	const user = await createAuthUser(appBaseURL, "2fa-trust");
+	const user = await createUser("2fa-trust");
 	const { setupKey } = await enrolTwoFactor(
 		appBaseURL,
 		user.session,

@@ -1,51 +1,15 @@
 import type { UserId } from "@orcai/core";
-import { userIdSchema } from "@orcai/schema";
 import { type ApiClient, createApiClient, type ZedTokenStore } from "../api";
-import type { Session } from "../auth";
-import { EMAIL_DOMAIN, type Role, USER_PASSWORD } from "../constants";
+import type { Role } from "../constants";
 import { baseURL } from "../env";
-import { runId, signUpUnaffiliated } from "../organisation";
+import type { FreshUser } from "../users";
 import { inviteEmail } from "./invitations";
-
-/** A user owned by the orgs slice.
- * Role changes and removals stay within its worker data. */
-export type OrgsUser = {
-	id: UserId;
-	name: string;
-	email: string;
-	password: string;
-	session: Session;
-};
-
-/** Create a fresh user that belongs to no organisation yet. */
-export const createOrgsUser = async (
-	baseURL: string,
-	label: string,
-): Promise<OrgsUser> => {
-	const name = `E2E Orgs ${label}`;
-	const email = `orgs-${label}-${runId()}@${EMAIL_DOMAIN}`;
-
-	const session = await signUpUnaffiliated({
-		baseURL,
-		name,
-		email,
-		password: USER_PASSWORD,
-	});
-
-	return {
-		id: userIdSchema.parse(session.userId),
-		name,
-		email,
-		password: USER_PASSWORD,
-		session,
-	};
-};
 
 /** Add a user to the active organisation of `api`: invite the address, then accept as the user. */
 export const addMember = async (
 	api: ApiClient,
 	membership: {
-		user: OrgsUser;
+		user: FreshUser;
 		role: Role;
 		/** The test's zedToken memory, so its later reads see the acceptance. */
 		zedTokens: ZedTokenStore;

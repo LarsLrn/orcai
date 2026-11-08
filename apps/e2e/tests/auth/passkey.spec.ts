@@ -1,4 +1,3 @@
-import { createAccountUser } from "../../fixtures/account/users";
 import {
 	addPasskey,
 	addVirtualAuthenticator,
@@ -8,14 +7,13 @@ import {
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
+import { createMember } from "../../fixtures/users";
 
 test("a passkey that does not verify the user does not sign in", async ({
 	api,
-	appBaseURL,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "passkey-uv",
 		admin: api.as("admin"),
 	});

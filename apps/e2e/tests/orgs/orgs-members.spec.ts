@@ -2,11 +2,7 @@ import { expectDenied, expectForbidden } from "../../fixtures/authorization";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
-import {
-	addMember,
-	createOrgsUser,
-	memberRole,
-} from "../../fixtures/orgs/members";
+import { addMember, memberRole } from "../../fixtures/orgs/members";
 import { openGuarded } from "../../fixtures/orgs/navigation";
 import {
 	chooseRole,
@@ -14,17 +10,17 @@ import {
 	roleOption,
 	rolePicker,
 } from "../../fixtures/orgs/roles";
+import { createUser } from "../../fixtures/users";
 
 test("orgs: an admin changes a member's role from the member's page", async ({
 	api,
-	appBaseURL,
 	org,
 	pageAs,
 	zedTokens,
 }) => {
 	test.slow();
 
-	const user = await createOrgsUser(appBaseURL, "promoted");
+	const user = await createUser("promoted");
 	await addMember(api.as("admin"), {
 		user,
 		role: "member",
@@ -51,14 +47,13 @@ test("orgs: an admin changes a member's role from the member's page", async ({
 
 test("orgs: a manager changes roles but is not offered the admin role", async ({
 	api,
-	appBaseURL,
 	org,
 	pageAs,
 	zedTokens,
 }) => {
 	test.slow();
 
-	const user = await createOrgsUser(appBaseURL, "demoted");
+	const user = await createUser("demoted");
 	await addMember(api.as("admin"), {
 		user,
 		role: "member",
@@ -108,14 +103,13 @@ test("orgs: a manager changes roles but is not offered the admin role", async ({
 
 test("orgs: an admin removes a member from the organisation", async ({
 	api,
-	appBaseURL,
 	org,
 	pageAs,
 	zedTokens,
 }) => {
 	test.slow();
 
-	const user = await createOrgsUser(appBaseURL, "removed");
+	const user = await createUser("removed");
 	await addMember(api.as("admin"), {
 		user,
 		role: "member",

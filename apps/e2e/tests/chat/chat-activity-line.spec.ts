@@ -7,7 +7,7 @@ import {
 	setUpChatModel,
 	turnFinished,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 

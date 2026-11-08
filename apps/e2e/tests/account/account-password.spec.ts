@@ -3,18 +3,17 @@ import {
 	accountPath,
 	openAccountPage,
 } from "../../fixtures/account/navigation";
-import { createAccountUser } from "../../fixtures/account/users";
 import { expect, signIn, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
+import { createMember } from "../../fixtures/users";
 
 test("account: a wrong current password is refused, a valid change replaces the password", async ({
 	api,
 	appBaseURL,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "password",
 		admin: api.as("admin"),
 	});

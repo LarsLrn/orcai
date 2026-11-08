@@ -5,7 +5,7 @@ import {
 	turnFinished,
 } from "../../fixtures/chat/chat";
 import { ask, createGenUiChat } from "../../fixtures/gen-ui/gen-ui";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 

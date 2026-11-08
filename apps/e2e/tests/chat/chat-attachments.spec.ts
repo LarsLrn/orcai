@@ -1,9 +1,8 @@
+import { INFERENCE_MOCK_MODELS } from "@orcai/ai/testing";
 import type { Page } from "@playwright/test";
-import { turnRequests } from "../../fixtures/assistant/assistant";
 import { adoptPageZedToken } from "../../fixtures/authz/resources";
 import {
 	chatName,
-	completionRequests,
 	composer,
 	createChat,
 	messageText,
@@ -12,8 +11,11 @@ import {
 	setUpChatModel,
 	turnFinished,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
-import { INFERENCE_MOCK_MODELS } from "../../fixtures/inference/server";
+import { expect, test } from "../../fixtures/index";
+import {
+	completionRequests,
+	turnRequests,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
@@ -98,10 +100,8 @@ for (const file of [
 		]);
 		await expect
 			.poll(() =>
-				inference.requests.some(
-					(request) =>
-						request.path === "/v1/chat/completions" &&
-						JSON.stringify(request.body).includes(file.modelReads),
+				completionRequests(inference).some((request) =>
+					JSON.stringify(request).includes(file.modelReads),
 				),
 			)
 			.toBe(true);
@@ -194,7 +194,7 @@ test("chat: a reply cites an attachment by the ref its tag carries, also after a
 	await submit.click();
 	await turnFinished(page);
 
-	const ref = JSON.stringify(completionRequests(inference).at(-1)?.body).match(
+	const ref = JSON.stringify(completionRequests(inference).at(-1)).match(
 		/<attachment ref=(a[0-9a-z]{6}) title=/,
 	)?.[1];
 	if (!ref) throw new Error("The model read no attachment ref");
@@ -293,14 +293,7 @@ type DroppedFile = {
 /** Files as a drag would carry them, for dispatching drag events. */
 const dataTransfer = (page: Page, files: DroppedFile[]) =>
 	page.evaluateHandle((entries) => {
-		const browser = globalThis as unknown as {
-			DataTransfer: new () => {
-				items: {
-					add: (file: File) => void;
-				};
-			};
-		};
-		const transfer = new browser.DataTransfer();
+		const transfer = new DataTransfer();
 		for (const { name, type, text } of entries) {
 			transfer.items.add(
 				new File(

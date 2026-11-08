@@ -1,11 +1,10 @@
 import { signIn } from "../../fixtures/auth";
-import { submitFormUntilVisible } from "../../fixtures/auth/forms";
 import { waitForLink } from "../../fixtures/auth/outbox";
-import { createAuthUser } from "../../fixtures/auth/users";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
+import { createUser } from "../../fixtures/users";
 
 test("a user resets the password from the emailed link, which revokes the old session", async ({
 	appBaseURL,
@@ -13,7 +12,7 @@ test("a user resets the password from the emailed link, which revokes the old se
 	page,
 	pageForSession,
 }) => {
-	const user = await createAuthUser(appBaseURL, "reset");
+	const user = await createUser("reset");
 	const newPassword = `${user.password}-reset`;
 
 	// A page holding the session the user had before the reset. Better Auth is
@@ -25,7 +24,7 @@ test("a user resets the password from the emailed link, which revokes the old se
 
 	await open(page, "/forgot-password");
 
-	await submitFormUntilVisible(page, {
+	await submitForm(page, {
 		fill: async () => {
 			await page.getByLabel(message("common_email_label")).fill(user.email);
 		},

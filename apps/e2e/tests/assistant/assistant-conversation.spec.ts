@@ -1,3 +1,4 @@
+import { INFERENCE_MOCK_MODELS } from "@orcai/ai/testing";
 import type { Page } from "@playwright/test";
 import {
 	composerModel,
@@ -22,11 +23,7 @@ import {
 	sendTurn,
 } from "../../fixtures/chat/chat";
 import { ROLES } from "../../fixtures/constants";
-import {
-	expect,
-	INFERENCE_MOCK_MODELS,
-	test,
-} from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 

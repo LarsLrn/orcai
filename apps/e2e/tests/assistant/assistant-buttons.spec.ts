@@ -5,7 +5,7 @@ import {
 } from "../../fixtures/assistant/assistant";
 import { composer } from "../../fixtures/chat/chat";
 import { createBot } from "../../fixtures/gen-ui/gen-ui";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 

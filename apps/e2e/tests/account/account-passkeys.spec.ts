@@ -1,5 +1,4 @@
 import { openAccountPage } from "../../fixtures/account/navigation";
-import { createAccountUser } from "../../fixtures/account/users";
 import { waitForLink } from "../../fixtures/auth/outbox";
 import {
 	addPasskey,
@@ -9,15 +8,14 @@ import {
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
+import { createMember } from "../../fixtures/users";
 
 test("account: a user adds a passkey, signs in with it alone, and deletes it", async ({
 	api,
-	appBaseURL,
 	outbox,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "passkey",
 		admin: api.as("admin"),
 	});

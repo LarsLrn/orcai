@@ -9,12 +9,12 @@ import { expect, test } from "../../fixtures/index";
 import {
 	addMember,
 	adoptZedToken,
-	createThrowawayUser,
 	memberRow,
 	reachPage,
 } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
+import { createUser } from "../../fixtures/users";
 
 test("members: an admin removes a user from the organisation", async ({
 	api,
@@ -22,7 +22,7 @@ test("members: an admin removes a user from the organisation", async ({
 	pageAs,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "removed");
+	const user = await createUser("removed");
 	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("admin");
@@ -74,7 +74,7 @@ test("members: a removed user loses the organisation it was signed in to", async
 	seedZedToken,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "evicted");
+	const user = await createUser("evicted");
 	await addMember(api, org, user, "member", zedTokens);
 	await createApiClient(
 		baseURL(),
@@ -114,7 +114,7 @@ test("members: an admin deletes a user's account", async ({
 	org,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "deleted");
+	const user = await createUser("deleted");
 	await addMember(api, org, user, "member", zedTokens);
 
 	// Deleting an account is an instance action, so an organisation admin is
@@ -147,7 +147,7 @@ test("members: deleting an account hands its content to the chosen member", asyn
 	org,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "owner");
+	const user = await createUser("owner");
 	await addMember(api, org, user, "member", zedTokens);
 
 	// A throwaway user is created without an organisation, and creating a
@@ -193,7 +193,7 @@ test("members: a removed user loses the access its groups and grants gave it", a
 	org,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "detached");
+	const user = await createUser("detached");
 	await addMember(api, org, user, "member", zedTokens);
 	const client = createApiClient(
 		baseURL(),
