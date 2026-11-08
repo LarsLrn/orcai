@@ -3,7 +3,7 @@ import type { Repository } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { testRequestContext } from "@/lib/testing/request-context";
 import { answers, resetProcedures } from "../assistant/test-procedures";
 
 const { getPassagesTool } = await import("./get-passages");
@@ -19,9 +19,7 @@ const deps = {
 			config: {},
 		},
 	] as unknown as Repository[],
-	context: {
-		secureCookies: false,
-	} as ORPCContext,
+	context: testRequestContext(),
 	sources: chatSources([]),
 };
 

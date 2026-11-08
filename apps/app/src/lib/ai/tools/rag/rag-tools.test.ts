@@ -3,7 +3,7 @@ import type { AssetPoint, Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
 import { sourceRef } from "@/lib/ai/citations/source-ref";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { testRequestContext } from "@/lib/testing/request-context";
 import {
 	answers,
 	procedureCalls,
@@ -24,9 +24,7 @@ const deps = {
 			config: {},
 		},
 	] as unknown as Repository[],
-	context: {
-		secureCookies: false,
-	} as ORPCContext,
+	context: testRequestContext(),
 	sources: chatSources([]),
 };
 

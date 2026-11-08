@@ -3,7 +3,7 @@ import type { AssetId, BlockId } from "@orcai/core";
 import { defaultRepositoryConfig } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { testRequestContext } from "@/lib/testing/request-context";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 const repositoryId = crypto.randomUUID() as BlockId;
@@ -60,7 +60,7 @@ const { createAssistantTurn } = await import("../turn-state");
 
 const run = (input: Record<string, unknown>) =>
 	updateRepositoryTool({
-		context: {} as ORPCContext,
+		context: testRequestContext(),
 		turn: createAssistantTurn({
 			zedToken: undefined,
 		}),

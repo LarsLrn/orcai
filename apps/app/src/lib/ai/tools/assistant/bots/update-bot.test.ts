@@ -3,7 +3,7 @@ import type { BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
 import type { BotEditor, BotSetupFields } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { testRequestContext } from "@/lib/testing/request-context";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 beforeEach(() => {
@@ -160,7 +160,7 @@ describe("updateBotPayload", () => {
 describe("updateBotTool", () => {
 	test("an update reads the editor record and saves it back merged", async () => {
 		const tool = updateBotTool({
-			context: {} as ORPCContext,
+			context: testRequestContext(),
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
@@ -217,7 +217,7 @@ describe("updateBotTool", () => {
 
 	const run = (input: Record<string, unknown>) =>
 		updateBotTool({
-			context: {} as ORPCContext,
+			context: testRequestContext(),
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
@@ -394,7 +394,7 @@ describe("updateBotTool", () => {
 
 		await expect(
 			updateBotTool({
-				context: {} as ORPCContext,
+				context: testRequestContext(),
 				turn,
 			}).execute?.(
 				{
