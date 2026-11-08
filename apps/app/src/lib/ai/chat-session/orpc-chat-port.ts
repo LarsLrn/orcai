@@ -12,7 +12,10 @@ import {
 } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { client, orpc } from "@/lib/orpc/orpc";
-import { staleQueriesOfWrites } from "@/lib/orpc/stale-queries";
+import {
+	invalidateQuery,
+	staleQueriesOfWrites,
+} from "@/lib/orpc/stale-queries";
 import type { ChatPage, ChatPort } from "./chat-session";
 
 /** A `chatMessage.list` result as a page with its cursor. */
@@ -48,12 +51,7 @@ const invalidateAfterTurn = async (
 	await Promise.all(
 		[
 			...queryKeys.values(),
-		].map((queryKey) =>
-			queryClient.invalidateQueries({
-				queryKey,
-				refetchType: "active",
-			}),
-		),
+		].map((queryKey) => invalidateQuery(queryClient, queryKey)),
 	);
 };
 
