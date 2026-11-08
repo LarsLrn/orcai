@@ -12,10 +12,12 @@ import {
 } from "../shared/ids";
 import { chatConfigSchema, generationSettingsSchema } from "./parts/config";
 
-const chatKindSchema = z.enum([
+export const CHAT_KINDS = [
 	"chat",
 	"assistant",
-]);
+] as const;
+
+const chatKindSchema = z.enum(CHAT_KINDS);
 
 /** Why a chat can be read but not continued: its bot is gone or not available, its organisation was left, or another one is active. */
 export const chatReadOnlyReasonSchema = z.enum([

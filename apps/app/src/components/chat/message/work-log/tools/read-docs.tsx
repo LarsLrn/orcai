@@ -1,3 +1,4 @@
+import { readDocsOutputSchema } from "@/lib/ai/tools/docs/outputs";
 import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { ReadDocsToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
@@ -29,13 +30,15 @@ const PageLabel = ({ title, url }: { title: string; url: string }) => {
 	);
 };
 
-const label = (output: ReadDocsToolPart["output"]) => {
-	if (!output) {
+/** The page a call read; the index for one without a path or an output that does not fit. */
+const label = (output: unknown) => {
+	if (output === undefined) {
 		return m.chat_work_log_tool_read_docs_active();
 	}
 
-	return output.path ? (
-		<PageLabel title={output.title ?? output.path} url={output.url} />
+	const page = readDocsOutputSchema.safeParse(output).data;
+	return page?.path ? (
+		<PageLabel title={page.title ?? page.path} url={page.url} />
 	) : (
 		m.chat_work_log_tool_read_docs_index()
 	);

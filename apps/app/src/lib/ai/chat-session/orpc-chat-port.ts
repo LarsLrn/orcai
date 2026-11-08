@@ -1,5 +1,9 @@
 import type { ChatKind } from "@orcai/schema";
-import { eventIteratorToUnproxiedDataStream, ORPCError } from "@orpc/client";
+import {
+	eventIteratorToUnproxiedDataStream,
+	type InferClientOutputs,
+	ORPCError,
+} from "@orpc/client";
 import { hashKey, type QueryClient } from "@tanstack/react-query";
 import { isTextUIPart } from "ai";
 import {
@@ -12,12 +16,9 @@ import { staleQueriesOfWrites } from "@/lib/orpc/stale-queries";
 import type { ChatPage, ChatPort } from "./chat-session";
 
 /** A `chatMessage.list` result as a page with its cursor. */
-export const chatPageOf = (page: {
-	data: {
-		position: number;
-	}[];
-	hasMore: boolean;
-}): ChatPage => ({
+export const chatPageOf = (
+	page: InferClientOutputs<typeof client>["chatMessage"]["list"],
+): ChatPage => ({
 	messages: toChatAgentMessages(page.data),
 	before: page.data[0]?.position,
 	hasMore: page.hasMore,

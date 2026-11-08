@@ -319,6 +319,39 @@ describe("chat search", () => {
 	);
 
 	test(
+		"finds only text that reads back",
+		async () => {
+			const { owner, createChat, search } = await members();
+			const chat = await createChat(owner, null, [
+				"Visible haystack",
+			]);
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.chatMessage)
+						.set({
+							parts: [
+								...textMessage("Visible haystack"),
+								{
+									type: "text",
+									text: "needle",
+									state: "broken",
+								},
+							],
+						})
+						.where(eq(dbSchema.chatMessage.id, chat.messageIds[0]));
+				}),
+			);
+
+			expect(await search(owner, "needle")).toEqual([]);
+			expect((await search(owner, "haystack")).map((row) => row.id)).toEqual([
+				chat.chatId,
+			]);
+		},
+		TIMEOUT,
+	);
+
+	test(
 		"opens a chat from the matching message through the newest",
 		async () => {
 			const { owner, createChat, listMessages } = await members();

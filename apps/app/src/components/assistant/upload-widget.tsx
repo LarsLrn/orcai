@@ -16,6 +16,7 @@ import {
 import { useDeleteAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
 import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
 import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
+import { requestUploadInputSchema } from "@/lib/ai/tools/assistant/bots/request-upload";
 import { toolLabels } from "@/lib/ai/tools/registry";
 import type { ToolPartOf, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
@@ -69,7 +70,9 @@ export const UploadWidget = ({
 			)}
 			{awaiting && answers && (
 				<div className="flex min-w-0 basis-full flex-col gap-3">
-					<p className="text-muted-foreground">{awaiting.input.reason}</p>
+					<p className="text-muted-foreground">
+						{requestUploadInputSchema.safeParse(awaiting.input).data?.reason}
+					</p>
 					<AssetIntakeFlow
 						variant="compact"
 						initialAssetIds={upload.initialAssetIds}

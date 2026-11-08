@@ -1569,6 +1569,27 @@ describe("plan", () => {
 		).toBe(earlier as never);
 	});
 
+	test("skips a stored plan whose input no longer fits", () => {
+		const earlier = updatePlan("First", "output-available");
+
+		expect(
+			planOf([
+				[
+					earlier,
+				],
+				[
+					{
+						type: "tool-updatePlan",
+						toolCallId: "c",
+						state: "output-available",
+						input: null,
+						output: {},
+					} as never,
+				],
+			])?.part,
+		).toBe(earlier as never);
+	});
+
 	test("a proposal before a later message no longer shows", () => {
 		const earlier = updatePlan("First", "output-available");
 

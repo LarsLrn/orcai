@@ -1,4 +1,4 @@
-import type { ResourceGrantRole } from "@orcai/schema";
+import { RESOURCE_GRANT_ROLES, type ResourceGrantRole } from "@orcai/schema";
 import type { ResourceType } from "@orcai/spice-db";
 import { m } from "@/paraglide/messages";
 
@@ -19,12 +19,6 @@ const resourceAccessHints: Record<ResourceType, () => string> = {
 	block: m.access_resource_block_hint,
 	asset: m.access_resource_asset_hint,
 };
-
-const RESOURCE_GRANT_ROLES = [
-	"viewer",
-	"editor",
-	"manager",
-] as const satisfies readonly ResourceGrantRole[];
 
 export const getResourceRoleLabel = (role: ResourceGrantRole) =>
 	resourceRoleLabels[role]();

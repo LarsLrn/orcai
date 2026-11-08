@@ -2,7 +2,7 @@ import type { ChatId, ChatMessageId, UserId } from "@orcai/core";
 import type {
 	ChatMessageAttachment,
 	ChatMessageMetadata,
-	ChatMessageParts,
+	StoredChatMessageParts,
 } from "@orcai/schema";
 import {
 	index,
@@ -35,7 +35,7 @@ export const chatMessage = pgTable(
 				onDelete: "cascade",
 			}),
 		role: varchar("role").notNull(),
-		parts: json("parts").$type<ChatMessageParts>().notNull(),
+		parts: json("parts").$type<StoredChatMessageParts>().notNull(),
 		attachments: json("attachments").$type<ChatMessageAttachment[]>().notNull(),
 		metadata: json("metadata").$type<ChatMessageMetadata>().notNull(),
 		position: integer("position").notNull(),

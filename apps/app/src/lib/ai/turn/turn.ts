@@ -45,7 +45,11 @@ import { mergeTurnWrites } from "@/lib/ai/tools/assistant/turn-writes";
 import { toolKindOf } from "@/lib/ai/tools/registry";
 import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 import { latestPlanPart } from "@/lib/ai/turn-view/plan";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import {
+	type ChatAgentUIMessage,
+	toChatAgentMessages,
+	toChatAgentParts,
+} from "@/lib/ai/types/chat-agent-message";
 import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
 import {
 	closeLastReply,
@@ -120,20 +124,9 @@ const loadChat = ({
 		return loaded;
 	});
 
-/** The stored messages the model reads, without reserved empty replies. */
+/** The stored messages the model reads, leaving out those without readable parts, like a reserved reply. */
 const historyOf = (messages: StoredMessage[]) =>
-	messages
-		.filter((message) => !isEmptyReply(message))
-		.map(
-			(message) =>
-				({
-					id: message.id,
-					role: message.role,
-					parts: message.parts,
-					metadata: message.metadata,
-					attachments: message.attachments,
-				}) as ChatAgentUIMessage,
-		);
+	toChatAgentMessages(messages.filter((message) => !isEmptyReply(message)));
 
 const buildAgent = ({
 	setup,
@@ -838,7 +831,7 @@ export const continueTurn = (
 						lastMessage: reply && {
 							id: reply.id,
 							role: reply.role,
-							parts: reply.parts as UIMessage["parts"],
+							parts: toChatAgentParts(reply.parts),
 							continuedAt: reply.metadata.continuedAt,
 						},
 						decisions: input.decisions,
@@ -967,7 +960,7 @@ export const keepUploads = ({
 					!isContinuationClaimLive(reply.metadata.continuedAt, now) &&
 					pausedStep({
 						role: reply.role,
-						parts: reply.parts as UIMessage["parts"],
+						parts: toChatAgentParts(reply.parts),
 					})?.awaiting.some(
 						(part) =>
 							part.toolCallId === toolCallId &&
@@ -979,7 +972,6 @@ export const keepUploads = ({
 					);
 				}
 				return Effect.succeed({
-					parts: reply.parts as UIMessage["parts"],
 					metadata: {
 						...reply.metadata,
 						uploads: {

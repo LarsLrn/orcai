@@ -7,6 +7,7 @@ import {
 	messageText,
 	openChat,
 	setUpChatModel,
+	turnFinished,
 } from "../../fixtures/chat/chat";
 import { createGenUiChat } from "../../fixtures/gen-ui/gen-ui";
 import {
@@ -140,6 +141,7 @@ test("pipeline: a citation by ref names the uploaded asset, also after a reload"
 		await expect(citations).toHaveCount(2);
 	};
 	await expanded();
+	await turnFinished(page);
 
 	await page.reload();
 	await expanded();

@@ -2,11 +2,15 @@ import type { UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { assetObjectKey } from "@orcai/s3";
 import { isS3NotFound, sendGetObjectCommand } from "@orcai/s3/server";
+import { readableChatMessageParts } from "@orcai/schema";
 import { asc, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import type { TranscriptChat } from "@/lib/ai/turn-view/message-markdown";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import {
+	type ChatAgentUIMessage,
+	toChatAgentMessages,
+} from "@/lib/ai/types/chat-agent-message";
 import { downloadName } from "@/lib/assets/download-name";
 import { readImage, referencedImage } from "@/lib/images/images";
 import type { ZipArchiveWriter } from "./zip-archive";
@@ -176,15 +180,11 @@ const writeChats = (
 					yield* writer.addText(
 						`${name}.md`,
 						transcript(
-							messages.map(
-								(message) =>
-									({
-										id: message.id,
-										role: message.role,
-										parts: message.parts,
-										metadata: message.metadata,
-										attachments: message.attachments,
-									}) as ChatAgentUIMessage,
+							toChatAgentMessages(
+								messages.map((message) => ({
+									...message,
+									parts: readableChatMessageParts(message.parts),
+								})),
 							),
 							{
 								kind: chat.kind,

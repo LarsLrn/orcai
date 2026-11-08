@@ -13,25 +13,31 @@ import {
 	userIdSchema,
 } from "../shared/ids";
 
-const quotaPeriodStatusSchema = z.enum([
+export const QUOTA_PERIOD_STATUSES = [
 	"open",
 	"closed",
-]);
+] as const;
 
-const quotaPoolPeriodTypeSchema = z.enum([
+const quotaPeriodStatusSchema = z.enum(QUOTA_PERIOD_STATUSES);
+
+export const QUOTA_POOL_PERIOD_TYPES = [
 	"weekly",
 	"monthly",
 	"yearly",
-]);
+] as const;
+
+const quotaPoolPeriodTypeSchema = z.enum(QUOTA_POOL_PERIOD_TYPES);
 
 export type QuotaPoolPeriodType = z.infer<typeof quotaPoolPeriodTypeSchema>;
 
-export const quotaUsageEventTypeSchema = z.enum([
+export const QUOTA_USAGE_EVENT_TYPES = [
 	"reserved",
 	"finalized",
 	"released",
 	"failed",
-]);
+] as const;
+
+export const quotaUsageEventTypeSchema = z.enum(QUOTA_USAGE_EVENT_TYPES);
 
 export type QuotaUsageEventType = z.infer<typeof quotaUsageEventTypeSchema>;
 

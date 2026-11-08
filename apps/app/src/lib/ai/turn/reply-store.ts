@@ -1,13 +1,18 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import type { dbSchema } from "@orcai/db";
-import type { ChatMessageMetadata } from "@orcai/schema";
-import type { UIMessage } from "ai";
+import type { ChatMessageMetadata, ChatMessagePart } from "@orcai/schema";
 import * as Context from "effect/Context";
 import type * as Effect from "effect/Effect";
 import type * as AppErrors from "@/lib/effect/utils/errors";
 
 export type StoredChat = typeof dbSchema.chat.$inferSelect;
-export type StoredMessage = typeof dbSchema.chatMessage.$inferSelect;
+/** A stored message with the parts this version reads; see `readableChatMessageParts`. */
+export type StoredMessage = Omit<
+	typeof dbSchema.chatMessage.$inferSelect,
+	"parts"
+> & {
+	parts: ChatMessagePart[];
+};
 
 export type NewMessage = Pick<
 	StoredMessage,
@@ -15,7 +20,13 @@ export type NewMessage = Pick<
 >;
 
 export type ReplyContent = {
-	parts: UIMessage["parts"];
+	parts: ChatMessagePart[];
+	metadata: ChatMessageMetadata;
+};
+
+/** A claim's change to the reply; without `parts` the stored parts stay as they are. */
+export type ReplyChange = {
+	parts?: ChatMessagePart[];
 	metadata: ChatMessageMetadata;
 };
 
@@ -23,7 +34,11 @@ export type ReplyContent = {
 export const isEmptyReply = (message: { parts: unknown[] }) =>
 	message.parts.length === 0;
 
-/** Where a chat's rows live between turns. */
+/**
+ * Where a chat's rows live between turns. Reads hand out the parts this
+ * version reads; writes validate their parts and put them in those parts'
+ * places, so parts it cannot read are never dropped.
+ */
 export class ReplyStore extends Context.Service<
 	ReplyStore,
 	{
@@ -45,7 +60,7 @@ export class ReplyStore extends Context.Service<
 			closedReply:
 				| {
 						id: ChatMessageId;
-						parts: UIMessage["parts"];
+						parts: ChatMessagePart[];
 				  }
 				| undefined;
 			question: NewMessage;
@@ -63,7 +78,7 @@ export class ReplyStore extends Context.Service<
 			replyId: ChatMessageId;
 			update: (
 				reply: StoredMessage | undefined,
-			) => Effect.Effect<ReplyContent, E>;
+			) => Effect.Effect<ReplyChange, E>;
 		}) => Effect.Effect<ReplyContent, E | AppErrors.InternalError>;
 		/** Stores what the reply holds; a reply without parts is removed. */
 		readonly settle: (input: {

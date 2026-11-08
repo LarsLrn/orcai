@@ -1,0 +1,49 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "458d9ef2-3d4a-47ca-882b-da0db8a7fc4a",
+  "prevIds": [
+    "8b5e3edc-17d5-4997-a1de-5898c1c70ccf"
+  ],
+  "footprints": [
+    {
+      "statementType": "recreate_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "chat_message",
+        "chat_message_search_idx"
+      ],
+      "writes": [
+        "s|idx|public.chat_message_search_idx",
+        "n|idx|public.chat_message_search_idx",
+        "e|idx|public.chat_message_search_idx",
+        "n|rel|public.chat_message_search_idx"
+      ],
+      "reads": [
+        "n|tbl|public.chat_message",
+        "n|sch|public"
+      ],
+      "sharedWrites": [],
+      "sqlHash": "fd8c5b1f0bf4e833"
+    }
+  ],
+  "deltas": [
+    {
+      "op": "alter",
+      "key": "indexes\u0000[\"public\",\"chat_message_search_idx\"]",
+      "set": {
+        "columns": [
+          {
+            "value": "to_tsvector('simple', jsonb_path_query_array(jsonb_path_query_array(\"parts\"::jsonb, 'strict $[*] ? (@.type() == \"object\")'), 'lax $[*] ? (@.type.type() == \"string\" && @.type == \"text\" && @.text.type() == \"string\" && (!exists(@.state) || (@.state.type() == \"string\" && (@.state == \"streaming\" || @.state == \"done\"))) && (!exists(@.providerMetadata) || (@.providerMetadata.type() == \"object\" && !exists(@.providerMetadata.keyvalue() ? (@.value.type() != \"object\"))))).text'))",
+            "isExpression": true,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ]
+      }
+    }
+  ]
+}

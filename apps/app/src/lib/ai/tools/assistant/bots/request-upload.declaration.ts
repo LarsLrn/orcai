@@ -2,7 +2,6 @@ import { UploadIcon } from "lucide-react";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import {
-	type RequestUploadOutput,
 	requestUploadOutputSchema,
 	type requestUploadTool,
 } from "./request-upload";
@@ -30,6 +29,8 @@ export const requestUpload = declareTool<typeof requestUploadTool>()({
 	},
 });
 
-/** The assets a saved upload lists under its summary line. */
-export const uploadedAssets = (output: RequestUploadOutput | undefined) =>
-	output?.status === "saved" ? output.assets : [];
+/** The assets a saved upload lists under its summary line; none for an output that does not fit. */
+export const uploadedAssets = (output: unknown) => {
+	const parsed = requestUploadOutputSchema.safeParse(output).data;
+	return parsed?.status === "saved" ? parsed.assets : [];
+};

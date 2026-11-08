@@ -1,5 +1,11 @@
+import {
+	mergeReadableParts,
+	readableChatMessageParts,
+	type StoredChatMessageParts,
+} from "@orcai/schema";
 import { getToolName, isToolUIPart, type ToolSet, type UIMessage } from "ai";
 import { isConversationalTool } from "@/lib/ai/tools/registry";
+import { toChatAgentParts } from "@/lib/ai/types/chat-agent-message";
 
 /** Why a pending call was closed, as the sentence the model reads for it. */
 export const TOOL_CLOSE_SENTENCES = {
@@ -164,11 +170,14 @@ export const closeLastReply = <Message extends UIMessage>(
 	};
 };
 
-/** Closes the pending tool calls of copied replies, so a copy never runs one. */
+/**
+ * Closes the pending tool calls of copied replies, so a copy never runs one.
+ * Parts this version cannot read are copied as they are.
+ */
 export const closeCopiedToolParts = <
 	Row extends {
 		role: string;
-		parts: unknown[];
+		parts: StoredChatMessageParts;
 	},
 >(
 	rows: Row[],
@@ -180,14 +189,14 @@ export const closeCopiedToolParts = <
 		}
 
 		const closed = closePendingToolParts(
-			row.parts as UIMessage["parts"],
+			toChatAgentParts(readableChatMessageParts(row.parts)),
 			tools,
 		);
 
 		return closed.changed
 			? {
 					...row,
-					parts: closed.parts,
+					parts: mergeReadableParts(row.parts, closed.parts),
 				}
 			: row;
 	});
