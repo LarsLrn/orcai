@@ -1,14 +1,11 @@
 import { randomUUID } from "node:crypto";
+import { INFERENCE_MOCK_MODELS, type InferenceMock } from "@orcai/ai/testing";
 import type { ChatId, ModelId, ProviderId } from "@orcai/core";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { createApiClient, createZedTokenStore } from "../api";
 import { untilAllowed } from "../authorization";
 import { baseURL } from "../env";
 import type { Api, ApiClient } from "../index";
-import {
-	INFERENCE_MOCK_MODELS,
-	type InferenceMock,
-} from "../inference/fixture";
 import { message } from "../messages";
 import { open } from "../navigation";
 import { runId } from "../organisation";
@@ -229,61 +226,6 @@ export const messageCount = async (
 		before = page.data[0]?.position;
 		if (!page.hasMore || before === undefined) return count;
 	}
-};
-
-/** The chat completion requests the mock received, oldest first. */
-export const completionRequests = (inference: InferenceMock) =>
-	inference.requests.filter(
-		(request) =>
-			request.method === "POST" && request.path === "/v1/chat/completions",
-	);
-
-const textOf = (content: unknown): string => {
-	if (typeof content === "string") return content;
-	if (!Array.isArray(content)) return "";
-
-	return content
-		.map((part: unknown) =>
-			part !== null &&
-			typeof part === "object" &&
-			"text" in part &&
-			typeof part.text === "string"
-				? part.text
-				: "",
-		)
-		.join("");
-};
-
-/** The user and assistant turns of a completion request, without the system prompt. */
-export const conversationOf = (
-	body: unknown,
-): {
-	role: string;
-	text: string;
-}[] => {
-	if (
-		body === null ||
-		typeof body !== "object" ||
-		!("messages" in body) ||
-		!Array.isArray(body.messages)
-	) {
-		return [];
-	}
-
-	return body.messages.flatMap((entry: unknown) =>
-		entry !== null &&
-		typeof entry === "object" &&
-		"role" in entry &&
-		(entry.role === "user" || entry.role === "assistant") &&
-		"content" in entry
-			? [
-					{
-						role: entry.role,
-						text: textOf(entry.content),
-					},
-				]
-			: [],
-	);
 };
 
 /** Mark the chat tour seen for the page's user, so its card does not cover the chat. */

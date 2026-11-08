@@ -52,36 +52,10 @@ export const saveImageThroughDialog = async (
 /** The size and centre pixel of the image at `src`, decoded in the page. */
 export const centrePixel = (page: Page, src: string) =>
 	page.evaluate(async (url) => {
-		// The e2e package compiles without the DOM library.
-		const browser = globalThis as unknown as {
-			createImageBitmap: (blob: unknown) => Promise<{
-				width: number;
-				height: number;
-			}>;
-			OffscreenCanvas: new (
-				width: number,
-				height: number,
-			) => {
-				getContext: (kind: "2d") => {
-					drawImage: (image: unknown, x: number, y: number) => void;
-					getImageData: (
-						x: number,
-						y: number,
-						width: number,
-						height: number,
-					) => {
-						data: ArrayLike<number>;
-					};
-				} | null;
-			};
-		};
-		const bitmap = await browser.createImageBitmap(
-			await (await fetch(url)).blob(),
+		const bitmap = await createImageBitmap(await (await fetch(url)).blob());
+		const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext(
+			"2d",
 		);
-		const context = new browser.OffscreenCanvas(
-			bitmap.width,
-			bitmap.height,
-		).getContext("2d");
 		if (!context) throw new Error("no 2d context");
 		context.drawImage(bitmap, 0, 0);
 		const { data } = context.getImageData(

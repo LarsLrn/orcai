@@ -1,12 +1,18 @@
-import { untilAllowed } from "../../fixtures/authorization";
+import { afterAll, beforeEach, expect, test } from "bun:test";
+import { sleep } from "bun";
 import {
 	DEFAULT_EMBEDDING_DIMENSIONS,
-	expect,
-	INFERENCE_MOCK_CONTEXT_WINDOW,
 	INFERENCE_MOCK_MODELS,
 	startInferenceMock,
-	test,
-} from "../../fixtures/inference/fixture";
+} from "./inference-mock";
+
+const inference = await startInferenceMock();
+afterAll(() => inference.close());
+beforeEach(() => inference.reset());
+
+const until = async (condition: () => boolean) => {
+	while (!condition()) await sleep(5);
+};
 
 const jsonPost = async (url: string, body: unknown, signal?: AbortSignal) =>
 	await fetch(url, {
@@ -66,7 +72,9 @@ const streamedChunks = (body: string): StreamedChunk[] =>
 
 type Completion = {
 	choices: {
+		index: number;
 		message: {
+			role: string;
 			content: string | null;
 			tool_calls?: {
 				id: string;
@@ -77,6 +85,7 @@ type Completion = {
 				};
 			}[];
 		};
+		logprobs: null;
 		finish_reason: string;
 	}[];
 	usage: {
@@ -101,9 +110,7 @@ const finishReasons = (chunks: StreamedChunk[]): string[] =>
 				: [],
 		);
 
-test("the inference mock lists its models", async ({ inference }) => {
-	inference.reset();
-
+test("the inference mock lists its models", async () => {
 	const response = await fetch(`${inference.url}/models`, {
 		headers: {
 			authorization: "Bearer e2e-mock-key",
@@ -135,9 +142,7 @@ test("the inference mock lists its models", async ({ inference }) => {
 	});
 });
 
-test("the inference mock echoes a chat completion", async ({ inference }) => {
-	inference.reset();
-
+test("the inference mock echoes a chat completion", async () => {
 	const response = await jsonPost(`${inference.url}/chat/completions`, {
 		model: INFERENCE_MOCK_MODELS.chat,
 		messages: [
@@ -180,8 +185,7 @@ test("the inference mock echoes a chat completion", async ({ inference }) => {
 	});
 });
 
-test("the inference mock answers a scripted reply", async ({ inference }) => {
-	inference.reset();
+test("the inference mock answers a scripted reply", async () => {
 	inference.respondWith({
 		text: "Scripted answer",
 	});
@@ -231,9 +235,7 @@ test("the inference mock answers a scripted reply", async ({ inference }) => {
 	).toBe("Mock inference reply to: Anything");
 });
 
-test("the inference mock streams a chat completion", async ({ inference }) => {
-	inference.reset();
-
+test("the inference mock streams a chat completion", async () => {
 	const response = await jsonPost(`${inference.url}/chat/completions`, {
 		model: INFERENCE_MOCK_MODELS.chat,
 		stream: true,
@@ -269,10 +271,7 @@ test("the inference mock streams a chat completion", async ({ inference }) => {
 	expect(events.at(-1)?.usage?.total_tokens).toBeGreaterThan(0);
 });
 
-test("the inference mock answers scripted steps in order, then falls back", async ({
-	inference,
-}) => {
-	inference.reset();
+test("the inference mock answers scripted steps in order, then falls back", async () => {
 	inference.respondWith({
 		text: "Standing reply",
 	});
@@ -310,11 +309,7 @@ test("the inference mock answers scripted steps in order, then falls back", asyn
 	);
 });
 
-test("the inference mock streams scripted text and tool calls", async ({
-	inference,
-}) => {
-	inference.reset();
-
+test("the inference mock streams scripted text and tool calls", async () => {
 	const lookup = {
 		query: "quarterly report",
 		limit: 3,
@@ -410,10 +405,7 @@ test("the inference mock streams scripted text and tool calls", async ({
 	expect(chunks.at(-1)?.usage?.completion_tokens).toBe(6);
 });
 
-test("the inference mock answers scripted tool calls without streaming", async ({
-	inference,
-}) => {
-	inference.reset();
+test("the inference mock answers scripted tool calls without streaming", async () => {
 	inference.script(
 		{
 			toolCalls: [
@@ -484,10 +476,7 @@ test("the inference mock answers scripted tool calls without streaming", async (
 	]);
 });
 
-test("the inference mock holds a response until release", async ({
-	inference,
-}) => {
-	inference.reset();
+test("the inference mock holds a response until release", async () => {
 	inference.script({
 		text: "Held reply",
 		hold: "response",
@@ -503,7 +492,7 @@ test("the inference mock holds a response until release", async ({
 		return response;
 	});
 
-	await expect.poll(() => inference.held()).toBe(1);
+	await until(() => inference.held() === 1);
 	expect(answered).toBe(false);
 	expect(inference.requests.at(-1)).toMatchObject({
 		method: "POST",
@@ -516,10 +505,7 @@ test("the inference mock holds a response until release", async ({
 	expect(inference.held()).toBe(0);
 });
 
-test("the inference mock holds the end of a stream until release", async ({
-	inference,
-}) => {
-	inference.reset();
+test("the inference mock holds the end of a stream until release", async () => {
 	inference.script({
 		toolCalls: [
 			{
@@ -562,7 +548,7 @@ test("the inference mock holds the end of a stream until release", async ({
 		return result;
 	});
 
-	await expect.poll(() => inference.held()).toBe(1);
+	await until(() => inference.held() === 1);
 	expect(ended).toBe(false);
 
 	inference.release();
@@ -572,10 +558,7 @@ test("the inference mock holds the end of a stream until release", async ({
 	expect(inference.abandoned()).toBe(0);
 });
 
-test("the inference mock counts a held request the client abandons", async ({
-	inference,
-}) => {
-	inference.reset();
+test("the inference mock counts a held request the client abandons", async () => {
 	inference.script({
 		hold: "response",
 	});
@@ -587,18 +570,15 @@ test("the inference mock counts a held request the client abandons", async ({
 		controller.signal,
 	).catch((cause: unknown) => cause);
 
-	await expect.poll(() => inference.held()).toBe(1);
+	await until(() => inference.held() === 1);
 	controller.abort();
 
 	expect(await pending).toBeInstanceOf(Error);
-	await expect.poll(() => inference.abandoned()).toBe(1);
+	await until(() => inference.abandoned() === 1);
 	expect(inference.held()).toBe(0);
 });
 
-test("the inference mock reset drops queued steps and held responses", async ({
-	inference,
-}) => {
-	inference.reset();
+test("the inference mock reset drops queued steps and held responses", async () => {
 	inference.script(
 		{
 			hold: "response",
@@ -611,7 +591,7 @@ test("the inference mock reset drops queued steps and held responses", async ({
 	const url = `${inference.url}/chat/completions`;
 	const pending = jsonPost(url, ask("Held")).catch((cause: unknown) => cause);
 
-	await expect.poll(() => inference.held()).toBe(1);
+	await until(() => inference.held() === 1);
 	inference.reset();
 
 	expect(await pending).toBeInstanceOf(Error);
@@ -622,11 +602,7 @@ test("the inference mock reset drops queued steps and held responses", async ({
 	);
 });
 
-test("the inference mock embeds a string and an array", async ({
-	inference,
-}) => {
-	inference.reset();
-
+test("the inference mock embeds a string and an array", async () => {
 	const single = await jsonPost(`${inference.url}/embeddings`, {
 		model: INFERENCE_MOCK_MODELS.embedding,
 		input: "one document",
@@ -687,10 +663,7 @@ test("the inference mock embeds a string and an array", async ({
 	).toEqual(manyPayload.data[0].embedding);
 });
 
-test("the inference mock injects an error for one request", async ({
-	inference,
-}) => {
-	inference.reset();
+test("the inference mock injects an error for one request", async () => {
 	inference.failNext({
 		status: 500,
 		message: "Injected upstream failure",
@@ -713,11 +686,7 @@ test("the inference mock injects an error for one request", async ({
 	expect((await fetch(`${inference.url}/models`)).status).toBe(200);
 });
 
-test("the inference mock answers an unknown route with 404", async ({
-	inference,
-}) => {
-	inference.reset();
-
+test("the inference mock answers an unknown route with 404", async () => {
 	const response = await fetch(`${inference.url}/completions`);
 
 	expect(response.status).toBe(404);
@@ -755,153 +724,4 @@ test("the inference mock guards its endpoints when a key is required", async () 
 	} finally {
 		await guarded.close();
 	}
-});
-
-test("the app discovers the inference mock's models through a provider", async ({
-	api,
-	inference,
-}) => {
-	inference.reset();
-
-	const apiKey = "e2e-mock-provider-key";
-
-	// The `org` fixture's admin joined through the sign-up hook, whose grant no
-	// response announces. A refused create wrote nothing, so repeating is safe.
-	const created = await untilAllowed(() =>
-		api.as("admin").provider.create({
-			name: `E2E Inference Mock ${String(Date.now())}`,
-			description: "Mock OpenAI-compatible endpoint for the e2e suite.",
-			endpoint: inference.url,
-			kind: "openai-compatible",
-			meteringMode: "tokens",
-			apiKey,
-			enabled: true,
-		}),
-	);
-
-	const createdProviderId = created.data.id;
-
-	const discovered = await api.as("admin").model.discover({
-		providerId: createdProviderId,
-	});
-
-	expect(discovered.data.foundCount).toBe(inference.models.length);
-	expect(discovered.data.addedCount).toBe(inference.models.length);
-
-	const listed = await api.as("admin").model.list({
-		pageIndex: 0,
-		pageSize: 100,
-		filters: {
-			providerId: createdProviderId,
-		},
-	});
-
-	expect(listed.data.map((model) => model.providerModelId).sort()).toEqual(
-		[
-			...inference.models,
-		].sort(),
-	);
-	expect(listed.data.map((model) => model.capabilities)).toEqual(
-		inference.models.map(() => null),
-	);
-
-	const limitsOf = (models: typeof listed.data) =>
-		Object.fromEntries(
-			models.map((model) => [
-				model.providerModelId,
-				{
-					contextWindow: model.contextWindow,
-					maxOutputTokens: model.maxOutputTokens,
-				},
-			]),
-		);
-
-	expect(limitsOf(listed.data)).toEqual({
-		[INFERENCE_MOCK_MODELS.chat]: {
-			contextWindow: INFERENCE_MOCK_CONTEXT_WINDOW,
-			maxOutputTokens: null,
-		},
-		[INFERENCE_MOCK_MODELS.embedding]: {
-			contextWindow: null,
-			maxOutputTokens: null,
-		},
-	});
-
-	const discovery = inference.requests.find(
-		(request) => request.path === "/v1/models",
-	);
-
-	expect(discovery).toBeDefined();
-	expect(discovery?.headers.authorization).toBe(`Bearer ${apiKey}`);
-});
-
-test("rediscovery fills the limits a model lacks and keeps edited ones", async ({
-	api,
-	inference,
-}) => {
-	const admin = api.as("admin");
-	const created = await untilAllowed(() =>
-		admin.provider.create({
-			name: `E2E Inference Mock ${String(Date.now())}`,
-			description: "Mock OpenAI-compatible endpoint for the e2e suite.",
-			endpoint: inference.url,
-			kind: "openai-compatible",
-			meteringMode: "tokens",
-			apiKey: "e2e-mock-provider-key",
-			enabled: true,
-		}),
-	);
-	const providerId = created.data.id;
-	const chatModel = async () => {
-		const listed = await admin.model.list({
-			pageIndex: 0,
-			pageSize: 100,
-			filters: {
-				providerId,
-			},
-		});
-		const model = listed.data.find(
-			({ providerModelId }) => providerModelId === INFERENCE_MOCK_MODELS.chat,
-		);
-		if (!model) throw new Error("Missing mock chat model");
-		return model;
-	};
-
-	await admin.model.discover({
-		providerId,
-	});
-	const { id } = await chatModel();
-
-	await admin.model.update({
-		id,
-		contextWindow: null,
-		maxOutputTokens: 4_096,
-	});
-	const rediscovered = await admin.model.discover({
-		providerId,
-	});
-
-	expect(rediscovered.data).toEqual({
-		foundCount: inference.models.length,
-		addedCount: 0,
-		alreadyExistedCount: inference.models.length,
-		capabilitiesUnsetCount: 0,
-	});
-	expect(await chatModel()).toMatchObject({
-		contextWindow: INFERENCE_MOCK_CONTEXT_WINDOW,
-		maxOutputTokens: 4_096,
-	});
-
-	await admin.model.update({
-		id,
-		contextWindow: 8_192,
-	});
-	await admin.model.discover({
-		providerId,
-	});
-
-	expect(await chatModel()).toMatchObject({
-		contextWindow: 8_192,
-		maxOutputTokens: 4_096,
-	});
 });

@@ -1,3 +1,4 @@
+import { type InferenceMock, startInferenceMock } from "@orcai/ai/testing";
 import {
 	type BrowserContext,
 	type BrowserContextOptions,
@@ -44,6 +45,8 @@ type WorkerFixtures = {
 	appBaseURL: string;
 	org: WorkerOrganisation;
 	orgs: Organisations;
+	/** This worker's mock inference server; tests use `inference`, which resets it. */
+	inferenceServer: InferenceMock;
 };
 
 /** Opens a page signed in as the instance-wide well-known admin. */
@@ -69,6 +72,8 @@ type TestFixtures = {
 	pageForSession: (session: Session) => Promise<Page>;
 	/** Give an open page the newest zedToken of this test, so its next reads are fresh. */
 	seedZedToken: (page: Page) => Promise<void>;
+	/** The worker's mock inference server, on an ephemeral port, reset before and after the test. */
+	inference: InferenceMock;
 };
 
 const slugify = (name: string) =>
@@ -138,6 +143,27 @@ const extended = base.extend<TestFixtures, WorkerFixtures>({
 			scope: "worker",
 		},
 	],
+
+	inferenceServer: [
+		// biome-ignore lint/correctness/noEmptyPattern: Playwright reads fixture dependencies from this pattern.
+		async ({}, use) => {
+			const mock = await startInferenceMock();
+			await use(mock);
+			await mock.close();
+		},
+		{
+			scope: "worker",
+		},
+	],
+
+	inference: async ({ inferenceServer }, use) => {
+		inferenceServer.reset();
+		try {
+			await use(inferenceServer);
+		} finally {
+			inferenceServer.reset();
+		}
+	},
 
 	// biome-ignore lint/correctness/noEmptyPattern: Playwright reads fixture dependencies from this pattern.
 	zedTokens: async ({}, use) => {

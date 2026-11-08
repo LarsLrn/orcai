@@ -28,9 +28,10 @@ import {
 	signInFromInvitation,
 	submitSignIn,
 } from "../../fixtures/orgs/invitations";
-import { addMember, createOrgsUser } from "../../fixtures/orgs/members";
+import { addMember } from "../../fixtures/orgs/members";
 import { openGuarded } from "../../fixtures/orgs/navigation";
 import { chooseRole } from "../../fixtures/orgs/roles";
+import { createUser } from "../../fixtures/users";
 
 test("orgs: an admin invites an address through the form and the link reaches the outbox", async ({
 	api,
@@ -178,13 +179,12 @@ test("orgs: an invited visitor registers from the link and joins with the invite
 
 test("orgs: an existing user accepts a pending invitation from the selection page", async ({
 	api,
-	appBaseURL,
 	newContext,
 	org,
 }) => {
 	test.slow();
 
-	const user = await createOrgsUser(appBaseURL, "invited-existing");
+	const user = await createUser("invited-existing");
 	await inviteEmail(api.as("admin"), {
 		email: user.email,
 		role: "manager",
@@ -223,19 +223,17 @@ test("orgs: an existing user accepts a pending invitation from the selection pag
 const invitedMember = async (
 	{
 		api,
-		appBaseURL,
 		orgs,
 		zedTokens,
 	}: {
 		api: Api;
-		appBaseURL: string;
 		orgs: Organisations;
 		zedTokens: ZedTokenStore;
 	},
 	label: string,
 	role: Role,
 ) => {
-	const user = await createOrgsUser(appBaseURL, label);
+	const user = await createUser(label);
 	await addMember(api.as("admin"), {
 		user,
 		role: "member",
@@ -255,7 +253,6 @@ const invitedMember = async (
 
 test("orgs: an existing user signs in from the invitation link and lands on its acceptance", async ({
 	api,
-	appBaseURL,
 	newContext,
 	orgs,
 	outbox,
@@ -266,7 +263,6 @@ test("orgs: an existing user signs in from the invitation link and lands on its 
 	const { user, inviting } = await invitedMember(
 		{
 			api,
-			appBaseURL,
 			orgs,
 			zedTokens,
 		},
@@ -302,7 +298,6 @@ test("orgs: the second sign-in step and the sign-in pages' back links keep the i
 	const { user, inviting } = await invitedMember(
 		{
 			api,
-			appBaseURL,
 			orgs,
 			zedTokens,
 		},
@@ -363,7 +358,6 @@ test("orgs: the second sign-in step and the sign-in pages' back links keep the i
 
 test("orgs: a signed-in invitee opening the link lands on its acceptance, and a used link says so", async ({
 	api,
-	appBaseURL,
 	newContext,
 	orgs,
 	outbox,
@@ -374,7 +368,6 @@ test("orgs: a signed-in invitee opening the link lands on its acceptance, and a 
 	const { user, inviting } = await invitedMember(
 		{
 			api,
-			appBaseURL,
 			orgs,
 			zedTokens,
 		},
@@ -403,7 +396,6 @@ test("orgs: a signed-in invitee opening the link lands on its acceptance, and a 
 
 test("orgs: a link opened under another account names the invited address and offers to sign out", async ({
 	api,
-	appBaseURL,
 	newContext,
 	outbox,
 }) => {
@@ -414,7 +406,7 @@ test("orgs: a link opened under another account names the invited address and of
 		email,
 		role: "member",
 	});
-	const someoneElse = await createOrgsUser(appBaseURL, "other-account");
+	const someoneElse = await createUser("other-account");
 
 	const link = await waitForLink(outbox, email, INVITED_NOTIFICATION);
 	const context = await newContext({

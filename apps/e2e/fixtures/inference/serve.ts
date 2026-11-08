@@ -1,5 +1,5 @@
 /** Standalone mock inference server on `E2E_INFERENCE_PORT`, the first `webServer` entry. */
-import { startInferenceMock } from "./server";
+import { startInferenceMock } from "@orcai/ai/testing";
 
 const port = Number.parseInt(process.env.E2E_INFERENCE_PORT ?? "", 10);
 

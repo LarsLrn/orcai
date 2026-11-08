@@ -19,12 +19,12 @@ export const DEFAULT_EMBEDDING_DIMENSIONS = 1024;
 const OWNER = "orcai-e2e";
 
 /** The chat model's context window, reported the way vLLM does. */
-export const INFERENCE_MOCK_CONTEXT_WINDOW = 32_768;
+const INFERENCE_MOCK_CONTEXT_WINDOW = 32_768;
 
 /** Fixed `created` timestamp, so two identical runs produce identical bodies. */
 const CREATED = 1_700_000_000;
 
-export type RecordedRequest = {
+type RecordedRequest = {
 	method: string;
 	/** Path including the `/v1` prefix, without the query string. */
 	path: string;
@@ -37,7 +37,7 @@ export type RecordedRequest = {
 	};
 };
 
-export type ScriptedReply = {
+type ScriptedReply = {
 	/** Assistant text to answer with instead of the echo. */
 	text: string;
 	/** Only answer requests for this model; omit for the default reply. */
@@ -77,13 +77,13 @@ export type ScriptedStep = {
 };
 
 /** One page of a mock Tavily answer. */
-export type SearchResult = {
+type SearchResult = {
 	url: string;
 	title: string;
 	content: string;
 };
 
-export type ScriptedFailure = {
+type ScriptedFailure = {
 	status: number;
 	message?: string;
 	code?: string;
@@ -323,6 +323,11 @@ const sendJson = (
 		"content-length": String(Buffer.byteLength(body)),
 	});
 	response.end(body);
+};
+
+/** Drops the connection; under Bun, `ServerResponse.destroy()` answers an empty 200 instead. */
+const cut = (response: ServerResponse) => {
+	response.socket?.destroy();
 };
 
 /** A deterministic OpenAI-compatible server: fixed models, echoing chat, stable embeddings. */
@@ -724,7 +729,7 @@ export const startInferenceMock = async (
 		handle(request, response).catch((cause: unknown) => {
 			// Headers are out, so cutting the connection is the only error signal left.
 			if (response.headersSent) {
-				response.destroy();
+				cut(response);
 
 				return;
 			}
@@ -781,7 +786,7 @@ export const startInferenceMock = async (
 		reset: () => {
 			for (const response of holds.keys()) {
 				discarded.add(response);
-				response.destroy();
+				cut(response);
 			}
 
 			holds.clear();

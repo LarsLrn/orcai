@@ -1,3 +1,4 @@
+import type { ScriptedToolCall } from "@orcai/ai/testing";
 import type { ChatId } from "@orcai/core";
 import type { Locator } from "@playwright/test";
 import type { ZedTokenStore } from "../../fixtures/api";
@@ -22,13 +23,10 @@ import {
 } from "../../fixtures/assistant/approval";
 import {
 	BOTS_TOOLS,
-	isRecord,
-	offeredTools,
 	openConversation,
 	setUpAssistantModel,
+	sortedNames,
 	startTitledConversation,
-	toolResultsOf,
-	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import {
 	approvePlan,
@@ -59,11 +57,15 @@ import {
 	createBot as createGenUiBot,
 } from "../../fixtures/gen-ui/gen-ui";
 import type { ApiClient } from "../../fixtures/index";
+import { expect, test } from "../../fixtures/index";
 import {
-	expect,
-	type ScriptedToolCall,
-	test,
-} from "../../fixtures/inference/fixture";
+	type CompletionRequest,
+	lastCallInput,
+	offeredTools,
+	toolResultFor,
+	toolResults,
+	turnRequests,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { awaitHydration, enterApp } from "../../fixtures/navigation";
 
@@ -90,39 +92,11 @@ const loadToolsCall = (group: "bots"): ScriptedToolCall => {
 	return call;
 };
 
-/** The content of the tool message that answers a call. */
-const toolResultFor = (body: unknown, callId: string | undefined): unknown =>
-	(isRecord(body) && Array.isArray(body.messages) ? body.messages : []).find(
-		(entry: unknown) =>
-			isRecord(entry) && entry.role === "tool" && entry.tool_call_id === callId,
-	)?.content;
-
 /** The parsed result a request sends the model for a call. */
-const parsedResultFor = (body: unknown, callId: string | undefined): unknown =>
-	JSON.parse(String(toolResultFor(body, callId)));
-
-/** The parsed arguments of a request's newest call of a tool. */
-const lastCallInput = (body: unknown, name: string): unknown => {
-	const calls = (
-		isRecord(body) && Array.isArray(body.messages) ? body.messages : []
-	).flatMap((entry: unknown) =>
-		isRecord(entry) && Array.isArray(entry.tool_calls) ? entry.tool_calls : [],
-	);
-	const call = calls
-		.filter(
-			(candidate: unknown) =>
-				isRecord(candidate) &&
-				isRecord(candidate.function) &&
-				candidate.function.name === name,
-		)
-		.at(-1);
-
-	return isRecord(call) &&
-		isRecord(call.function) &&
-		typeof call.function.arguments === "string"
-		? JSON.parse(call.function.arguments)
-		: undefined;
-};
+const parsedResultFor = (
+	request: CompletionRequest | undefined,
+	callId: string | undefined,
+): unknown => JSON.parse(String(toolResultFor(request, callId)));
 
 /**
  * Whether the bot the last reply created reads back. No cookie carries a
@@ -196,13 +170,13 @@ test("assistant: the create tools are offered once a plan is approved, from the 
 	const proposing = turnRequests(inference);
 	expect(proposing).toHaveLength(2);
 	for (const request of proposing) {
-		expect(offeredTools(request)).toContain("updatePlan");
+		expect(sortedNames(offeredTools(request))).toContain("updatePlan");
 	}
-	expect(offeredTools(proposing[1])).toEqual(
+	expect(sortedNames(offeredTools(proposing[1]))).toEqual(
 		expect.arrayContaining(withoutCreates(BOTS_TOOLS)),
 	);
 	for (const name of CREATE_TOOLS) {
-		expect(offeredTools(proposing[1])).not.toContain(name);
+		expect(sortedNames(offeredTools(proposing[1]))).not.toContain(name);
 	}
 
 	expect(
@@ -221,7 +195,9 @@ test("assistant: the create tools are offered once a plan is approved, from the 
 	const resumed = turnRequests(inference).slice(2);
 	expect(resumed).toHaveLength(2);
 	for (const request of resumed) {
-		expect(offeredTools(request)).toEqual(expect.arrayContaining(BOTS_TOOLS));
+		expect(sortedNames(offeredTools(request))).toEqual(
+			expect.arrayContaining(BOTS_TOOLS),
+		);
 	}
 	// The provider drops the approval itself, so the result tells the model.
 	expect(parsedResultFor(resumed[0], proposal.id)).toEqual({
@@ -246,7 +222,9 @@ test("assistant: the create tools are offered once a plan is approved, from the 
 	});
 	await askOverApi(member, chatId, "Thanks");
 	const [later] = turnRequests(inference);
-	expect(offeredTools(later)).toEqual(expect.arrayContaining(BOTS_TOOLS));
+	expect(sortedNames(offeredTools(later))).toEqual(
+		expect.arrayContaining(BOTS_TOOLS),
+	);
 });
 
 test("assistant: bot chats and plain chats are not offered updatePlan", async ({
@@ -265,8 +243,8 @@ test("assistant: bot chats and plain chats are not offered updatePlan", async ({
 		inference.reset();
 		await askOverApi(member, chatId, "Which tools do you have?");
 		const [request] = turnRequests(inference);
-		expect(offeredTools(request)).not.toContain("updatePlan");
-		expect(offeredTools(request)).not.toContain("loadTools");
+		expect(sortedNames(offeredTools(request))).not.toContain("updatePlan");
+		expect(sortedNames(offeredTools(request))).not.toContain("loadTools");
 	}
 });
 
@@ -627,11 +605,11 @@ test("assistant: a new message instead of an answer supersedes the plan and keep
 	]);
 	const requests = turnRequests(inference);
 	expect(requests).toHaveLength(3);
-	expect(offeredTools(requests[2])).toEqual(
+	expect(sortedNames(offeredTools(requests[2]))).toEqual(
 		expect.arrayContaining(withoutCreates(BOTS_TOOLS)),
 	);
 	for (const name of CREATE_TOOLS) {
-		expect(offeredTools(requests[2])).not.toContain(name);
+		expect(sortedNames(offeredTools(requests[2]))).not.toContain(name);
 	}
 
 	// A superseded proposal is no plan.
@@ -755,7 +733,7 @@ test("assistant: after approval later turns create without a new approval, and t
 		items,
 	});
 	// Outside the latest step, the plan's output is its summary line.
-	expect(toolResultsOf(later)).toContain(planLine(title, items));
+	expect(toolResults(later)).toContain(planLine(title, items));
 });
 
 test("assistant: deleteBot needs no plan and still shows its card after a plan was approved", async ({
@@ -873,7 +851,7 @@ test("assistant: a plan with a step label over the limit fails as a tool error, 
 	await expect(page.getByRole("alert")).toHaveCount(0);
 
 	const [, retry] = turnRequests(inference);
-	expect(JSON.stringify(toolResultsOf(retry))).toContain(
+	expect(JSON.stringify(toolResults(retry))).toContain(
 		"Invalid input for tool updatePlan",
 	);
 	expect(

@@ -9,6 +9,11 @@
 		"composite": true,
 		"rootDir": ".",
 		"tsBuildInfoFile": "./tsconfig.tsbuildinfo",
+		"lib": [
+			"ES2022",
+			"DOM",
+			"DOM.Iterable"
+		],
 		"types": [
 			"node"
 		]

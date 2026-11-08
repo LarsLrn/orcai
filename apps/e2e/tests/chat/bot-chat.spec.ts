@@ -4,7 +4,7 @@ import {
 	setUpChatModel,
 	streamedText,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 
 test("a chat linked to a just-saved bot answers its first message", async ({
 	api,

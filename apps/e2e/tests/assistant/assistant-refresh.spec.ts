@@ -15,7 +15,7 @@ import {
 import { turnFinished } from "../../fixtures/chat/chat";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
 import type { Api } from "../../fixtures/index";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { runId, type WorkerOrganisation } from "../../fixtures/organisation";

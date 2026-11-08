@@ -3,9 +3,7 @@ import type { Page } from "@playwright/test";
 import {
 	ask,
 	chatName,
-	completionRequests,
 	composer,
-	conversationOf,
 	createChat,
 	messageText,
 	openChat,
@@ -13,7 +11,11 @@ import {
 	turnFinished,
 } from "../../fixtures/chat/chat";
 import type { ApiClient } from "../../fixtures/index";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import {
+	completionRequests,
+	conversationOf,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -253,7 +255,7 @@ test("a message sent straight after Stop follows the stopped reply and sees it",
 	expect(partial.length).toBeLessThan(longReply.length);
 
 	const questionB = completionRequests(inference).at(-1);
-	expect(conversationOf(questionB?.body)).toEqual([
+	expect(conversationOf(questionB)).toEqual([
 		{
 			role: "user",
 			text: "Question A",

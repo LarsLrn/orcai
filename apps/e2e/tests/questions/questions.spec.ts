@@ -1,3 +1,4 @@
+import type { JsonValue } from "@orcai/ai/testing";
 import { actStep } from "../../fixtures/assistant/approval";
 import {
 	openConversation,
@@ -5,23 +6,20 @@ import {
 	setUpAssistantModel,
 	startTitledConversation,
 	toolMessages,
-	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import {
-	completionRequests,
 	messageText,
 	openChat,
 	setUpChatModel,
 	turnFinished,
 } from "../../fixtures/chat/chat";
+import { ask, createBot, createBotChat } from "../../fixtures/gen-ui/gen-ui";
+import { expect, test } from "../../fixtures/index";
 import {
-	ask,
-	completionBodies,
-	createBot,
-	createBotChat,
+	completionRequests,
 	toolResults,
-} from "../../fixtures/gen-ui/gen-ui";
-import { expect, type JsonValue, test } from "../../fixtures/inference/fixture";
+	turnRequests,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import {
@@ -318,7 +316,7 @@ test("questions: a bot's quiz is answered, submitted and graded with the compute
 	await expect(
 		log.getByText("Kyoto was the capital until 1869."),
 	).toBeVisible();
-	const grading = toolResults(completionBodies(inference).at(-1)).map(String);
+	const grading = toolResults(completionRequests(inference).at(-1)).map(String);
 	expect(grading.at(-1)).toContain('"earned":2,"points":4');
 
 	inference.script({
@@ -407,7 +405,7 @@ test("questions: skipping tells the model the user declined", async ({
 		}),
 	).toBeVisible();
 	expect(
-		toolResults(completionBodies(inference).at(-1)).map(String).at(-1),
+		toolResults(completionRequests(inference).at(-1)).map(String).at(-1),
 	).toContain("The user skipped the questions.");
 });
 
@@ -455,15 +453,7 @@ test("questions: picking a quiz answer leaves the conversation where it is", asy
 	});
 	await answer.scrollIntoViewIfNeeded();
 	const viewport = page.getByLabel(message("message_scroller_viewport_label"));
-	const scrollTop = () =>
-		viewport.evaluate(
-			(element) =>
-				(
-					element as unknown as {
-						scrollTop: number;
-					}
-				).scrollTop,
-		);
+	const scrollTop = () => viewport.evaluate((element) => element.scrollTop);
 	const before = await scrollTop();
 	await answer.click();
 

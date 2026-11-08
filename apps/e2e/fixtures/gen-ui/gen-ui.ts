@@ -8,7 +8,6 @@ import {
 	turnFinished,
 } from "../chat/chat";
 import type { ApiClient } from "../index";
-import type { InferenceMock } from "../inference/fixture";
 import { message } from "../messages";
 
 export const GEN_UI = {
@@ -77,61 +76,6 @@ export const createBotChat = async (
 
 	return chat.data.id;
 };
-
-type CompletionBody = {
-	tools?: {
-		function?: {
-			name?: string;
-		};
-	}[];
-	messages?: {
-		role?: string;
-		content?: unknown;
-		tool_calls?: {
-			function?: {
-				name?: string;
-				arguments?: string;
-			};
-		}[];
-	}[];
-};
-
-/** The chat completion bodies the mock received, oldest first. */
-export const completionBodies = (inference: InferenceMock): CompletionBody[] =>
-	inference.requests
-		.filter(
-			(request) =>
-				request.method === "POST" && request.path === "/v1/chat/completions",
-		)
-		.map((request) => (request.body ?? {}) as CompletionBody);
-
-/** Tool names a completion request offers the model. */
-export const offeredTools = (body: CompletionBody | undefined): string[] =>
-	(body?.tools ?? []).flatMap((entry) =>
-		entry.function?.name
-			? [
-					entry.function.name,
-				]
-			: [],
-	);
-
-/** Tool calls the request's history carries, by name. */
-export const historyToolCalls = (body: CompletionBody | undefined): string[] =>
-	(body?.messages ?? []).flatMap((entry) =>
-		(entry.tool_calls ?? []).flatMap((call) =>
-			call.function?.name
-				? [
-						call.function.name,
-					]
-				: [],
-		),
-	);
-
-/** Contents of the request's tool result messages. */
-export const toolResults = (body: CompletionBody | undefined): unknown[] =>
-	(body?.messages ?? [])
-		.filter((entry) => entry.role === "tool")
-		.map((entry) => entry.content);
 
 /** Type a question and send it from the composer. */
 export const ask = async (page: Page, question: string): Promise<void> => {

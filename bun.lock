@@ -168,6 +168,7 @@
       "version": "0.1.0",
       "devDependencies": {
         "@better-auth/utils": "0.5.1",
+        "@orcai/ai": "workspace:*",
         "@orcai/contracts": "workspace:*",
         "@orcai/core": "workspace:*",
         "@orcai/notifications": "workspace:*",

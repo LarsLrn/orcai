@@ -1,16 +1,14 @@
 import { setPictureThroughApi } from "../../fixtures/account/images";
-import { createAccountUser } from "../../fixtures/account/users";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
+import { createMember } from "../../fixtures/users";
 
 test("instance: an instance admin removes an account's picture from its page", async ({
 	api,
-	appBaseURL,
 	pageAsWellKnownAdmin,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "moderated",
 		admin: api.as("admin"),
 	});

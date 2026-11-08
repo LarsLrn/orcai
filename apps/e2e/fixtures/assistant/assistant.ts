@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import type { InferenceMock } from "@orcai/ai/testing";
 import type { ChatId, ModelId, ProviderId } from "@orcai/core";
 import type { ORPCError } from "@orpc/client";
 import { expect, type Page } from "@playwright/test";
@@ -9,13 +10,16 @@ import { rejection } from "../authorization";
 import {
 	type ChatModel,
 	chatName,
-	completionRequests,
 	composer,
 	setUpChatModel,
 	streamedText,
 } from "../chat/chat";
 import type { Api, WorkerOrganisation } from "../index";
-import type { InferenceMock } from "../inference/fixture";
+import {
+	type CompletionRequest,
+	toolResults,
+	turnRequests,
+} from "../inference/requests";
 import { message } from "../messages";
 import { open } from "../navigation";
 import { runId } from "../organisation";
@@ -206,19 +210,8 @@ export const sortedNames = (names: string[]): string[] =>
 		...names,
 	].sort();
 
-/** The streamed completion requests of turns; title generation does not stream. */
-export const turnRequests = (
-	inference: InferenceMock,
-): Record<string, unknown>[] =>
-	completionRequests(inference)
-		.map((request) => request.body)
-		.filter(
-			(body): body is Record<string, unknown> =>
-				isRecord(body) && body.stream === true,
-		);
-
 /** The mock model the latest turn asked for. */
-export const lastTurnModel = (inference: InferenceMock): unknown =>
+export const lastTurnModel = (inference: InferenceMock): string | undefined =>
 	turnRequests(inference).at(-1)?.model;
 
 /** Open the assistant start page and wait for its history. */
@@ -303,42 +296,6 @@ export const pickModel = async (page: Page, modelName: string) => {
 		.click();
 	await expect(modelPickerDialog(page)).toHaveCount(0);
 };
-
-const messagesOf = (body: unknown): Record<string, unknown>[] =>
-	isRecord(body) && Array.isArray(body.messages) ? body.messages : [];
-
-/** The system message a completion request starts with. */
-export const systemPromptOf = (body: unknown): string => {
-	const content = messagesOf(body).find(
-		(entry) => entry.role === "system",
-	)?.content;
-
-	return typeof content === "string" ? content : "";
-};
-
-/** The contents of the tool messages a completion request carries, oldest first. */
-export const toolResultsOf = (body: unknown): string[] =>
-	messagesOf(body).flatMap((entry) =>
-		entry.role === "tool" && typeof entry.content === "string"
-			? [
-					entry.content,
-				]
-			: [],
-	);
-
-/** The names of the tools a completion request offers. */
-export const offeredToolsOf = (body: unknown): string[] =>
-	isRecord(body) && Array.isArray(body.tools)
-		? body.tools.flatMap((entry: unknown) =>
-				isRecord(entry) &&
-				isRecord(entry.function) &&
-				typeof entry.function.name === "string"
-					? [
-							entry.function.name,
-						]
-					: [],
-			)
-		: [];
 
 /**
  * A conversation past its first turn, so the title it generates on the way
@@ -443,35 +400,17 @@ export const PEOPLE_TOOLS = [
 	"cancelInvitation",
 ];
 
-/** The names of the tools a request offers, sorted for set comparison. */
-export const offeredTools = (body: unknown): string[] =>
-	sortedNames(offeredToolsOf(body));
-
 /** The parsed JSON of each tool message a request carries; text results stay strings. */
-export const toolMessages = (body: unknown): unknown[] =>
-	toolResultsOf(body).map((content) => {
+export const toolMessages = (
+	request: CompletionRequest | undefined,
+): unknown[] =>
+	toolResults(request).map((content) => {
 		try {
 			return JSON.parse(content) as unknown;
 		} catch {
 			return content;
 		}
 	});
-
-/** The names of the tool calls a request's history carries, oldest first. */
-export const historyToolCallsOf = (body: unknown): string[] =>
-	messagesOf(body).flatMap((entry) =>
-		Array.isArray(entry.tool_calls)
-			? entry.tool_calls.flatMap((call: unknown) =>
-					isRecord(call) &&
-					isRecord(call.function) &&
-					typeof call.function.name === "string"
-						? [
-								call.function.name,
-							]
-						: [],
-				)
-			: [],
-	);
 
 /**
  * Wait until the turn's `count`th request arrived and its scripted response
@@ -480,7 +419,7 @@ export const historyToolCallsOf = (body: unknown): string[] =>
 export const heldTurnRequest = async (
 	inference: InferenceMock,
 	count: number,
-): Promise<Record<string, unknown>> => {
+): Promise<CompletionRequest> => {
 	await expect
 		.poll(() => turnRequests(inference).length >= count && inference.held())
 		.toBe(1);

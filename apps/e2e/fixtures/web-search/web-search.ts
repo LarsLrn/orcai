@@ -1,7 +1,7 @@
+import type { InferenceMock } from "@orcai/ai/testing";
 import type { ProviderId } from "@orcai/core";
 import { chatName } from "../chat/chat";
 import type { Api } from "../index";
-import type { InferenceMock } from "../inference/fixture";
 
 export const SEARCH_API_KEY = "tvly-e2e-key";
 
@@ -54,9 +54,3 @@ export const setUpSearchProvider = async (
 
 	return provider.data.id;
 };
-
-/** The searches the mock answered, oldest first. */
-export const searchBodies = (inference: InferenceMock) =>
-	inference.requests.filter(
-		(request) => request.method === "POST" && request.path === "/v1/search",
-	);

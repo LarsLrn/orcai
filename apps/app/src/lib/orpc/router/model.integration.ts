@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, test } from "bun:test";
+import type { ModelId } from "@orcai/core";
 import { serve } from "bun";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
@@ -29,19 +30,99 @@ const openRouterModel = (id: string, supportedParameters: string[]) => ({
 
 /** `GET /models` of an endpoint, answering with whatever `listing` holds. */
 let listing: unknown[] = [];
+/** The `Authorization` header of every listing request. */
+const authorizations: (string | null)[] = [];
 const server = serve({
 	port: 0,
-	fetch: (request) =>
-		new URL(request.url).pathname === "/v1/models"
-			? Response.json({
-					object: "list",
-					data: listing,
-				})
-			: new Response("not found", {
-					status: 404,
-				}),
+	fetch: (request) => {
+		if (new URL(request.url).pathname !== "/v1/models")
+			return new Response("not found", {
+				status: 404,
+			});
+		authorizations.push(request.headers.get("authorization"));
+		return Response.json({
+			object: "list",
+			data: listing,
+		});
+	},
 });
 afterAll(() => server.stop(true));
+
+/** A vLLM model, which reports only its context window. */
+const vllmModel = (id: string, maxModelLen: number) => ({
+	id,
+	object: "model",
+	created: 0,
+	owned_by: "vllm",
+	max_model_len: maxModelLen,
+});
+
+/** An admin's provider on the listing server, with discover and list as that admin. */
+const providerWithDiscovery = async (apiKey: string) => {
+	const {
+		actors: [admin],
+		zedToken,
+	} = await organizationWith([
+		"admin",
+	]);
+	const procedures = await run(Procedures);
+	const options = await procedureOptions(admin, zedToken);
+	const { data: provider } = await run(
+		procedures.provider.create(
+			{
+				name: `Discovery ${crypto.randomUUID()}`,
+				description: "Created by the discovery test.",
+				kind: "openai-compatible",
+				endpoint: `${server.url.origin}/v1`,
+				apiKey,
+				meteringMode: "tokens",
+				enabled: true,
+			},
+			options,
+		),
+	);
+	const discover = async () =>
+		(
+			await run(
+				procedures.model.discover(
+					{
+						providerId: provider.id,
+					},
+					options,
+				),
+			)
+		).data;
+	const models = async () =>
+		Object.fromEntries(
+			(
+				await run(
+					procedures.model.list(
+						{
+							pageIndex: 0,
+							pageSize: 10,
+							filters: {
+								providerId: provider.id,
+							},
+						},
+						options,
+					),
+				)
+			).data.map((model) => [
+				model.providerModelId,
+				model,
+			]),
+		);
+	const updateModel = (input: {
+		id: ModelId;
+		contextWindow?: number | null;
+		maxOutputTokens?: number | null;
+	}) => run(procedures.model.update(input, options));
+	return {
+		discover,
+		models,
+		updateModel,
+	};
+};
 
 describe("model discovery", () => {
 	test(
@@ -215,6 +296,84 @@ describe("model discovery", () => {
 						"tool-calling",
 					],
 				},
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"sends the provider's key and stores the limits the endpoint reports",
+		async () => {
+			const apiKey = `key-${crypto.randomUUID()}`;
+			const { discover, models } = await providerWithDiscovery(apiKey);
+			listing = [
+				vllmModel("served", 32_768),
+				{
+					id: "unlimited",
+					object: "model",
+					created: 0,
+					owned_by: "vllm",
+				},
+			];
+
+			expect(await discover()).toEqual({
+				foundCount: 2,
+				addedCount: 2,
+				alreadyExistedCount: 0,
+				capabilitiesUnsetCount: 2,
+			});
+			expect(authorizations.at(-1)).toBe(`Bearer ${apiKey}`);
+			expect(await models()).toMatchObject({
+				served: {
+					capabilities: null,
+					contextWindow: 32_768,
+					maxOutputTokens: null,
+				},
+				unlimited: {
+					capabilities: null,
+					contextWindow: null,
+					maxOutputTokens: null,
+				},
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"rediscovery fills the limits a model lacks and keeps edited ones",
+		async () => {
+			const { discover, models, updateModel } =
+				await providerWithDiscovery("key");
+			listing = [
+				vllmModel("served", 32_768),
+			];
+			await discover();
+			const { served } = await models();
+
+			await updateModel({
+				id: served.id,
+				contextWindow: null,
+				maxOutputTokens: 4_096,
+			});
+			expect(await discover()).toEqual({
+				foundCount: 1,
+				addedCount: 0,
+				alreadyExistedCount: 1,
+				capabilitiesUnsetCount: 0,
+			});
+			expect((await models()).served).toMatchObject({
+				contextWindow: 32_768,
+				maxOutputTokens: 4_096,
+			});
+
+			await updateModel({
+				id: served.id,
+				contextWindow: 8_192,
+			});
+			await discover();
+			expect((await models()).served).toMatchObject({
+				contextWindow: 8_192,
+				maxOutputTokens: 4_096,
 			});
 		},
 		TIMEOUT,

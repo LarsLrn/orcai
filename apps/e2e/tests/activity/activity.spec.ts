@@ -55,16 +55,6 @@ test("activity: an idle user gets the empty list from the keyboard", async ({
 });
 
 // The e2e package has no DOM lib; these are the browser members the check reads.
-type Measured = {
-	getBoundingClientRect(): {
-		top: number;
-	};
-};
-type Viewport = {
-	scrollY: number;
-	scrollTo(x: number, y: number): void;
-};
-
 test("activity: the list stays below its trigger when the page scrolls under it", async ({
 	orgs,
 	pageAs,
@@ -87,15 +77,13 @@ test("activity: the list stays below its trigger when the page scrolls under it"
 	// scrolling a target into view) must not move the list, not even for the
 	// frame before it is positioned again. Read synchronously.
 	const { scrolled, shift } = await title.evaluate((element) => {
-		const target = element as unknown as Measured;
-		const view = globalThis as unknown as Viewport;
-		const before = target.getBoundingClientRect().top;
+		const before = element.getBoundingClientRect().top;
 
-		view.scrollTo(0, 200);
+		window.scrollTo(0, 200);
 
 		return {
-			scrolled: view.scrollY,
-			shift: target.getBoundingClientRect().top - before,
+			scrolled: window.scrollY,
+			shift: element.getBoundingClientRect().top - before,
 		};
 	});
 

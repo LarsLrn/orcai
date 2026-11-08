@@ -1,5 +1,5 @@
+import type { ScriptedToolCall } from "@orcai/ai/testing";
 import type { Locator, Page } from "@playwright/test";
-import type { ScriptedToolCall } from "../inference/fixture";
 import { message } from "../messages";
 
 export const requestUploadCall = (reason: string): ScriptedToolCall => ({

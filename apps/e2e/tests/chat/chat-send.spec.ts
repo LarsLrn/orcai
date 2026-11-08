@@ -2,9 +2,7 @@ import { randomUUID } from "node:crypto";
 import { rejection } from "../../fixtures/authorization";
 import {
 	chatName,
-	completionRequests,
 	composer,
-	conversationOf,
 	createChat,
 	messageCount,
 	messageText,
@@ -12,7 +10,11 @@ import {
 	sendTurn,
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import {
+	completionRequests,
+	conversationOf,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -58,7 +60,7 @@ test("a message sent in the page reaches the model with the stored history", asy
 
 	await expect(messageText(page, second.reply)).toBeVisible();
 	await expect(composer(page)).toHaveValue("");
-	expect(conversationOf(completionRequests(inference).at(-1)?.body)).toEqual([
+	expect(conversationOf(completionRequests(inference).at(-1))).toEqual([
 		{
 			role: "user",
 			text: first.question,

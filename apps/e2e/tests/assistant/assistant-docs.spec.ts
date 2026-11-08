@@ -3,14 +3,10 @@ import type { ChatId } from "@orcai/core";
 import type { Page } from "@playwright/test";
 import type { ApiClient } from "../../fixtures/api";
 import {
-	offeredToolsOf,
 	openConversation,
 	setUpAssistantModel,
 	startConversation,
 	startTitledConversation,
-	systemPromptOf,
-	toolResultsOf,
-	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import {
 	chatName,
@@ -20,7 +16,13 @@ import {
 	setUpChatModel,
 	streamedText,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import {
+	offeredTools,
+	systemPromptOf,
+	toolResults,
+	turnRequests,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -115,15 +117,15 @@ test("assistant: a member's question is answered from the docs with an app link 
 
 	const requests = turnRequests(inference);
 	expect(requests).toHaveLength(3);
-	expect(offeredToolsOf(requests[0])).toContain("readDocs");
+	expect(offeredTools(requests[0])).toContain("readDocs");
 	const index = await servedDocs("/llms.txt");
 	const botsPage = await servedDocs(`${BOTS_PATH}.md`);
 	const botsTitle = /^# (.+) \(/.exec(botsPage)?.[1] ?? "";
 	// The index lists pages without refs; a page arrives in a docs-page tag with its ref.
-	expect(toolResultsOf(requests[1])).toEqual([
+	expect(toolResults(requests[1])).toEqual([
 		index,
 	]);
-	expect(toolResultsOf(requests[2])).toContain(
+	expect(toolResults(requests[2])).toContain(
 		`<docs-page ref=${BOTS_REF} title="${botsTitle}" path="${BOTS_PATH}">\n${botsPage}\n</docs-page>`,
 	);
 
@@ -299,7 +301,7 @@ test("assistant: an unknown docs page is a tool error the turn answers past", as
 	expect((await fetch(`${docsFetchUrl}/docs/missing.md`)).status).toBe(404);
 	const requests = turnRequests(inference);
 	expect(requests).toHaveLength(2);
-	expect(toolResultsOf(requests[1]).join("\n")).toContain(
+	expect(toolResults(requests[1]).join("\n")).toContain(
 		"NOT_FOUND: No docs page at /docs/missing; read the index (call readDocs without a path) for valid paths.",
 	);
 });
@@ -324,5 +326,5 @@ test("assistant: plain chats are not offered readDocs", async ({
 
 	const [request] = turnRequests(inference);
 	expect(request).toBeDefined();
-	expect(offeredToolsOf(request)).not.toContain("readDocs");
+	expect(offeredTools(request)).not.toContain("readDocs");
 });

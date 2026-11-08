@@ -14,7 +14,7 @@ import {
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
 import type { Role, WorkerOrganisation } from "../../fixtures/index";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
@@ -52,17 +52,7 @@ const phonePage = async (params: {
 /** Wait until the drawer's slide-in transition has finished. */
 const settled = (drawer: Locator) =>
 	drawer.evaluate((node) =>
-		Promise.all(
-			(
-				node as unknown as {
-					getAnimations: () => {
-						finished: Promise<unknown>;
-					}[];
-				}
-			)
-				.getAnimations()
-				.map((animation) => animation.finished),
-		),
+		Promise.all(node.getAnimations().map((animation) => animation.finished)),
 	);
 
 /** Drag one finger vertically, as a phone sends it, in frame-sized steps. */

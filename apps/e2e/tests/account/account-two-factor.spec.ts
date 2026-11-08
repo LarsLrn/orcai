@@ -2,20 +2,18 @@ import {
 	accountCard,
 	openAccountPage,
 } from "../../fixtures/account/navigation";
-import { createAccountUser } from "../../fixtures/account/users";
 import { waitForLink } from "../../fixtures/auth/outbox";
 import { totpCode } from "../../fixtures/auth/two-factor";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
+import { createMember } from "../../fixtures/users";
 
 test("account: a user sets up two-factor authentication and turning it off sends an email", async ({
 	api,
-	appBaseURL,
 	outbox,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "two-factor",
 		admin: api.as("admin"),
 	});

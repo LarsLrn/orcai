@@ -10,40 +10,12 @@ const FOCUS_RING = 3;
  */
 export const pageHeaderProblems = (page: Page) =>
 	page.evaluate((ring) => {
-		type Box = {
-			left: number;
-			right: number;
-			top: number;
-			bottom: number;
-		};
-		type Element = {
-			tagName: string;
-			textContent: string | null;
-			parentElement: Element | null;
-			getBoundingClientRect: () => Box;
-			querySelectorAll: (selector: string) => Iterable<Element>;
-		};
-		const browser = globalThis as unknown as {
-			innerWidth: number;
-			document: {
-				documentElement: Element & {
-					scrollWidth: number;
-				};
-				body: Element;
-				querySelectorAll: (selector: string) => Iterable<Element>;
-			};
-			getComputedStyle: (element: Element) => {
-				overflowX: string;
-				overflowY: string;
-			};
-		};
-		const { document } = browser;
 		const problems: string[] = [];
 		const label = (element: Element) =>
 			`${element.tagName} "${(element.textContent ?? "").trim().slice(0, 20)}"`;
 
 		const { scrollWidth } = document.documentElement;
-		if (scrollWidth > browser.innerWidth) {
+		if (scrollWidth > window.innerWidth) {
 			problems.push(`page scrolls horizontally: ${scrollWidth}`);
 		}
 
@@ -64,8 +36,8 @@ export const pageHeaderProblems = (page: Page) =>
 				let clipper: Element | null = header;
 				while (
 					clipper &&
-					browser.getComputedStyle(clipper).overflowX === "visible" &&
-					browser.getComputedStyle(clipper).overflowY === "visible"
+					getComputedStyle(clipper).overflowX === "visible" &&
+					getComputedStyle(clipper).overflowY === "visible"
 				) {
 					clipper = clipper.parentElement;
 				}

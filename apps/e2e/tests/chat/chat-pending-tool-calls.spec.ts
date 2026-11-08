@@ -1,10 +1,10 @@
+import type { InferenceMock } from "@orcai/ai/testing";
 import type { ChatId } from "@orcai/core";
 import type { Page } from "@playwright/test";
 import {
 	ask,
 	attachRepository,
 	chatName,
-	completionRequests,
 	composer,
 	createChat,
 	messageText,
@@ -12,11 +12,8 @@ import {
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
 import type { ApiClient } from "../../fixtures/index";
-import {
-	expect,
-	type InferenceMock,
-	test,
-} from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import { completionRequests } from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -65,13 +62,8 @@ const storedCall = async (client: ApiClient, chatId: ChatId) => {
 };
 
 /** The OpenAI-format messages of the latest completion request. */
-const lastPrompt = (inference: InferenceMock) => {
-	const body = completionRequests(inference).at(-1)?.body as {
-		messages: Record<string, unknown>[];
-	};
-
-	return body.messages;
-};
+const lastPrompt = (inference: InferenceMock) =>
+	completionRequests(inference).at(-1)?.messages ?? [];
 
 const interruptedBadge = async (page: Page) => {
 	await page

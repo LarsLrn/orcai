@@ -1,3 +1,4 @@
+import { INFERENCE_MOCK_MODELS } from "@orcai/ai/testing";
 import type { ChatId } from "@orcai/core";
 import type { Page } from "@playwright/test";
 import { adoptPageZedToken } from "../../fixtures/authz/resources";
@@ -6,8 +7,8 @@ import {
 	messageText,
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
-import { INFERENCE_MOCK_MODELS } from "../../fixtures/inference/server";
+import { expect, test } from "../../fixtures/index";
+import { completionRequests } from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
@@ -175,12 +176,10 @@ for (const [where, path] of [
 			]);
 		await expect
 			.poll(() =>
-				inference.requests.some(
-					(request) =>
-						request.path === "/v1/chat/completions" &&
-						JSON.stringify(request.body).includes(
-							"Chapter three covers sampling frames.",
-						),
+				completionRequests(inference).some((request) =>
+					JSON.stringify(request).includes(
+						"Chapter three covers sampling frames.",
+					),
 				),
 			)
 			.toBe(true);

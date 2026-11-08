@@ -1,10 +1,10 @@
 import { storedLocaleOf } from "../../fixtures/account/locale";
 import { openAppPage, switchLocale } from "../../fixtures/account/navigation";
-import { createAccountUser } from "../../fixtures/account/users";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
+import { createMember } from "../../fixtures/users";
 
 /** A translated section title on the app home. */
 const WELCOME = {
@@ -14,11 +14,9 @@ const WELCOME = {
 
 test("account: a user switches the interface language to German and back", async ({
 	api,
-	appBaseURL,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "locale",
 		admin: api.as("admin"),
 	});
@@ -54,8 +52,7 @@ test("account: a language chosen in the header follows the user into a new brows
 	newContext,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "locale-follow",
 		admin: api.as("admin"),
 	});

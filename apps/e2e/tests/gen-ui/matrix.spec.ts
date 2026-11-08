@@ -1,3 +1,4 @@
+import type { JsonValue } from "@orcai/ai/testing";
 import {
 	chatName,
 	messageText,
@@ -5,13 +6,12 @@ import {
 	setUpChatModel,
 	turnFinished,
 } from "../../fixtures/chat/chat";
+import { ask, createGenUiChat } from "../../fixtures/gen-ui/gen-ui";
+import { expect, test } from "../../fixtures/index";
 import {
-	ask,
-	completionBodies,
-	createGenUiChat,
+	completionRequests,
 	toolResults,
-} from "../../fixtures/gen-ui/gen-ui";
-import { expect, type JsonValue, test } from "../../fixtures/inference/fixture";
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -184,6 +184,6 @@ test("gen-ui: a matrix renders statuses with expandable notes", async ({
 	).toHaveAttribute("aria-expanded", "false");
 
 	expect(
-		toolResults(completionBodies(inference)[1]).map(String).join(""),
+		toolResults(completionRequests(inference)[1]).map(String).join(""),
 	).toContain('{"shown":true}');
 });

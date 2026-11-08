@@ -23,20 +23,10 @@ const WIDTHS = [
 ];
 
 const fitsViewport = async (page: Page) => {
-	const { innerWidth, scrollWidth } = await page.evaluate(() => {
-		const browser = globalThis as unknown as {
-			innerWidth: number;
-			document: {
-				documentElement: {
-					scrollWidth: number;
-				};
-			};
-		};
-		return {
-			innerWidth: browser.innerWidth,
-			scrollWidth: browser.document.documentElement.scrollWidth,
-		};
-	});
+	const { innerWidth, scrollWidth } = await page.evaluate(() => ({
+		innerWidth: window.innerWidth,
+		scrollWidth: document.documentElement.scrollWidth,
+	}));
 	expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
 };
 
@@ -93,14 +83,7 @@ for (const image of images) {
 			await expect(preview).toBeVisible();
 			await expect
 				.poll(() =>
-					preview.evaluate(
-						(img) =>
-							(
-								img as unknown as {
-									naturalWidth: number;
-								}
-							).naturalWidth,
-					),
+					preview.evaluate((img: HTMLImageElement) => img.naturalWidth),
 				)
 				.toBeGreaterThan(0);
 			const box = await preview.boundingBox();

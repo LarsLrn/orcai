@@ -1,9 +1,9 @@
+import type { InferenceMock } from "@orcai/ai/testing";
 import type { Page } from "@playwright/test";
 import {
 	attachRepository,
 	type ChatModel,
 	chatName,
-	completionRequests,
 	composer,
 	createChat,
 	messageText,
@@ -11,11 +11,8 @@ import {
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
 import type { ApiClient } from "../../fixtures/index";
-import {
-	expect,
-	type InferenceMock,
-	test,
-} from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import { completionRequests } from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -47,17 +44,12 @@ const searchSteps = (count: number) =>
 		}),
 	);
 
-type CompletionBody = {
-	tool_choice?: unknown;
-	tools?: unknown[];
-	messages: {
-		role: string;
-		content: unknown;
-	}[];
-};
+const lastCompletion = (inference: InferenceMock) => {
+	const request = completionRequests(inference).at(-1);
+	if (!request) throw new Error("No completion request");
 
-const lastCompletion = (inference: InferenceMock) =>
-	completionRequests(inference).at(-1)?.body as CompletionBody;
+	return request;
+};
 
 /** Opens a chat with a repository, so the search tool is offered. */
 const openChatWithRepository = async ({
@@ -136,7 +128,7 @@ test("a turn that would keep searching answers on its last step", async ({
 		content: FINAL_STEP_NOTE,
 	});
 	for (const step of completionRequests(inference).slice(0, -1)) {
-		expect((step.body as CompletionBody).tool_choice).not.toBe("none");
+		expect(step.tool_choice).not.toBe("none");
 	}
 });
 

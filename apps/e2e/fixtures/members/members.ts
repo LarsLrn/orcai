@@ -1,51 +1,13 @@
-import type { OrganizationRole, UserId } from "@orcai/core";
-import { userIdSchema } from "@orcai/schema";
+import type { OrganizationRole } from "@orcai/core";
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createApiClient, ZED_TOKEN_COOKIE, type ZedTokenStore } from "../api";
-import type { Session } from "../auth";
-import { EMAIL_DOMAIN, USER_PASSWORD } from "../constants";
 import { baseURL } from "../env";
 import type { Api } from "../index";
 import { message } from "../messages";
 import { open } from "../navigation";
 import type { WorkerOrganisation } from "../organisation";
-import { runId, signUpUnaffiliated } from "../organisation";
-
-/** A user owned by the members slice.
- * Bans, demotions, and removals stay within its worker data. */
-export type ThrowawayUser = {
-	id: UserId;
-	name: string;
-	email: string;
-	password: string;
-	session: Session;
-};
-
-/** Create a user that belongs to no organisation yet. */
-export const createThrowawayUser = async (
-	baseURL: string,
-	label: string,
-): Promise<ThrowawayUser> => {
-	const suffix = runId();
-	const name = `E2E Users ${label} ${suffix}`;
-	const email = `e2e-users-${label}-${suffix}@${EMAIL_DOMAIN}`;
-
-	const session = await signUpUnaffiliated({
-		baseURL,
-		name,
-		email,
-		password: USER_PASSWORD,
-	});
-
-	return {
-		id: userIdSchema.parse(session.userId),
-		name,
-		email,
-		password: USER_PASSWORD,
-		session,
-	};
-};
+import type { FreshUser } from "../users";
 
 /** A behaviour, the one grantable resource that needs no model, provider, or worker. */
 export const behaviourInput = (name: string) => ({
@@ -65,7 +27,7 @@ const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 export const addMember = async (
 	api: Api,
 	organisation: WorkerOrganisation,
-	user: ThrowawayUser,
+	user: FreshUser,
 	role: OrganizationRole = "member",
 	zedTokens?: ZedTokenStore,
 ): Promise<void> => {

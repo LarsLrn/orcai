@@ -1,5 +1,5 @@
 import { rejection, untilAllowed } from "../../fixtures/authorization";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";

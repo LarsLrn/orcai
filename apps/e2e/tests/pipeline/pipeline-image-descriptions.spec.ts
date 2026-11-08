@@ -2,7 +2,8 @@ import type { AssetId, BlockId } from "@orcai/core";
 import { uploadAsset } from "../../fixtures/assets";
 import { setUpChatModel } from "../../fixtures/chat/chat";
 import type { ApiClient } from "../../fixtures/index";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import { completionRequests } from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import {
@@ -88,17 +89,11 @@ test("pipeline: an uploaded image is described once by the utility model, indexe
 		)
 		.toBe("completed");
 
-	const visionCalls = inference.requests.filter(
-		({ path, body }) =>
-			path === "/v1/chat/completions" &&
-			(
-				body as {
-					model?: string;
-				}
-			).model === visionModel,
+	const visionCalls = completionRequests(inference).filter(
+		({ model }) => model === visionModel,
 	);
 	expect(visionCalls).toHaveLength(1);
-	expect(JSON.stringify(visionCalls[0]?.body)).toContain("image_url");
+	expect(JSON.stringify(visionCalls[0])).toContain("image_url");
 
 	const { data: points } = await member.assetPoint.browseRepository({
 		repositoryId,

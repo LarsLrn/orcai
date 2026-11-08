@@ -25,13 +25,13 @@ import {
 	reasonOf,
 	setUpAssistantModel,
 	startTitledConversation,
-	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import { approvePlan } from "../../fixtures/assistant/plan";
 import { chatName, messageText, turnFinished } from "../../fixtures/chat/chat";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
 import { systemGroup } from "../../fixtures/groups/groups";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import { turnRequests } from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { awaitHydration, enterApp } from "../../fixtures/navigation";
 

@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
+import type { InferenceMock, ScriptedToolCall } from "@orcai/ai/testing";
 import type { ChatId } from "@orcai/core";
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { ApiClient } from "../api";
-import type { InferenceMock, ScriptedToolCall } from "../inference/fixture";
 import { message } from "../messages";
 import {
 	actStep,

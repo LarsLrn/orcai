@@ -89,10 +89,11 @@ in their own job; a full local run is `bun run stack e2e --yes`, then
 
 Import `test` and `expect` from `apps/e2e/fixtures/index.ts` and the other
 helpers from the foundation file that holds them, such as `open` from
-`fixtures/navigation.ts`. Use the inference fixture for specs that need a
-provider endpoint. `open` waits until the page has hydrated. After a reload
-`open` did not make, call `awaitHydration` before interacting, because
-`submitForm` does not wait for hydration.
+`fixtures/navigation.ts`. Use the `inference` fixture for specs that need a
+provider endpoint and read its requests through `fixtures/inference/requests.ts`.
+Create users with `fixtures/users.ts`. `open` and `submitForm` wait until the
+page has hydrated. After a reload `open` did not make, call `awaitHydration`
+before any other interaction.
 Every page from the fixtures fails its test on an uncaught error, which
 includes a React hydration mismatch. Specs get no `browser` or `playwright`
 fixture and lint refuses Playwright's launchers and `.browser()` there: open

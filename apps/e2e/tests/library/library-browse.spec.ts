@@ -88,15 +88,7 @@ const sortBy = async (page: Page, optionKey: string) => {
 		.click();
 };
 
-const scrollTop = (page: Page) =>
-	page.evaluate(
-		() =>
-			(
-				globalThis as unknown as {
-					scrollY: number;
-				}
-			).scrollY,
-	);
+const scrollTop = (page: Page) => page.evaluate(() => window.scrollY);
 
 const newMenu = (page: Page) =>
 	page

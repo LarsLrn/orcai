@@ -1,16 +1,15 @@
 import { expectDenied } from "../../fixtures/authorization";
-import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import {
 	addMember,
 	behaviourInput,
 	chooseRole,
-	createThrowawayUser,
 	reachPage,
 } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
+import { createUser } from "../../fixtures/users";
 
 test("members: the edit page shows what an admin may know about a user", async ({
 	api,
@@ -18,7 +17,7 @@ test("members: the edit page shows what an admin may know about a user", async (
 	pageAs,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "details");
+	const user = await createUser("details");
 	await addMember(api, org, user, "member", zedTokens);
 
 	// A block only this test grants, so the table carries a row of its own.
@@ -110,7 +109,7 @@ test("members: the edit page reports a user without resource access", async ({
 }) => {
 	// A new organisation grants nothing and owns no resources, so the table is empty.
 	const org = await orgs.create("E2E Users No Access");
-	const user = await createThrowawayUser(baseURL(), "no-access");
+	const user = await createUser("no-access");
 	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("admin", org);
@@ -138,7 +137,7 @@ test("members: an admin changes a user's organisation role", async ({
 	pageAs,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "promoted");
+	const user = await createUser("promoted");
 	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("admin");
@@ -170,7 +169,7 @@ test("members: a manager may not hand out the admin role", async ({
 	pageAs,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "not-admin");
+	const user = await createUser("not-admin");
 	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("manager");
@@ -205,7 +204,7 @@ test("members: a manager may not hand out the admin role", async ({
 test("members: a role change is refused for someone who is not a member", async ({
 	api,
 }) => {
-	const outsider = await createThrowawayUser(baseURL(), "outsider");
+	const outsider = await createUser("outsider");
 
 	// The user exists but belongs to no organisation, so there is no
 	// membership of this organisation to change.
@@ -223,7 +222,7 @@ test("members: an organisation admin is not offered ban or delete", async ({
 	pageAs,
 	zedTokens,
 }) => {
-	const user = await createThrowawayUser(baseURL(), "banned");
+	const user = await createUser("banned");
 	await addMember(api, org, user, "member", zedTokens);
 
 	const page = await pageAs("admin");

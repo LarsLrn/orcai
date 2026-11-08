@@ -1,10 +1,10 @@
 import {
 	setUpAssistantModel,
 	startConversation,
-	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import { ask } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import { turnRequests } from "../../fixtures/inference/requests";
 
 test("assistant: a turn leaves sampling to the provider and caps the output", async ({
 	api,

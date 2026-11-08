@@ -1,7 +1,5 @@
 import { storeLocale } from "../../fixtures/account/locale";
-import { submitFormUntilVisible } from "../../fixtures/auth/forms";
 import { waitForLink } from "../../fixtures/auth/outbox";
-import { createAuthUser } from "../../fixtures/auth/users";
 import { USER_PASSWORD } from "../../fixtures/constants";
 import { expectEmailIn, queuedEmail } from "../../fixtures/emails/render";
 import { submitForm } from "../../fixtures/forms";
@@ -14,6 +12,7 @@ import {
 	inviteEmail,
 	registerFromInvitation,
 } from "../../fixtures/orgs/invitations";
+import { createUser } from "../../fixtures/users";
 
 const VERIFY_NOTIFICATION = "auth.verify-email";
 const RESET_NOTIFICATION = "auth.reset-password";
@@ -113,13 +112,13 @@ test("auth: a password reset email follows the stored language, not the browser'
 	outbox,
 	page,
 }) => {
-	const user = await createAuthUser(appBaseURL, "reset-locale");
+	const user = await createUser("reset-locale");
 	await storeLocale(appBaseURL, user.session, "de");
 
 	await open(page, "/forgot-password");
 	await expect(page.locator("html")).toHaveAttribute("lang", "en");
 
-	await submitFormUntilVisible(page, {
+	await submitForm(page, {
 		fill: async () => {
 			await page.getByLabel(message("common_email_label")).fill(user.email);
 		},

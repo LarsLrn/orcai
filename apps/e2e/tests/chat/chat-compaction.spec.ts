@@ -2,9 +2,7 @@ import type { ChatId } from "@orcai/core";
 import {
 	branchActions,
 	chatName,
-	completionRequests,
 	composer,
-	conversationOf,
 	createChat,
 	messageText,
 	openChat,
@@ -12,7 +10,11 @@ import {
 	setUpChatModel,
 	turnFinished,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
+import {
+	completionRequests,
+	conversationOf,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
@@ -93,11 +95,9 @@ test("a long chat is summarized, marked with a divider, and keeps answering, als
 	const [summaryRequest, answerRequest] =
 		completionRequests(inference).slice(-2);
 	// The summary is its own call over the history as text.
-	expect(summaryRequest?.body).not.toHaveProperty("stream", true);
-	expect(JSON.stringify(summaryRequest?.body)).toContain(
-		"Name a primary colour.",
-	);
-	expect(conversationOf(answerRequest?.body)).toEqual([
+	expect(summaryRequest).not.toHaveProperty("stream", true);
+	expect(JSON.stringify(summaryRequest)).toContain("Name a primary colour.");
+	expect(conversationOf(answerRequest)).toEqual([
 		{
 			role: "user",
 			text: SUMMARY_MESSAGE,
@@ -142,7 +142,7 @@ test("a long chat is summarized, marked with a divider, and keeps answering, als
 	).toBeVisible();
 
 	expect(
-		conversationOf(completionRequests(inference).at(-1)?.body).map(
+		conversationOf(completionRequests(inference).at(-1)).map(
 			({ text }) => text,
 		),
 	).toEqual([

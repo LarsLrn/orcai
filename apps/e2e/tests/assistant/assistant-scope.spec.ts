@@ -9,11 +9,11 @@ import {
 } from "../../fixtures/assistant/assistant";
 import { rejection, untilAllowed } from "../../fixtures/authorization";
 import { sendTurn } from "../../fixtures/chat/chat";
-import { signIn } from "../../fixtures/index";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, signIn, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
-import { addMember, createOrgsUser } from "../../fixtures/orgs/members";
+import { addMember } from "../../fixtures/orgs/members";
+import { createUser } from "../../fixtures/users";
 
 test("assistant: a user in two organisations sees each one's conversations only there", async ({
 	api,
@@ -26,7 +26,7 @@ test("assistant: a user in two organisations sees each one's conversations only 
 	test.slow();
 
 	const other = await orgs.create("E2E Assistant Second");
-	const user = await createOrgsUser(appBaseURL, "assistant-two-orgs");
+	const user = await createUser("assistant-two-orgs");
 	await addMember(api.as("admin"), {
 		user,
 		role: "member",

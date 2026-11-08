@@ -1,21 +1,19 @@
-import { saveProfileName } from "../../fixtures/account/forms";
+import { nameOf, saveProfileName } from "../../fixtures/account/forms";
 import {
 	accountCard,
 	openAccountPage,
 	userMenu,
 } from "../../fixtures/account/navigation";
-import { createAccountUser, nameOf } from "../../fixtures/account/users";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { runId } from "../../fixtures/organisation";
+import { createMember } from "../../fixtures/users";
 
 test("account: a user changes the display name through the profile card", async ({
 	api,
-	appBaseURL,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "profile",
 		admin: api.as("admin"),
 	});
@@ -42,11 +40,9 @@ test("account: a user changes the display name through the profile card", async 
 
 test("account: saving the profile reports that it succeeded", async ({
 	api,
-	appBaseURL,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "profile-toast",
 		admin: api.as("admin"),
 	});
@@ -66,11 +62,9 @@ test("account: saving the profile reports that it succeeded", async ({
 
 test("account: an empty display name is refused", async ({
 	api,
-	appBaseURL,
 	pageForSession,
 }) => {
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "profile-empty",
 		admin: api.as("admin"),
 	});

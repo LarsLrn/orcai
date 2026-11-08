@@ -1,8 +1,8 @@
+import type { InferenceMock } from "@orcai/ai/testing";
 import type { Page } from "@playwright/test";
 import {
 	ask,
 	chatName,
-	completionRequests,
 	composer,
 	messageText,
 	openChat,
@@ -10,11 +10,11 @@ import {
 	turnFinished,
 } from "../../fixtures/chat/chat";
 import { createGenUiChat } from "../../fixtures/gen-ui/gen-ui";
+import { expect, test } from "../../fixtures/index";
 import {
-	expect,
-	type InferenceMock,
-	test,
-} from "../../fixtures/inference/fixture";
+	completionRequests,
+	toolResults,
+} from "../../fixtures/inference/requests";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import {
@@ -28,14 +28,8 @@ const PASSAGE =
 
 /** The ref the model read in the search result of the latest tool step. */
 const refFromSearch = (inference: InferenceMock) => {
-	const body = completionRequests(inference).at(-1)?.body as {
-		messages: {
-			role: string;
-			content: unknown;
-		}[];
-	};
 	const results = JSON.stringify(
-		body.messages.filter(({ role }) => role === "tool"),
+		toolResults(completionRequests(inference).at(-1)),
 	);
 	const ref = /<passage [^>]*?\bref=(k[0-9a-z]{6})\b/.exec(results)?.[1];
 
@@ -91,7 +85,7 @@ test("pipeline: a citation by ref names the uploaded asset, also after a reload"
 	);
 	await ask(member, chatId, "How fast are refunds paid?");
 	const ref = refFromSearch(inference);
-	expect(JSON.stringify(completionRequests(inference).at(-1)?.body)).toContain(
+	expect(JSON.stringify(completionRequests(inference).at(-1))).toContain(
 		PASSAGE,
 	);
 

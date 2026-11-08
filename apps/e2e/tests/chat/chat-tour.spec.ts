@@ -1,5 +1,4 @@
 import type { Page } from "@playwright/test";
-import { createAccountUser } from "../../fixtures/account/users";
 import { zedTokenOf } from "../../fixtures/api";
 import {
 	chatName,
@@ -8,9 +7,10 @@ import {
 	createChat,
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
-import { expect, test } from "../../fixtures/inference/fixture";
+import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
+import { createMember } from "../../fixtures/users";
 
 const tourCard = (page: Page) =>
 	page.getByRole("dialog", {
@@ -19,14 +19,12 @@ const tourCard = (page: Page) =>
 
 test("chat: the chat tour starts on opening a chat until the user has seen it, and on request from the title menu", async ({
 	api,
-	appBaseURL,
 	inference,
 	pageForSession,
 }) => {
 	const model = await setUpChatModel(api, inference);
 	// A fresh user, because the tour state is the user's and outlives a spec.
-	const user = await createAccountUser({
-		baseURL: appBaseURL,
+	const user = await createMember({
 		label: "chat-tour",
 		admin: api.as("admin"),
 	});

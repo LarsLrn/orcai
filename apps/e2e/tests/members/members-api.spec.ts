@@ -1,8 +1,9 @@
 import { createApiClient } from "../../fixtures/api";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
-import { addMember, createThrowawayUser } from "../../fixtures/members/members";
+import { addMember } from "../../fixtures/members/members";
 import { enterApp, open } from "../../fixtures/navigation";
+import { createUser } from "../../fixtures/users";
 
 test("members: a user in two organisations switches the active one", async ({
 	api,
@@ -13,7 +14,7 @@ test("members: a user in two organisations switches the active one", async ({
 }) => {
 	const org = await orgs.create("E2E Users First");
 	const second = await orgs.create("E2E Users Second");
-	const user = await createThrowawayUser(baseURL(), "two-orgs");
+	const user = await createUser("two-orgs");
 	await addMember(api, org, user, "member", zedTokens);
 	await addMember(api, second, user, "member", zedTokens);
 
