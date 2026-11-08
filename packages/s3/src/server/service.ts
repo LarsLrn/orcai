@@ -4,10 +4,9 @@ import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
-import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
 import { createMissingBuckets } from "./buckets";
-import { S3ConfigLive, S3ConfigService } from "./config";
+import { presignEndpoint, S3ConfigLive, S3ConfigService } from "./config";
 import { S3Error } from "./errors";
 
 export class S3Service extends Context.Service<
@@ -41,17 +40,13 @@ const acquireClients = Effect.acquireRelease(
 					...sharedClientOptions,
 					endpoint: config.endpoint,
 				});
-				const presignEndpoint = Option.getOrElse(
-					config.publicEndpoint,
-					() => config.endpoint,
-				);
-
+				const endpoint = presignEndpoint(config);
 				const presignClient =
-					presignEndpoint === config.endpoint
+					endpoint === config.endpoint
 						? client
 						: new S3Client({
 								...sharedClientOptions,
-								endpoint: presignEndpoint,
+								endpoint,
 							});
 
 				return {

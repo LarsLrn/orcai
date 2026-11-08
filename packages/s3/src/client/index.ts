@@ -4,6 +4,5 @@ export type {
 	ClientUploadError,
 	FileUploadInfo,
 	UploadHookControl,
-	UploadStatus,
 } from "./public";
 export { uploadFiles } from "./upload";

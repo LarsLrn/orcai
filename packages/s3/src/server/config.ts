@@ -47,3 +47,13 @@ export const S3ConfigLive = Layer.effect(
 		};
 	}),
 );
+
+/** The endpoint in presigned URLs, which browsers upload to and download from. */
+export const presignEndpoint = (config: S3Config) =>
+	Option.getOrElse(config.publicEndpoint, () => config.endpoint);
+
+/** The origin browsers reach storage at. */
+export const presignOrigin = Effect.gen(function* () {
+	const { config } = yield* S3ConfigService;
+	return new URL(presignEndpoint(config)).origin;
+});
