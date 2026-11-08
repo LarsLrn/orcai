@@ -14,6 +14,7 @@ export { findLatestMigration, probeDatabase } from "./probe";
 export {
 	homeOrganization,
 	homeScopeOf,
+	idIn,
 	isHome,
 	resourceTables,
 } from "./resources";

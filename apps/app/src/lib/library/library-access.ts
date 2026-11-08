@@ -1,12 +1,16 @@
 import type { OrganizationId, UserId } from "@orcai/core";
-import { dbSchema } from "@orcai/db";
+import { DB, dbSchema, idIn } from "@orcai/db";
 import type {
 	LibraryOrigin,
 	LibraryScope,
 	PublicationStatusFilter,
 } from "@orcai/schema";
-import { lookupEntitiesByPermission, type ReadRevision } from "@orcai/spice-db";
-import { and, eq, inArray, or, type SQL, sql } from "drizzle-orm";
+import {
+	type EntityIdFor,
+	permittedEntityIds,
+	type ReadRevision,
+} from "@orcai/spice-db";
+import { and, eq, isNull, or, type SQL, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { readableNow } from "@/lib/authz/content-access";
 import { inLibrary } from "@/lib/authz/library";
@@ -22,22 +26,13 @@ export type Reader = {
 	zedToken: ReadRevision | undefined;
 };
 
-const lookup = (
-	reader: Reader,
-	resource: LibraryResource,
-	permission: Permission,
-) =>
-	lookupEntitiesByPermission({
-		userId: reader.userId,
-		zedToken: reader.zedToken,
-		entityType: resource,
-		permission,
-	});
-
 /**
  * What the reader may list from the active organisation's library, as SQL
- * conditions per resource type. Each SpiceDB enumeration runs at most once,
- * so the lists and counts of one request share them.
+ * conditions per resource type. SpiceDB checks only the organisation's items
+ * that committed state lets the reader read, or use, so the cost follows the
+ * organisation's library and not everything the reader can reach. Each check
+ * runs at most once, so the lists and counts of one request share them. The
+ * conditions check committed state again, so access ended meanwhile is gone.
  *
  * Published resources need read and drafts need edit; scope "edit" asks for
  * edit on both. Assets have no status. `origin` tells what the organisation
@@ -45,18 +40,81 @@ const lookup = (
  */
 export const libraryAccess = (reader: Reader) =>
 	Effect.gen(function* () {
-		const lookups = new Map<string, ReturnType<typeof lookup>>();
-		const ids = (resource: LibraryResource, permission: Permission) =>
+		const db = yield* DB;
+		const { userId, organizationId, zedToken } = reader;
+		const scope = dbSchema.resourceScope;
+
+		const inOrganization = (
+			resource: LibraryResource,
+			committed: (id: typeof scope.resourceId) => SQL,
+		) =>
 			Effect.gen(function* () {
-				const key = `${resource}:${permission}`;
-				const known = lookups.get(key);
-				if (known) return yield* known;
-				const cached = yield* Effect.cached(
-					lookup(reader, resource, permission),
-				);
-				lookups.set(key, cached);
-				return yield* cached;
+				if (!organizationId) return [];
+				const rows = yield* db
+					.select({
+						id: scope.resourceId,
+					})
+					.from(scope)
+					.where(
+						and(
+							eq(scope.organizationId, organizationId),
+							eq(scope.resourceType, resource),
+							isNull(scope.endedAt),
+							committed(scope.resourceId),
+						),
+					);
+				return rows.map((row) => row.id as EntityIdFor<LibraryResource>);
 			});
+
+		const checked = <E, R>(
+			resource: LibraryResource,
+			permission: Permission,
+			candidates: Effect.Effect<EntityIdFor<LibraryResource>[], E, R>,
+		) =>
+			Effect.cached(
+				candidates.pipe(
+					Effect.flatMap((entityIds) =>
+						permittedEntityIds({
+							entityIds,
+							entityType: resource,
+							permission,
+							userId,
+							zedToken,
+						}),
+					),
+					Effect.map((permitted) => [
+						...permitted,
+					]),
+				),
+			);
+
+		const permissionsOf = (resource: LibraryResource) =>
+			Effect.gen(function* () {
+				const readable = yield* Effect.cached(
+					inOrganization(resource, (id) => readableNow(resource, id, userId)),
+				);
+				const usable = inOrganization(resource, (id) =>
+					organizationId
+						? usableHere({
+								resourceType: resource,
+								id,
+								userId,
+								organizationId,
+							})
+						: sql`false`,
+				);
+				return {
+					read: yield* checked(resource, "read", readable),
+					edit: yield* checked(resource, "edit", readable),
+					use: yield* checked(resource, "use", usable),
+				} satisfies Record<Permission, unknown>;
+			});
+
+		const permitted = {
+			bot: yield* permissionsOf("bot"),
+			block: yield* permissionsOf("block"),
+			asset: yield* permissionsOf("asset"),
+		} satisfies Record<LibraryResource, unknown>;
 
 		const condition = (
 			resource: LibraryResource,
@@ -73,20 +131,20 @@ export const libraryAccess = (reader: Reader) =>
 			Effect.gen(function* () {
 				const table = dbSchema[resource];
 				const held = (permission: Permission) =>
-					Effect.map(ids(resource, permission), (allowed) =>
-						inArray(table.id, allowed),
+					Effect.map(permitted[resource][permission], (ids) =>
+						idIn(table.id, ids),
 					);
-				const shared = [
-					inLibrary(resource, table.id, reader.organizationId, origin),
-					readableNow(resource, table.id, reader.userId),
-				];
+				const listed = and(
+					inLibrary(resource, table.id, organizationId, origin),
+					readableNow(resource, table.id, userId),
+				);
 				if (resource === "asset" || scope === "edit") {
 					const allowed = yield* held(scope === "edit" ? "edit" : "read");
 					const statusCondition =
 						resource === "asset" || status === "all"
 							? undefined
 							: eq(dbSchema[resource].status, status);
-					return and(allowed, statusCondition, ...shared) as SQL;
+					return and(allowed, statusCondition, listed) as SQL;
 				}
 				const statusColumn = dbSchema[resource].status;
 				const published = Effect.map(held("read"), (allowed) =>
@@ -100,26 +158,35 @@ export const libraryAccess = (reader: Reader) =>
 						? yield* published
 						: status === "draft"
 							? yield* drafts
-							: or(yield* published, yield* drafts);
-				return and(visible, ...shared) as SQL;
+							: or(
+									...(yield* Effect.all(
+										[
+											published,
+											drafts,
+										],
+										{
+											concurrency: "unbounded",
+										},
+									)),
+								);
+				return and(visible, listed) as SQL;
 			});
 
 		/** The resources the reader may use in the active organisation, such as to start a chat. */
 		const usable = (resource: LibraryResource) =>
-			Effect.gen(function* () {
-				const { organizationId } = reader;
-				if (!organizationId) return sql`false`;
-				const table = dbSchema[resource];
-				return and(
-					inArray(table.id, yield* ids(resource, "use")),
-					usableHere({
-						resourceType: resource,
-						id: table.id,
-						userId: reader.userId,
-						organizationId,
-					}),
-				) as SQL;
-			});
+			Effect.map(permitted[resource].use, (ids) =>
+				organizationId
+					? (and(
+							idIn(dbSchema[resource].id, ids),
+							usableHere({
+								resourceType: resource,
+								id: dbSchema[resource].id,
+								userId,
+								organizationId,
+							}),
+						) as SQL)
+					: sql`false`,
+			);
 
 		return {
 			condition,

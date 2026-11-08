@@ -1,9 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import type { BlockId } from "@orcai/core";
+import { DB, dbSchema } from "@orcai/db";
 import type {
 	ListMemberAccessInput,
 	ResourcePrincipalIdentity,
 } from "@orcai/schema";
+import { eq } from "drizzle-orm";
+import * as Effect from "effect/Effect";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
@@ -141,10 +144,27 @@ const sharedBlocks = async () => {
 		};
 	};
 
+	/** Changes the block's grant in Postgres only, as before its tuples are delivered. */
+	const changeGrantWithoutTuples = (
+		blockId: BlockId,
+		change: Partial<typeof dbSchema.resourceGrant.$inferInsert>,
+	) =>
+		run(
+			Effect.gen(function* () {
+				yield* (yield* DB)
+					.update(dbSchema.resourceGrant)
+					.set(change)
+					.where(eq(dbSchema.resourceGrant.resourceId, blockId));
+			}),
+		);
+
 	return {
 		admin,
 		member,
 		listAccess,
+		alpha,
+		beta,
+		changeGrantWithoutTuples,
 	};
 };
 
@@ -222,6 +242,28 @@ describe("effective access", () => {
 					"Alpha notes:viewer:direct:user",
 				],
 				rowCount: 3,
+			});
+		},
+		TIMEOUT,
+	);
+	test(
+		"a revoked grant and a lowered role show before their tuples go",
+		async () => {
+			const { admin, alpha, beta, changeGrantWithoutTuples, listAccess } =
+				await sharedBlocks();
+			await changeGrantWithoutTuples(alpha, {
+				revokedAt: new Date(),
+			});
+			await changeGrantWithoutTuples(beta, {
+				role: "viewer",
+			});
+
+			expect(await listAccess(admin)).toEqual({
+				rows: [
+					"Beta notes:viewer:direct:group",
+					"Gamma notes:viewer:public",
+				],
+				rowCount: 2,
 			});
 		},
 		TIMEOUT,

@@ -1,8 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import type { AssetId } from "@orcai/core";
+import { v1 } from "@authzed/authzed-node";
+import type { AssetId, BotId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { LibraryEntry } from "@orcai/schema";
-import { eq } from "drizzle-orm";
+import { SpiceDbService } from "@orcai/spice-db";
+import { and, eq } from "drizzle-orm";
+import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import { libraryIntegration } from "@/lib/library/library-integration";
 import { type Actor, TIMEOUT } from "@/lib/testing/app-integration";
@@ -104,6 +107,100 @@ const stocked = async () => {
 		repository,
 		titled,
 		shown,
+	};
+};
+
+/** Ends the reader's grant on the bot in Postgres only, as before its tuple is removed. */
+const revokeInPostgresOnly = (botId: BotId, reader: Actor) =>
+	run(
+		Effect.gen(function* () {
+			yield* (yield* DB)
+				.update(dbSchema.resourceGrant)
+				.set({
+					revokedAt: new Date(),
+				})
+				.where(
+					and(
+						eq(dbSchema.resourceGrant.resourceId, botId),
+						eq(dbSchema.resourceGrant.principalId, reader.user.id),
+					),
+				);
+		}),
+	);
+
+/** Removes the reader's viewer tuple on the bot from SpiceDB only; the zed token after it. */
+const removeViewerTupleOnly = (botId: BotId, reader: Actor) =>
+	run(
+		Effect.gen(function* () {
+			const { spice } = yield* SpiceDbService;
+			const { deletedAt } = yield* Effect.promise(() =>
+				spice.deleteRelationships(
+					v1.DeleteRelationshipsRequest.create({
+						relationshipFilter: v1.RelationshipFilter.create({
+							resourceType: "bot",
+							optionalResourceId: botId,
+							optionalRelation: "viewer",
+							optionalSubjectFilter: v1.SubjectFilter.create({
+								subjectType: "user",
+								optionalSubjectId: reader.user.id,
+							}),
+						}),
+					}),
+				),
+			);
+			return deletedAt?.token;
+		}),
+	);
+
+/**
+ * `options` under which the first SpiceDB bulk check of `permission` on
+ * `resourceId` waits until `during` has run, as if a write landed while
+ * SpiceDB answered.
+ */
+const pausingCheck = async <
+	O extends Awaited<ReturnType<typeof procedureOptions>>,
+>(
+	options: O,
+	resourceId: string,
+	permission: "read" | "use",
+	during: () => Promise<unknown>,
+): Promise<O> => {
+	const { spice } = await run(SpiceDbService);
+	let pending = true;
+	const checkBulkPermissions: typeof spice.checkBulkPermissions = async (
+		request,
+		...rest
+	) => {
+		if (
+			pending &&
+			request.items.some(
+				(item) =>
+					item.resource?.objectId === resourceId &&
+					item.permission === permission,
+			)
+		) {
+			pending = false;
+			await during();
+		}
+		return spice.checkBulkPermissions(request, ...rest);
+	};
+	return {
+		...options,
+		context: {
+			...options.context,
+			"effect/context": Context.add(
+				options.context["effect/context"],
+				SpiceDbService,
+				{
+					spice: new Proxy(spice, {
+						get: (target, key) =>
+							key === "checkBulkPermissions"
+								? checkBulkPermissions
+								: Reflect.get(target, key),
+					}),
+				},
+			),
+		},
 	};
 };
 
@@ -380,6 +477,200 @@ describe("library browse", () => {
 			]);
 			expect(mine.bot.rowCount).toBe(1);
 			expect(mine.behaviour.rowCount).toBe(1);
+		},
+		TIMEOUT,
+	);
+	test(
+		"lists and counts hold only this library's items the reader may read in both stores",
+		async () => {
+			const elsewhere = await organization();
+			const listedElsewhere = (
+				await elsewhere.call(elsewhere.admin, (options) =>
+					elsewhere.procedures.bot.save(
+						{
+							name: `Elsewhere bot ${crypto.randomUUID()}`,
+							description: "Integration bot",
+							status: "ready",
+						},
+						options,
+					),
+				)
+			).data.id;
+			await elsewhere.call(elsewhere.admin, (options) =>
+				elsewhere.procedures.resource.setVisibility(
+					{
+						resourceType: "bot",
+						resourceId: listedElsewhere,
+						visibility: "public",
+						listBlockIds: [],
+					},
+					options,
+				),
+			);
+
+			const { admin, member, procedures, call, observe, tag, bot, shown } =
+				await stocked();
+			observe(elsewhere.token());
+			await bot(member, `A own ${tag}`);
+			await shown("bot", bot(admin, `B shared ${tag}`));
+			const revoked = await shown("bot", bot(admin, `C revoked ${tag}`));
+			const undelivered = await shown(
+				"bot",
+				bot(admin, `D undelivered ${tag}`),
+			);
+
+			const listed = async () => {
+				const [search, counts, usable] = await Promise.all([
+					call(member, (options) =>
+						procedures.library.search(
+							{
+								search: tag,
+							},
+							options,
+						),
+					),
+					call(member, (options) =>
+						procedures.library.counts(
+							{
+								search: tag,
+							},
+							options,
+						),
+					),
+					call(member, (options) =>
+						procedures.bot.list(
+							{
+								search: tag,
+								filters: {
+									usable: true,
+								},
+							},
+							options,
+						),
+					),
+				]);
+				return {
+					search: search.data.map(entryName).sort(),
+					rowCount: search.rowCount,
+					bots: counts.data.bot,
+					usable: usable.data.map((row) => row.name).sort(),
+				};
+			};
+			const all = [
+				`A own ${tag}`,
+				`B shared ${tag}`,
+				`C revoked ${tag}`,
+				`D undelivered ${tag}`,
+			];
+			expect(await listed()).toEqual({
+				search: all,
+				rowCount: 4,
+				bots: 4,
+				usable: all,
+			});
+
+			// The other organisation's listed bot is readable, just not in this library.
+			expect(
+				(
+					await call(member, (options) =>
+						procedures.bot.find(
+							{
+								id: listedElsewhere,
+							},
+							options,
+						),
+					)
+				).data.id,
+			).toBe(listedElsewhere);
+
+			await revokeInPostgresOnly(revoked, member);
+			observe(await removeViewerTupleOnly(undelivered, member));
+
+			const kept = [
+				`A own ${tag}`,
+				`B shared ${tag}`,
+			];
+			expect(await listed()).toEqual({
+				search: kept,
+				rowCount: 2,
+				bots: 2,
+				usable: kept,
+			});
+		},
+		TIMEOUT,
+	);
+	test(
+		"a grant revoked while SpiceDB answers is gone from the same list",
+		async () => {
+			const fixture = await stocked();
+			const { admin, member, procedures, call, tag, bot, shown } = fixture;
+			const shared = await shown("bot", bot(admin, `Shared ${tag}`));
+			const listed = await shown("bot", bot(admin, `Listed ${tag}`));
+			await call(admin, (options) =>
+				procedures.resource.setVisibility(
+					{
+						resourceType: "bot",
+						resourceId: listed,
+						visibility: "public",
+						listBlockIds: [],
+					},
+					options,
+				),
+			);
+
+			const names = (page: {
+				data: {
+					name: string;
+				}[];
+				rowCount: number;
+			}) => ({
+				names: page.data.map((row) => row.name),
+				rowCount: page.rowCount,
+			});
+
+			// Read: the shared bot passes SpiceDB, then its only grant ends.
+			const readable = await run(
+				procedures.bot.list(
+					{
+						search: tag,
+						sort: "name",
+					},
+					await pausingCheck(
+						await procedureOptions(member, fixture.token()),
+						shared,
+						"read",
+						() => revokeInPostgresOnly(shared, member),
+					),
+				),
+			);
+			expect(names(readable)).toEqual({
+				names: [
+					`Listed ${tag}`,
+				],
+				rowCount: 1,
+			});
+
+			// Use: the listed bot stays readable, but its grant was what let the member use it.
+			const usable = await run(
+				procedures.bot.list(
+					{
+						search: tag,
+						filters: {
+							usable: true,
+						},
+					},
+					await pausingCheck(
+						await procedureOptions(member, fixture.token()),
+						listed,
+						"use",
+						() => revokeInPostgresOnly(listed, member),
+					),
+				),
+			);
+			expect(names(usable)).toEqual({
+				names: [],
+				rowCount: 0,
+			});
 		},
 		TIMEOUT,
 	);
