@@ -77,7 +77,9 @@ test("account: a user crops a picture, sees it in the menu and removes it", asyn
 		.click();
 	await expect(picture).toHaveCount(0);
 	await expect(
-		userMenu(page, user.name).getByText(initialsOf(user.name)),
+		userMenu(page, user.name).getByText(initialsOf(user.name), {
+			exact: true,
+		}),
 	).toBeVisible();
 	expect((await user.api.user.me({})).data.image).toBeNull();
 	expect((await page.request.get(src)).status()).toBe(404);
