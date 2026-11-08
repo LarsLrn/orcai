@@ -8,6 +8,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import type { TestClock } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import { EmbeddingIndex, type EmbeddingIndexScope } from "@orcai/qdrant";
 import { SpiceDbService } from "@orcai/spice-db";
@@ -176,7 +177,11 @@ export const onEmbeddingIndex = <
  * `embeddingIndex`, everything runs on it instead of the instance's.
  */
 export const appIntegration = (
-	options: { readonly embeddingIndex?: EmbeddingIndexScope } = {},
+	options: {
+		readonly embeddingIndex?: EmbeddingIndexScope;
+		/** pg-boss's time, for tests that run jobs out of retries. */
+		readonly clock?: TestClock;
+	} = {},
 ) => {
 	const runtime = integrationRuntime(
 		(options.embeddingIndex
@@ -184,7 +189,11 @@ export const appIntegration = (
 			: Layer.empty
 		).pipe(
 			Layer.provideMerge(AppServices),
-			Layer.provideMerge(IsolatedPgBossLive()),
+			Layer.provideMerge(
+				IsolatedPgBossLive({
+					clock: options.clock,
+				}),
+			),
 		),
 	);
 
