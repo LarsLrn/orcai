@@ -2,7 +2,7 @@ import type { ChatId } from "@orcai/core";
 import type { ChatKind } from "@orcai/schema";
 import { type MutationFunction, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import type { ChatDraft } from "@/components/chat/chat-draft";
+import type { ChatDraft } from "@/components/chat/composer/chat-draft";
 import { callProcedure } from "@/hooks/actions/use-mutation-action";
 
 /**

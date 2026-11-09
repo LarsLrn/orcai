@@ -6,9 +6,9 @@ import {
 	StreamdownContent,
 	type StreamdownContentProps,
 } from "@/components/ai-elements/streamdown-content";
-import { LinkSafetyContext } from "@/components/chat/link-confirm";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Button } from "@/components/ui/button";
+import { LinkSafetyContext } from "@/components/ui/composed/link-confirm";
 import {
 	MessageContent as MessageBody,
 	Message as MessageRoot,

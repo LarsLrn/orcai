@@ -2,7 +2,7 @@ import { AssistantModelLabel } from "@/components/assistant/assistant-model-labe
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { AssistantUnavailable } from "@/components/assistant/assistant-unavailable";
 import { useAssistantStarter } from "@/components/assistant/use-assistant-starter";
-import { Composer } from "@/components/chat/composer";
+import { Composer } from "@/components/chat/composer/composer";
 import { Spinner } from "@/components/ui/spinner";
 
 const AssistantNewConversation = ({

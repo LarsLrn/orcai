@@ -9,18 +9,18 @@ import {
 	MessageToolbar,
 } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { TurnZedTokenContext } from "@/components/assistant/tool-summary-line";
+import { TurnZedTokenContext } from "@/components/chat/message/assistant/tool-summary-line";
 import {
 	useWrittenResources,
 	WrittenResourcesContext,
-} from "@/components/assistant/written-resources";
-import { MessageBranches } from "@/components/chat/branch-links";
+} from "@/components/chat/message/assistant/written-resources";
+import { MessageBranches } from "@/components/chat/message/branch-links";
+import { StepAnswersContext } from "@/components/chat/message/step-answers";
 import { ActivityLine } from "@/components/chat/message/work-log/activity-line";
 import {
 	activityLabel,
 	WorkLog,
 } from "@/components/chat/message/work-log/work-log";
-import { StepAnswersContext } from "@/components/chat/step-answers";
 import { Button } from "@/components/ui/button";
 import { useMessageScrollerInView } from "@/components/ui/message-scroller";
 import { InView } from "@/components/ui/motion/in-view";

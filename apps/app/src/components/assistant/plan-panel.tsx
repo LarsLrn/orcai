@@ -8,9 +8,9 @@ import {
 } from "lucide-react";
 import { use, useId, useState } from "react";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { ComposerPanel } from "@/components/chat/composer-panel";
-import { StepAnswersContext } from "@/components/chat/step-answers";
+import { StepAnswersContext } from "@/components/chat/message/step-answers";
 import { Button } from "@/components/ui/button";
+import { ComposerPanel } from "@/components/ui/composed/composer-panel";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";

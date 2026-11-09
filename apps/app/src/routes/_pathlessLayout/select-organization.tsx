@@ -11,7 +11,7 @@ import { useDebounceValue } from "usehooks-ts";
 import {
 	ChatHistoryLink,
 	chatHistoryLinkQuery,
-} from "@/components/chat/chat-history-link";
+} from "@/components/chat/list/chat-history-link";
 import {
 	invitationsPageInput,
 	OrganizationInvitationsList,

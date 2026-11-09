@@ -12,7 +12,7 @@ import {
 } from "@tanstack/react-router";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { Toaster, toast } from "sonner";
-import type { ChatDraft } from "@/components/chat/chat-draft";
+import type { ChatDraft } from "@/components/chat/composer/chat-draft";
 import { createQueryClient } from "@/lib/orpc/query-client";
 import { useStartChat } from "./use-start-chat";
 

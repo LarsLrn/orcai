@@ -1,6 +1,6 @@
 import { getToolName } from "ai";
 import { useId } from "react";
-import { useToolSummaryLine } from "@/components/assistant/tool-summary-line";
+import { useToolSummaryLine } from "@/components/chat/message/assistant/tool-summary-line";
 import {
 	isFailedStatus,
 	toolStatusLabel,

@@ -6,8 +6,8 @@ import type { z } from "zod/v4";
 import {
 	ChatHistoryLink,
 	chatHistoryLinkQuery,
-} from "@/components/chat/chat-history-link";
-import { chatTableColumns } from "@/components/chat/table/chat-table-columns";
+} from "@/components/chat/list/chat-history-link";
+import { chatTableColumns } from "@/components/chat/list/chat-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";

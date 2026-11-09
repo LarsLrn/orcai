@@ -1,8 +1,8 @@
 import type { BotId, ChatId } from "@orcai/core";
 import type { EffectiveModel } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
-import { ModelPicker } from "@/components/chat/model-picker";
-import { modelPickerState } from "@/components/chat/model-picker-state";
+import { ModelPicker } from "@/components/chat/composer/model-picker";
+import { modelPickerState } from "@/components/chat/composer/model-picker-state";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { orpc } from "@/lib/orpc/orpc";
 

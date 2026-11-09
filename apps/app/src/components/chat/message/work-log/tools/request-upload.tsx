@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PencilIcon } from "lucide-react";
 import { useState } from "react";
 import { AssetMetadataDialog } from "@/components/assets/shared/asset-metadata-dialog";
-import { useToolSummaryLine } from "@/components/assistant/tool-summary-line";
+import { useToolSummaryLine } from "@/components/chat/message/assistant/tool-summary-line";
 import { Button } from "@/components/ui/button";
 import type { ToolPartOf, ToolStatus } from "@/lib/ai/messages/turn-view";
 import { uploadedAssets } from "@/lib/ai/tools/assistant/assets/request-upload.declaration";

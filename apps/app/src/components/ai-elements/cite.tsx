@@ -7,10 +7,10 @@ import { Link } from "@tanstack/react-router";
 import { BookOpenIcon, ExternalLinkIcon, GlobeIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { createContext, use, useState } from "react";
-import { ConfirmedLink } from "@/components/chat/link-confirm";
-import { hostOf } from "@/components/chat/link-safety";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { ConfirmedLink } from "@/components/ui/composed/link-confirm";
+import { hostOf } from "@/components/ui/composed/link-safety";
 import {
 	Popover,
 	PopoverContent,

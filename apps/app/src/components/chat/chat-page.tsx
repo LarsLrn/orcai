@@ -10,7 +10,7 @@ import { useAutoStartTour } from "@/components/tour/tour-provider";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound } from "@/lib/router/not-found";
 import { Chat } from "./chat";
-import { chatDraftSchema } from "./chat-draft";
+import { chatDraftSchema } from "./composer/chat-draft";
 
 type LoadedChat = Awaited<ReturnType<typeof orpc.chat.find.call>>;
 

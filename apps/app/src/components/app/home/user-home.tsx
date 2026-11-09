@@ -1,6 +1,6 @@
 import { UserWelcome } from "@/components/app/user-welcome";
-import { NewChatComposer } from "@/components/chat/new-chat-composer";
-import { useChatStarter } from "@/components/chat/use-chat-starter";
+import { NewChatComposer } from "@/components/chat/composer/new-chat-composer";
+import { useChatStarter } from "@/components/chat/composer/use-chat-starter";
 import { ActivityCard } from "./activity-card";
 import { OrganizationCard } from "./organization-card";
 import { RecentChats } from "./recent-chats";

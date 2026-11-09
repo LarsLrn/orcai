@@ -20,14 +20,14 @@ import { BehaviourDocsLink } from "@/components/authoring/behaviour-docs-link";
 import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
 import { CompactBlockTile } from "@/components/blocks/block-tile";
 import { CompactBotTile } from "@/components/bot/bot-tile";
-import { chatConfigFormOptions } from "@/components/chat/form/chat-config-form-options";
+import { chatConfigFormOptions } from "@/components/chat/settings/chat-config-form-options";
+import { GenerationSettingsSummary } from "@/components/chat/settings/generation-settings-summary";
+import { FeaturesSection } from "@/components/features/features-section";
 import {
 	GENERATION_SETTINGS_FIELDS,
 	GenerationSettingsFieldGroup,
-} from "@/components/chat/form/generation-settings-field-group";
-import { GenerationSettingsSummary } from "@/components/chat/generation-settings-summary";
-import { ModelSelectorButton } from "@/components/chat/model-selector";
-import { FeaturesSection } from "@/components/features/features-section";
+} from "@/components/model/form/generation-settings-field-group";
+import { ModelSelectorButton } from "@/components/model/model-selector";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,

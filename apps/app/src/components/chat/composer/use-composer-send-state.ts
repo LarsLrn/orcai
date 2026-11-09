@@ -1,7 +1,7 @@
 import type { BotId, ModelId, ProviderId } from "@orcai/core";
 import type { ChatKind, EffectiveModel } from "@orcai/schema";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
-import { composerBlocker } from "@/components/chat/composer-blocker";
+import { composerBlocker } from "@/components/chat/composer/composer-blocker";
 import { useQuotaStatus } from "@/components/quota/use-quota-status";
 
 /** What a chat's sending state reads from the chat. */

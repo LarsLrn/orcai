@@ -9,18 +9,18 @@ import {
 	PromptInputSubmit,
 	PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
-import { ChatAttachmentActionMenu } from "@/components/chat/attachments/chat-attachment-action-menu";
+import { ChatAttachmentActionMenu } from "@/components/chat/composer/attachments/chat-attachment-action-menu";
 import {
 	ChatComposerAttachments,
 	ChatComposerDropZone,
-} from "@/components/chat/attachments/chat-attachment-input";
-import { useChatAttachments } from "@/components/chat/attachments/use-chat-attachments";
-import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
-import type { ChatDraft } from "@/components/chat/chat-draft";
-import { ChatModelNotice } from "@/components/chat/chat-model-notice";
-import type { ComposerBlocker } from "@/components/chat/composer-blocker";
+} from "@/components/chat/composer/attachments/chat-attachment-input";
+import { useChatAttachments } from "@/components/chat/composer/attachments/use-chat-attachments";
+import { ChatAssetPicker } from "@/components/chat/composer/chat-asset-picker";
+import type { ChatDraft } from "@/components/chat/composer/chat-draft";
+import { ChatModelNotice } from "@/components/chat/composer/chat-model-notice";
+import type { ComposerBlocker } from "@/components/chat/composer/composer-blocker";
+import type { SelectedModel } from "@/components/chat/composer/use-composer-send-state";
 import { UsageIndicator } from "@/components/chat/usage/usage-indicator";
-import type { SelectedModel } from "@/components/chat/use-composer-send-state";
 import {
 	InputGroup,
 	InputGroupAddon,
