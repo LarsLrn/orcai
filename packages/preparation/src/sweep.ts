@@ -61,7 +61,7 @@ export type SweepCursor = {
 	};
 };
 
-export const SWEEP_START: SweepCursor = {
+const SWEEP_START: SweepCursor = {
 	processing: {},
 	metadata: {},
 	indexing: {},
