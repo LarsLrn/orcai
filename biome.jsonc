@@ -135,6 +135,14 @@
 			}
 		},
 		{
+			"includes": [
+				"**/*.integration.ts"
+			],
+			"plugins": [
+				"./packages/testing/await-before-expect.grit"
+			]
+		},
+		{
 			// Imports point from routes to components, hooks and lib, never back.
 			"includes": [
 				"apps/app/src/lib/**"

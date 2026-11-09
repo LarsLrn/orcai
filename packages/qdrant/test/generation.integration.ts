@@ -1,7 +1,7 @@
 import { afterAll, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
 import { advisoryXactLock, DB, DrizzleLive } from "@orcai/db";
-import { awaitLockWaiters, holdLock } from "@orcai/testing";
+import { awaitLockWaiters, holdLock, rejection } from "@orcai/testing";
 import { QdrantClient } from "@qdrant/qdrant-js";
 import { sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -143,9 +143,11 @@ test("a partly set embedding setup is a defect, not a missing one", async () => 
 		}),
 	);
 
-	await expect(on(index, activeGeneration)).rejects.toThrow(
-		"The embedding settings are only partly set",
-	);
+	expect(await rejection(on(index, activeGeneration))).toMatchObject({
+		message: expect.stringContaining(
+			"The embedding settings are only partly set",
+		),
+	});
 });
 
 test(

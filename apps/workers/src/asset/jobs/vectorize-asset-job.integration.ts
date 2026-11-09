@@ -43,6 +43,7 @@ import {
 	createUser,
 	IntegrationLive,
 	integrationRuntime,
+	rejection,
 } from "@orcai/testing";
 import { serve } from "bun";
 import { and, eq, sql } from "drizzle-orm";
@@ -825,7 +826,7 @@ test(
 		holdWrite(deletingBefore(newer.data.attempt)).settle(false);
 		stale.settle(true);
 		await staleRun;
-		await expect(newerRun).rejects.toThrow();
+		expect(await rejection(newerRun)).toBeDefined();
 
 		expect(await servedOf(link)).toEqual([
 			newer.data.attempt,
@@ -875,7 +876,7 @@ test(
 		const newer = await admit(link);
 		holdWrite(unpublishingBefore(newer.data.attempt)).settle(false);
 
-		await expect(vectorize(newer)).rejects.toThrow();
+		expect(await rejection(vectorize(newer))).toBeDefined();
 
 		expect((await linkOf(link))?.status).toBe("active");
 		expect(await servedOf(link)).toEqual([
@@ -909,7 +910,7 @@ test(
 		const failed = vectorize(newer);
 		await completion.reached;
 		holdWrite(publishing(older.data.attempt)).settle(false);
-		await expect(failed).rejects.toThrow();
+		expect(await rejection(failed)).toBeDefined();
 		expect(await servedOf(link)).toEqual([
 			newer.data.attempt,
 		]);
@@ -959,7 +960,7 @@ test(
 			older.data.attempt,
 		]);
 		publish.settle(false);
-		await expect(newerRun).rejects.toThrow();
+		expect(await rejection(newerRun)).toBeDefined();
 		await cleanup;
 
 		expect(await linkOf(link)).toEqual({

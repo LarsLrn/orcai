@@ -42,6 +42,7 @@ import {
 	awaitLockWaiters,
 	createUser,
 	integrationRuntime,
+	rejection,
 } from "@orcai/testing";
 import { and, eq, like, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -257,7 +258,7 @@ test(
 			).length;
 
 		failNextInsert = true;
-		await expect(processOnce(job)).rejects.toBeDefined();
+		expect(await rejection(processOnce(job))).toBeDefined();
 		expect(await statusOf(asset.assetId)).toBe("active");
 		expect(await indexingQueued()).toBe(0);
 

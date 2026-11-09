@@ -25,7 +25,7 @@ import {
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
 import { NEWEST_REVISION } from "@orcai/spice-db";
-import { awaitLockWaiters } from "@orcai/testing";
+import { awaitLockWaiters, reasonOf, rejection } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -740,32 +740,32 @@ describe("retrying assets", () => {
 				failed: 2,
 			});
 
-			await expect(
-				run(
-					procedures.block.prepareAssetAgain(
-						{
-							blockId,
-							assetId: empty,
-						},
-						options,
+			expect(
+				await reasonOf(
+					run(
+						procedures.block.prepareAssetAgain(
+							{
+								blockId,
+								assetId: empty,
+							},
+							options,
+						),
 					),
 				),
-			).rejects.toMatchObject({
-				reason: "ASSET_PREPARING_AGAIN_UNHELPFUL",
-			});
-			await expect(
-				run(
-					procedures.block.prepareAssetAgain(
-						{
-							blockId,
-							assetId: preparing,
-						},
-						options,
+			).toBe("ASSET_PREPARING_AGAIN_UNHELPFUL");
+			expect(
+				await reasonOf(
+					run(
+						procedures.block.prepareAssetAgain(
+							{
+								blockId,
+								assetId: preparing,
+							},
+							options,
+						),
 					),
 				),
-			).rejects.toMatchObject({
-				reason: "ASSET_STILL_PREPARING",
-			});
+			).toBe("ASSET_STILL_PREPARING");
 		},
 		TIMEOUT,
 	);
@@ -1049,7 +1049,7 @@ describe("saving a repository whose indexing cannot be queued", () => {
 
 			await boss.deleteQueue(VECTORIZE_ASSET_JOB_NAME);
 			try {
-				await expect(save()).rejects.toBeDefined();
+				expect(await rejection(save())).toBeDefined();
 			} finally {
 				await run(
 					ensureQueues([

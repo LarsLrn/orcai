@@ -11,7 +11,7 @@ import { DB, dbSchema } from "@orcai/db";
 import type { TestClock } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import { EmbeddingIndex, type EmbeddingIndexScope } from "@orcai/qdrant";
-import { SpiceDbLive, SpiceDbService } from "@orcai/spice-db";
+import { SpiceDbService } from "@orcai/spice-db";
 import { headZedToken, zedTokenKeeper } from "@orcai/spice-db/testing";
 import {
 	awaitLockWaiters,
@@ -25,7 +25,7 @@ import { and, asc, eq, inArray, lte, max, ne, sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
+import type * as ManagedRuntime from "effect/ManagedRuntime";
 import { insertAllMembersGroup } from "@/lib/authz/organization-lifecycle";
 import {
 	lockOrganization,
@@ -533,19 +533,13 @@ export const appIntegration = (
 
 	type ProcedureOptions = Awaited<ReturnType<typeof procedureOptions>>;
 
-	// Head reads use their own SpiceDB client, apart from the calls under test.
-	const headReads = ManagedRuntime.make(SpiceDbLive);
-
 	/**
 	 * Runs procedures as actors at the newest zed token, starting from
 	 * `zedToken`: each call keeps the token its procedure returns, and
 	 * `observe` keeps one a fixture returns.
 	 */
 	const caller = (zedToken?: string) => {
-		const tokens = zedTokenKeeper(
-			() => headReads.runPromise(headZedToken),
-			zedToken,
-		);
+		const tokens = zedTokenKeeper(() => run(headZedToken), zedToken);
 		const call = async <A>(
 			actor: Actor,
 			operation: (options: ProcedureOptions) => Effect.Effect<

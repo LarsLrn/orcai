@@ -1,0 +1,11 @@
+language js
+
+or {
+	`expect($subject).rejects`,
+	`expect($subject).resolves`,
+	`expect(async ($params) => $body)`,
+	`expect(async function ($params) { $body })`,
+	`expect(async function $name($params) { $body })`
+} as $match where {
+	register_diagnostic(span=$match, message="Await the promise first, then assert on the value (rejection, reasonOf). Under bun test these matchers can stall a gRPC response (oven-sh/bun#39796).")
+}

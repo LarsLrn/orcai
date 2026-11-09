@@ -86,6 +86,8 @@ Helpers that need more of the stack live with their package:
 
 `packages/spice-db/test/schema.integration.ts` checks the SpiceDB schema. It writes a fixed set of relationships under per-run ids and asserts which permissions they grant and deny against the stack's applied schema.
 
+Integration tests await a call before asserting on its outcome. `rejection(promise)` gives what the call rejects with, and `reasonOf(promise)` gives that error's `reason`. Both come from `@orcai/testing`. Under `bun test`, the matchers `.rejects`, `.resolves` and `expect(async ...)` can leave a SpiceDB response unread until the call's deadline ([oven-sh/bun#39796](https://github.com/oven-sh/bun/issues/39796)). The Biome plugin `packages/testing/await-before-expect.grit` therefore rejects them in `*.integration.ts` files.
+
 ## Fixtures
 
 Specs import `test` and `expect` from `apps/e2e/fixtures/index.ts` and get their data through fixtures rather than direct database writes.
