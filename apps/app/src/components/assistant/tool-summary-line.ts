@@ -1,10 +1,10 @@
 import { useQueries } from "@tanstack/react-query";
 import { getToolName } from "ai";
 import { createContext, use } from "react";
+import type { ToolPart } from "@/lib/ai/messages/turn-view";
 import type { NameOf } from "@/lib/ai/tools/declaration";
 import { type EntityRef, nameQuery } from "@/lib/ai/tools/entity-kind";
 import { toolLabels, toolSummary } from "@/lib/ai/tools/registry";
-import type { ToolPart } from "@/lib/ai/turn-view/turn-view";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { m } from "@/paraglide/messages";
 import { overwriteServerAsyncLocalStorage } from "@/paraglide/runtime";
-import { createToolLines } from "./assistant-tool-lines";
+import { createToolLines } from "./tool-lines";
 
 const toolPart = (
 	toolName: string,

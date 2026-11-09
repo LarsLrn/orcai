@@ -1,7 +1,7 @@
 import type { ToolResultPart } from "ai";
 import { z } from "zod/v4";
 import type { Source } from "@/lib/ai/citations/source-ref";
-import { dataTag } from "@/lib/ai/utils/data-tag";
+import { dataTag } from "@/lib/ai/tools/data-tag";
 import {
 	type Passage,
 	passageSchema,

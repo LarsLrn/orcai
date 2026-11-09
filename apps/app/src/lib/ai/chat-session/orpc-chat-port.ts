@@ -9,8 +9,8 @@ import { isTextUIPart } from "ai";
 import {
 	type ChatAgentUIMessage,
 	toChatAgentMessages,
-} from "@/lib/ai/types/chat-agent-message";
-import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
+} from "@/lib/ai/messages/chat-agent-message";
+import { getChatMessageAttachments } from "@/lib/ai/messages/chat-attachment";
 import { client, orpc } from "@/lib/orpc/orpc";
 import {
 	invalidateQuery,

@@ -29,7 +29,7 @@ import {
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
-import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
+import { transcriptMarkdown } from "@/lib/ai/messages/message-markdown";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,

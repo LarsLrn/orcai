@@ -4,8 +4,8 @@ import {
 	type StoredChatMessageParts,
 } from "@orcai/schema";
 import { getToolName, isToolUIPart, type ToolSet, type UIMessage } from "ai";
+import { toChatAgentParts } from "@/lib/ai/messages/chat-agent-message";
 import { isConversationalTool } from "@/lib/ai/tools/registry";
-import { toChatAgentParts } from "@/lib/ai/types/chat-agent-message";
 
 /** Why a pending call was closed, as the sentence the model reads for it. */
 export const TOOL_CLOSE_SENTENCES = {

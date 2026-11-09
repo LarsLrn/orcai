@@ -29,8 +29,8 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
+import { closeCopiedToolParts } from "@/lib/ai/messages/close-pending-tool-parts";
 import { isEmptyMessage } from "@/lib/ai/turn/reply-store";
-import { closeCopiedToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { requireUsableInOrganization } from "@/lib/authz/organization-use";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { readRevision } from "@/lib/authz/zed-token";

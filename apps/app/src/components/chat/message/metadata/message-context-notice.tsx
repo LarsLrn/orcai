@@ -1,5 +1,5 @@
 import { HistoryIcon, TimerOffIcon, UnplugIcon } from "lucide-react";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import type { ChatAgentUIMessage } from "@/lib/ai/messages/chat-agent-message";
 import { m } from "@/paraglide/messages";
 
 /** Why the reply's model saw less than the whole chat, or why it stopped early. */

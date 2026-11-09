@@ -2,13 +2,13 @@ import { docsPageUrl } from "@orcai/core";
 import type { ChatKind, ChatMessageCitation } from "@orcai/schema";
 import type { StreamedCitations } from "@/lib/ai/citations/chat-sources";
 import { replaceCiteTags } from "@/lib/ai/citations/cite-tag";
-import { toolCallMarkdown } from "@/lib/ai/tools/registry";
+import type { ChatAgentUIMessage } from "@/lib/ai/messages/chat-agent-message";
 import {
 	type AnswerPart,
 	type MessageView,
 	turnView,
-} from "@/lib/ai/turn-view/turn-view";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+} from "@/lib/ai/messages/turn-view";
+import { toolCallMarkdown } from "@/lib/ai/tools/registry";
 import { formatAssetTitle } from "@/lib/assets/asset-title";
 import { m } from "@/paraglide/messages";
 

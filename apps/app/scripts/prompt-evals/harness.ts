@@ -23,12 +23,9 @@ import {
 	createAssistantAgent,
 } from "@/lib/ai/agents/assistant-agent";
 import type { AssistantUserContext } from "@/lib/ai/agents/assistant-system-prompt";
-import type {
-	StoredMessage,
-	ToolExecution,
-} from "@/lib/ai/agents/assistant-tool-lines";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { localDate } from "@/lib/ai/agents/chat-agent-system-prompt";
+import { turnLimits } from "@/lib/ai/agents/context-window";
 import {
 	ASSISTANT_AGENT_MAX_STEPS,
 	CHAT_AGENT_MAX_STEPS,
@@ -37,6 +34,10 @@ import type { ToolExecutions, TurnAgent } from "@/lib/ai/agents/turn-agent";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
 import { resolveFeatures } from "@/lib/ai/features/resolve-features";
 import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
+import type {
+	StoredMessage,
+	ToolExecution,
+} from "@/lib/ai/tools/assistant/tool-lines";
 import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import type { DeferredToolGroup } from "@/lib/ai/tools/declaration";
 import { readDocs } from "@/lib/ai/tools/docs/read-docs";
@@ -47,7 +48,6 @@ import type {
 } from "@/lib/ai/tools/questions/ask-user";
 import { NO_WEB_SEARCH, type TurnWebSearch } from "@/lib/ai/tools/web/toolset";
 import { attachmentText } from "@/lib/ai/turn/attachments";
-import { turnLimits } from "@/lib/ai/turn/context-window";
 import { capabilitySets } from "@/lib/authz/capabilities";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { DOCS, localDocsFetch } from "./docs";

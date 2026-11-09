@@ -1,5 +1,5 @@
 import type { ModelMessage, StepResult, ToolSet } from "ai";
-import { streamErrorText } from "@/lib/ai/utils/stream-error-text";
+import { streamErrorText } from "@/lib/ai/agents/stream-error-text";
 
 /** The index of the turn in progress: every message after the last user message. */
 export const currentTurnStart = (messages: readonly ModelMessage[]) =>

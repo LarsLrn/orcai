@@ -1,10 +1,10 @@
 import type { ChatId } from "@orcai/core";
 import { downloadConversation } from "@/components/ai-elements/conversation";
-import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import {
 	type ChatAgentUIMessage,
 	toChatAgentMessages,
-} from "@/lib/ai/types/chat-agent-message";
+} from "@/lib/ai/messages/chat-agent-message";
+import { transcriptMarkdown } from "@/lib/ai/messages/message-markdown";
 import { client } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

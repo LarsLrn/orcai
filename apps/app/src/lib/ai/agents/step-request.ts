@@ -8,13 +8,13 @@ import {
 	type ToolSet,
 } from "ai";
 import type { z } from "zod/v4";
+import { fitStep } from "@/lib/ai/agents/context-window";
 import type { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
 import {
 	stepFailures,
 	type ToolFailure,
 	withStoredToolFailures,
 } from "@/lib/ai/agents/turn-history";
-import { fitStep } from "@/lib/ai/turn/context-window";
 
 export const FINAL_STEP_NOTE =
 	"This is the last step of this turn: no more tools can run. Answer the user now from what you have so far, and say briefly what you could not finish.";

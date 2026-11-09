@@ -5,15 +5,11 @@ import {
 } from "@orcai/ai";
 import type { ToolSet } from "ai";
 import { pruneAssistantHistory } from "@/lib/ai/agents/assistant-history-pruning";
-import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import {
 	type AssistantUserContext,
 	buildAssistantSystemPrompt,
 } from "@/lib/ai/agents/assistant-system-prompt";
-import {
-	createToolLines,
-	type StoredMessage,
-} from "@/lib/ai/agents/assistant-tool-lines";
+import type { ChatCallSettings } from "@/lib/ai/agents/chat-call-settings";
 import {
 	createTurnAgent,
 	type ToolExecutions,
@@ -27,10 +23,14 @@ import {
 } from "@/lib/ai/tools/assistant/groups";
 import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
+import { createAssistantSession } from "@/lib/ai/tools/assistant/session";
+import {
+	createToolLines,
+	type StoredMessage,
+} from "@/lib/ai/tools/assistant/tool-lines";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
 import { NO_WEB_SEARCH } from "@/lib/ai/tools/web/toolset";
-import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
 /** The assistant's fixed features. */

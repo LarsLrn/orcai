@@ -6,13 +6,13 @@ import type {
 	KeptUploads,
 } from "@orcai/schema";
 import type { ChatStatus, InferUITools, UIMessageChunk } from "ai";
-import { pausedStep } from "@/lib/ai/turn-view/paused-step";
-import type { ChatPhase, ClientToolName } from "@/lib/ai/turn-view/turn-view";
 import type {
 	ChatAgentTools,
 	ChatAgentUIMessage,
-} from "@/lib/ai/types/chat-agent-message";
-import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
+} from "@/lib/ai/messages/chat-agent-message";
+import { getChatMessageAttachments } from "@/lib/ai/messages/chat-attachment";
+import { pausedStep } from "@/lib/ai/messages/paused-step";
+import type { ChatPhase, ClientToolName } from "@/lib/ai/messages/turn-view";
 import { errorReasonOf } from "@/lib/errors/describe-error";
 
 /** Stored messages, oldest first, and the cursor to the page before them. */

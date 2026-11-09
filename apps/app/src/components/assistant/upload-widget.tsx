@@ -16,8 +16,8 @@ import {
 import { useDeleteAssetsMutation } from "@/hooks/mutations/use-asset-mutations";
 import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
 import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
+import type { ToolPartOf, ToolStatus } from "@/lib/ai/messages/turn-view";
 import { toolLabels } from "@/lib/ai/tools/registry";
-import type { ToolPartOf, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
 
 /**

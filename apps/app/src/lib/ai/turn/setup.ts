@@ -16,6 +16,10 @@ import * as Effect from "effect/Effect";
 import { ASSISTANT_FEATURES } from "@/lib/ai/agents/assistant-agent";
 import type { AssistantUserContext } from "@/lib/ai/agents/assistant-system-prompt";
 import {
+	type ChatCallSettings,
+	chatCallSettings,
+} from "@/lib/ai/agents/chat-call-settings";
+import {
 	ASSISTANT_AGENT_MAX_STEPS,
 	CHAT_AGENT_MAX_STEPS,
 } from "@/lib/ai/agents/step-budget";
@@ -25,10 +29,6 @@ import {
 } from "@/lib/ai/features/resolve-features";
 import { NO_WEB_SEARCH, type TurnWebSearch } from "@/lib/ai/tools/web/toolset";
 import { turnWebSearch } from "@/lib/ai/tools/web/turn-web-search";
-import {
-	type ChatCallSettings,
-	chatCallSettings,
-} from "@/lib/ai/utils/chat-call-settings";
 import { capabilitySets } from "@/lib/authz/capabilities";
 import { requestZedToken } from "@/lib/authz/zed-token";
 import { effectiveModel } from "@/lib/chats/effective-model";
@@ -39,7 +39,7 @@ import {
 import * as AppErrors from "@/lib/effect/utils/errors";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
-import { turnLimits } from "./context-window";
+import { turnLimits } from "../agents/context-window";
 import type { StoredChat } from "./reply-store";
 
 const UNUSABLE_MESSAGES: Record<ModelRefusal<"turn">, string> = {

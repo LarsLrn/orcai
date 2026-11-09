@@ -15,9 +15,9 @@ import {
 	ItemTitle,
 } from "@/components/ui/item";
 import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
+import type { ToolPart, ToolStatus } from "@/lib/ai/messages/turn-view";
 import type { ConfirmationVerb } from "@/lib/ai/tools/declaration";
 import { toolDeclarationOf, toolLabels } from "@/lib/ai/tools/registry";
-import type { ToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
 
 const verbLabels: Record<ConfirmationVerb, () => string> = {

@@ -4,8 +4,8 @@ import type {
 	ToolApprovalDecision,
 } from "@orcai/schema";
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
+import { pausedStep } from "@/lib/ai/messages/paused-step";
 import { clientOutputSchema, toolKindOf } from "@/lib/ai/tools/registry";
-import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 
 type Parts = UIMessage["parts"];
 type Part = Parts[number];

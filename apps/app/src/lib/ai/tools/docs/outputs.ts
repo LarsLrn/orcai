@@ -2,7 +2,7 @@ import { docsMarkdownPath } from "@orcai/core";
 import type { ToolResultPart } from "ai";
 import { z } from "zod/v4";
 import { type Source, sourceRef } from "@/lib/ai/citations/source-ref";
-import { dataTag } from "@/lib/ai/utils/data-tag";
+import { dataTag } from "@/lib/ai/tools/data-tag";
 
 /** What `readDocs` answers with: the index without a path, a page with one. */
 export const readDocsOutputSchema = z.object({

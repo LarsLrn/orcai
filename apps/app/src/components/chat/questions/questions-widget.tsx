@@ -3,11 +3,11 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { toolStatusLabel } from "@/components/chat/message/work-log/tool-status";
 import { Badge } from "@/components/ui/badge";
 import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
+import type { ToolPartOf, ToolStatus } from "@/lib/ai/messages/turn-view";
 import {
 	type AskUserOutput,
 	askUserInputSchema,
 } from "@/lib/ai/tools/questions/ask-user";
-import type { ToolPartOf, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
 import { AnsweredQuestions } from "./answered-questions";
 import { type Draft, draftAnswers } from "./draft";

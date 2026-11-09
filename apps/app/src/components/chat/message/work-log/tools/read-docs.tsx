@@ -1,6 +1,6 @@
+import type { ReadDocsToolPart } from "@/lib/ai/messages/tools";
+import type { ToolStatus } from "@/lib/ai/messages/turn-view";
 import { readDocsOutputSchema } from "@/lib/ai/tools/docs/outputs";
-import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
-import type { ReadDocsToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
 import { ToolEntry } from "../tool-entry";
 

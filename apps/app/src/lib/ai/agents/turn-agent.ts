@@ -23,6 +23,7 @@ import {
 	type UIMessageChunk,
 	type UIMessageStreamOutcome,
 } from "ai";
+import type { ChatCallSettings } from "@/lib/ai/agents/chat-call-settings";
 import { repairRepositoryToolCall } from "@/lib/ai/agents/repair-tool-call";
 import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
 import {
@@ -33,7 +34,6 @@ import type {
 	ChatSources,
 	StreamedCitations,
 } from "@/lib/ai/citations/chat-sources";
-import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 
 /** What a reply streams as metadata; the settled reply stores no withdrawn citation. */
 export type StreamedMetadata = Omit<ChatMessageMetadata, "citations"> & {

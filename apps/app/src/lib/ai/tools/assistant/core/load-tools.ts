@@ -1,5 +1,5 @@
 import type { z } from "zod/v4";
-import type { AssistantSession } from "@/lib/ai/agents/assistant-session";
+import type { AssistantSession } from "@/lib/ai/tools/assistant/session";
 import type { DeferredToolGroup } from "@/lib/ai/tools/declaration";
 import {
 	type AssistantTool,

@@ -1,4 +1,9 @@
 import { compactionSource, isCompactionPart } from "@orcai/core";
+import type { ChatAgentUIMessage } from "@/lib/ai/messages/chat-agent-message";
+import {
+	type ToolCloseCode,
+	toolCloseCode,
+} from "@/lib/ai/messages/close-pending-tool-parts";
 import type { WrittenResource } from "@/lib/ai/tools/declaration";
 import {
 	type ClientToolName,
@@ -9,11 +14,6 @@ import {
 	toolNameOf,
 	writtenResource,
 } from "@/lib/ai/tools/registry";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
-import {
-	type ToolCloseCode,
-	toolCloseCode,
-} from "@/lib/ai/utils/close-pending-tool-parts";
 import { pausesTurn, stepPause } from "./paused-step";
 import {
 	isPlanPart,

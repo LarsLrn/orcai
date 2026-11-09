@@ -1,5 +1,5 @@
 import { useToolSummaryLine } from "@/components/assistant/tool-summary-line";
-import type { ToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
+import type { ToolPart, ToolStatus } from "@/lib/ai/messages/turn-view";
 import { ToolEntry } from "../tool-entry";
 
 /** A call read through its declaration's summary line, or named by it. */

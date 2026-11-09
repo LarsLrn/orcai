@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { ChatMessageMetadata, ChatMessagePart } from "@orcai/schema";
+import type { ChatAgentUIMessage } from "@/lib/ai/messages/chat-agent-message";
+import { type MessageView, turnView } from "@/lib/ai/messages/turn-view";
 import { storedPart, textPart, uiMessage } from "@/lib/ai/test-parts";
 import { displayToolMarkdown } from "@/lib/ai/tools/gen-ui/catalog";
 import {
@@ -11,8 +13,6 @@ import {
 	type QuizGrading,
 } from "@/lib/ai/tools/questions/quiz-result";
 import { askUserMarkdown } from "@/lib/ai/tools/questions/to-markdown";
-import { type MessageView, turnView } from "@/lib/ai/turn-view/turn-view";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getLocale, overwriteGetLocale } from "@/paraglide/runtime";
 import {
 	messageToMarkdown,

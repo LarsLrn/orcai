@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import type { BotId } from "@orcai/core";
 import { quota } from "@orcai/quota/testing";
 import * as Effect from "effect/Effect";
+import { TOOL_CLOSE_SENTENCES } from "../../messages/close-pending-tool-parts";
 import {
 	answerSetup,
 	assistantRow,
 	chatRow,
 	conversation,
 } from "../../turn/test-turn";
-import { TOOL_CLOSE_SENTENCES } from "../../utils/close-pending-tool-parts";
 import { answers, resetProcedures } from "../assistant/test-procedures";
 import {
 	capitalsAnswers,
