@@ -247,7 +247,7 @@ const repositoryWith = async (count: number) => {
 	for (let index = 0; index < count; index++) {
 		const created = await createAsset(owner, organizationId);
 		assets.push(created.asset.id);
-		observe(created.zedToken);
+		await observe(created.zedToken);
 	}
 	const procedures = await run(Procedures);
 	const { data } = await call(owner, (options) =>

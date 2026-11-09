@@ -380,7 +380,7 @@ describe("using a resource in an organisation", () => {
 					],
 				}),
 			);
-			observe(joined);
+			await observe(joined);
 			const authorElsewhere = await signIn(
 				elsewhere.id as OrganizationId,
 				author.user.id,

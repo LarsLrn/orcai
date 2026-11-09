@@ -605,7 +605,7 @@ describe("inherited access", () => {
 		const { as, procedures, call } = o;
 		const behaviourId = await o.createBehaviour();
 		const { asset, zedToken } = await createAsset(as.member, o.organizationId);
-		o.observe(zedToken);
+		await o.observe(zedToken);
 		const { data: repository } = await call(as.member, (options) =>
 			procedures.block.create(
 				{

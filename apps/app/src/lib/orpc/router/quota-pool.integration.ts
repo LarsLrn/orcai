@@ -46,7 +46,7 @@ const pooledOrganization = async () => {
 		}),
 	);
 	const organizationId = organization.id;
-	observe(zedToken);
+	await observe(zedToken);
 	const [admin, member] = await Promise.all(
 		users.map((user) => signIn(organizationId, user.id)),
 	);

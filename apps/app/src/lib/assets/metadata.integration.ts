@@ -200,8 +200,8 @@ describe("asset metadata generation", () => {
 			const { call, observe } = caller(zedToken);
 			const kept = await createAsset(owner, organizationId);
 			const ended = await createAsset(owner, organizationId);
-			observe(kept.zedToken);
-			observe(ended.zedToken);
+			await observe(kept.zedToken);
+			await observe(ended.zedToken);
 			await prepared([
 				kept.asset.id,
 				ended.asset.id,

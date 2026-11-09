@@ -139,7 +139,7 @@ test("assistant: the card of a deleted bot no longer names or opens it", async (
 
 	const reply = await lastRow(member, chatId);
 	// The API client reads after the turn the browser ran.
-	if (reply.zedToken) zedTokens.write(reply.zedToken);
+	if (reply.zedToken) await zedTokens.observe(reply.zedToken);
 	await member.bot.delete({
 		refs: [
 			{

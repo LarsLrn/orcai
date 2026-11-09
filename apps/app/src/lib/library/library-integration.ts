@@ -86,7 +86,7 @@ export const libraryIntegration = () => {
 
 		const asset = async (owner: Actor) => {
 			const created = await createAsset(owner, organizationId);
-			observe(created.zedToken);
+			await observe(created.zedToken);
 			return created.asset.id;
 		};
 

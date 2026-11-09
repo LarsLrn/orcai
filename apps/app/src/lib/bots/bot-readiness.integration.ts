@@ -93,7 +93,7 @@ const workshop = async () => {
 	};
 	const asset = async () => {
 		const created = await createAsset(author, organizationId);
-		observe(created.zedToken);
+		await observe(created.zedToken);
 		return created.asset.id;
 	};
 	const repository = async (

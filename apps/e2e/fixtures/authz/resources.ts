@@ -132,5 +132,5 @@ export const adoptPageZedToken = async (
 		(candidate) => candidate.name === ZED_TOKEN_COOKIE,
 	);
 
-	if (cookie) zedTokens.write(cookie.value);
+	if (cookie) await zedTokens.observe(cookie.value);
 };

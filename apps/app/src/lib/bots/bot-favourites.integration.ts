@@ -30,7 +30,7 @@ const library = async () => {
 	const { call, observe } = caller(zedToken);
 	const prefix = crypto.randomUUID();
 	const behaviour = await createBehaviour(owner, zedToken);
-	observe(behaviour.zedToken);
+	await observe(behaviour.zedToken);
 
 	const save = async (
 		name: string,

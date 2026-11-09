@@ -51,7 +51,7 @@ const catalogue = async () => {
 	const { call, observe } = caller(zedToken);
 
 	const created = await createAsset(author, home);
-	observe(created.zedToken);
+	await observe(created.zedToken);
 	const create = (type: "behaviour" | "repository") =>
 		call(author, (options) =>
 			procedures.block.create(
@@ -397,7 +397,7 @@ describe("adding a bot with its blocks", () => {
 		async () => {
 			const s = await catalogue();
 			const ownAsset = await createAsset(s.admin, s.other);
-			s.observe(ownAsset.zedToken);
+			await s.observe(ownAsset.zedToken);
 			const { data: own } = await s.call(s.admin, (options) =>
 				s.procedures.block.create(
 					{

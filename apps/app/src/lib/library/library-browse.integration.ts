@@ -368,7 +368,7 @@ describe("library browse", () => {
 				titled,
 				shown,
 			} = await stocked();
-			observe(elsewhere.token());
+			await observe(elsewhere.token());
 			await call(admin, (options) =>
 				procedures.catalogue.add(
 					{
@@ -738,7 +738,7 @@ describe("library browse", () => {
 
 			const { admin, member, procedures, call, observe, tag, bot, shown } =
 				await stocked();
-			observe(elsewhere.token());
+			await observe(elsewhere.token());
 			await bot(member, `A own ${tag}`);
 			await shown("bot", bot(admin, `B shared ${tag}`));
 			const revoked = await shown("bot", bot(admin, `C revoked ${tag}`));
@@ -812,7 +812,7 @@ describe("library browse", () => {
 			).toBe(listedElsewhere);
 
 			await revokeInPostgresOnly(revoked, member);
-			observe(await removeViewerTupleOnly(undelivered, member));
+			await observe(await removeViewerTupleOnly(undelivered, member));
 
 			const kept = [
 				`A own ${tag}`,

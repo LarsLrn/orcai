@@ -42,7 +42,7 @@ test(
 );
 
 test(
-	"caller keeps a revision covering two calls that return out of order",
+	"caller keeps SpiceDB's head revision for each write, whatever order calls return in",
 	async () => {
 		const {
 			actors: [admin],
@@ -61,20 +61,16 @@ test(
 			});
 		const late = Promise.withResolvers<void>();
 
-		// The earlier write's call returns last, so its token is the older one.
 		const earlier = call(admin, () => returning("earlier", late.promise));
 		await call(admin, () => returning("later"));
-		expect(token()).toBe("later");
-
 		late.resolve();
 		await earlier;
+
 		expect([
+			undefined,
 			"earlier",
 			"later",
 		]).not.toContain(token());
-
-		await call(admin, () => returning("next"));
-		expect(token()).toBe("next");
 	},
 	TIMEOUT,
 );

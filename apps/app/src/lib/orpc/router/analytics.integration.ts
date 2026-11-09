@@ -94,7 +94,7 @@ const meteredOrganization = async (
 		}),
 	);
 	const organizationId = organization.id;
-	observe(zedToken);
+	await observe(zedToken);
 	const [admin, member, ...joined] = await Promise.all(
 		[
 			...users.map((user) => user.id),

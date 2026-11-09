@@ -1,6 +1,13 @@
 import type { ContractClient } from "@orcai/contracts";
+import { SpiceDbLive, type SpiceDbService } from "@orcai/spice-db";
+import {
+	headZedToken,
+	type ZedTokenKeeper,
+	zedTokenKeeper,
+} from "@orcai/spice-db/testing";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
+import * as ManagedRuntime from "effect/ManagedRuntime";
 
 export type ApiClient = ContractClient;
 
@@ -9,21 +16,17 @@ export const ZED_TOKEN_HEADER = "X-Zed-Token";
 export const ZED_TOKEN_COOKIE = "zed_token";
 
 /** The newest zedToken a set of clients has seen in a response. */
-export type ZedTokenStore = {
-	read: () => string | undefined;
-	write: (zedToken: string) => void;
+export type ZedTokenStore = ZedTokenKeeper;
+
+let spiceDb: ManagedRuntime.ManagedRuntime<SpiceDbService, unknown> | undefined;
+
+/** A head-revision token from the stack's SpiceDB, for writes that return out of order. */
+const head = () => {
+	spiceDb ??= ManagedRuntime.make(SpiceDbLive);
+	return spiceDb.runPromise(headZedToken);
 };
 
-export const createZedTokenStore = (): ZedTokenStore => {
-	let zedToken: string | undefined;
-
-	return {
-		read: () => zedToken,
-		write: (next) => {
-			zedToken = next;
-		},
-	};
-};
+export const createZedTokenStore = (): ZedTokenStore => zedTokenKeeper(head);
 
 const storesByClient = new WeakMap<object, ZedTokenStore>();
 
@@ -82,14 +85,7 @@ export const createApiClient = (
 			};
 		},
 		interceptors: [
-			async ({ next }) => {
-				const output = await next();
-				const zedToken = zedTokenIn(output);
-
-				if (zedToken) store.write(zedToken);
-
-				return output;
-			},
+			({ next }) => store.track(next, zedTokenIn),
 		],
 	});
 

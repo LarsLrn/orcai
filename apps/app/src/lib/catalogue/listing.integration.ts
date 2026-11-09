@@ -502,7 +502,7 @@ describe("assets", () => {
 		async () => {
 			const s = await twoOrganizations();
 			const { asset, zedToken } = await createAsset(s.author, s.home);
-			s.observe(zedToken);
+			await s.observe(zedToken);
 			const ref = {
 				resourceType: "asset",
 				resourceId: asset.id,
@@ -675,7 +675,7 @@ describe("unlisting", () => {
 				asset: { id: assetId },
 				zedToken: assetToken,
 			} = await createAsset(s.author, s.home);
-			s.observe(assetToken);
+			await s.observe(assetToken);
 			await s.call(s.author, (options) =>
 				s.procedures.block.update(
 					{
