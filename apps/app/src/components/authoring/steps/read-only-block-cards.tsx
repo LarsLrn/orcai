@@ -1,10 +1,10 @@
 import type { AssetState } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
-import { useRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
 import type {
 	BotEditorBehaviour,
 	BotEditorRepository,
 } from "@/components/authoring/bot-editor-form-options";
+import { useRepositoryReadiness } from "@/components/preparation/use-repository-readiness";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

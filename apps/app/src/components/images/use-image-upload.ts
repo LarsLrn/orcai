@@ -1,7 +1,7 @@
 import type { OrganizationId } from "@orcai/core";
 import type { MutationFunctionContext } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
-import { useUploadFiles } from "@/components/assets/use-upload-files";
+import { useUploadFiles } from "@/components/assets/upload/use-upload-files";
 import {
 	callProcedure,
 	useMutationAction,

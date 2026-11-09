@@ -1,8 +1,8 @@
 import type { ModelListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
+import { DisplayTimestamp } from "@/components/ui/composed/display-time";
 import { StateBadge } from "@/components/ui/composed/state-badge";
 import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";

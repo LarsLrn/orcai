@@ -9,10 +9,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import {
-	loadRepositoryReadiness,
-	useRepositoryReadiness,
-} from "@/components/assets/readiness/use-repository-readiness";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import {
 	type BotEditorFormValues,
@@ -43,9 +39,13 @@ import {
 	type BotModelStepHandle,
 	loadBotModelStep,
 } from "@/components/bot/setup/bot-model-step";
+import {
+	loadRepositoryReadiness,
+	useRepositoryReadiness,
+} from "@/components/preparation/use-repository-readiness";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
+import { useConfirm } from "@/components/ui/composed/confirm-dialog";
 import {
 	resourceGrantsQuery,
 	resourceVisibilityQuery,

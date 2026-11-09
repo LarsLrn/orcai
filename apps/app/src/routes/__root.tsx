@@ -22,7 +22,7 @@ import {
 	THEME_COOKIE_NAME,
 	ThemeProvider,
 } from "@/components/app/theme-provider";
-import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
+import { ConfirmDialogProvider } from "@/components/ui/composed/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getRenderTimeZone } from "@/hooks/use-display-time";

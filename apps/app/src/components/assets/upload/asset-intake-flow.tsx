@@ -7,8 +7,8 @@ import { SelectedAssetList } from "@/components/assets/shared/selected-asset-lis
 import {
 	UploadComponent,
 	type UploadVariant,
-} from "@/components/assets/upload-component";
-import type { UploadFailure } from "@/components/assets/use-asset-intake";
+} from "@/components/assets/upload/upload-component";
+import type { UploadFailure } from "@/components/assets/upload/use-asset-intake";
 import { Button } from "@/components/ui/button";
 import {
 	Card,

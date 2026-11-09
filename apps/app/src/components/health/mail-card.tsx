@@ -1,6 +1,5 @@
 import type { EmailDeliveryChannel, InstanceMail } from "@orcai/schema";
 import { MailIcon } from "lucide-react";
-import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +10,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { DisplayTimestamp } from "@/components/ui/composed/display-time";
 import {
 	Table,
 	TableBody,

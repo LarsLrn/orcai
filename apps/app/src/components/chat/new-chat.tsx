@@ -3,13 +3,13 @@ import {
 	Conversation,
 	ConversationContent,
 } from "@/components/ai-elements/conversation";
-import { AssetsPanel } from "@/components/assets/readiness/assets-panel";
-import { useChatRepositoryIds } from "@/components/assets/readiness/use-repository-readiness";
 import { ChatPlaceholder } from "@/components/chat/chat-placeholder";
 import { NewChatComposer } from "@/components/chat/composer/new-chat-composer";
 import { useChatStarter } from "@/components/chat/composer/use-chat-starter";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
-import { ChatEmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
+import { AssetsPanel } from "@/components/preparation/assets-panel";
+import { ChatEmbeddingsRebuildNotice } from "@/components/preparation/embeddings-rebuild-notice";
+import { useChatRepositoryIds } from "@/components/preparation/use-repository-readiness";
 import {
 	MessageScrollerButton,
 	MessageScrollerItem,

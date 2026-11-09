@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { DisplayTimestamp } from "@/components/app/display-time";
+import { DisplayTimestamp } from "@/components/ui/composed/display-time";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {

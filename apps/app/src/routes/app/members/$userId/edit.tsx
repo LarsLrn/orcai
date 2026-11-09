@@ -18,7 +18,6 @@ import {
 	MailIcon,
 } from "lucide-react";
 import type { z } from "zod/v4";
-import { DisplayDate } from "@/components/app/display-time";
 import { ManageMember } from "@/components/members/manage-member";
 import {
 	memberAccessOriginOptions,
@@ -26,6 +25,7 @@ import {
 	memberAccessTypeOptions,
 } from "@/components/members/table/member-access-table-columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DisplayDate } from "@/components/ui/composed/display-time";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";

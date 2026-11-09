@@ -1,6 +1,6 @@
 import { MAX_KEPT_UPLOADS } from "@orcai/schema";
 import { useId } from "react";
-import { AssetIntakeFlow } from "@/components/assets/shared/asset-intake-flow";
+import { AssetIntakeFlow } from "@/components/assets/upload/asset-intake-flow";
 import { useToolSummaryLine } from "@/components/chat/message/assistant/tool-summary-line";
 import { useUploadAnswer } from "@/components/chat/message/assistant/use-upload-answer";
 import { toolStatusLabel } from "@/components/chat/message/work-log/tool-status";

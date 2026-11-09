@@ -4,8 +4,8 @@ import {
 	type QuotaUsageEventType,
 } from "@orcai/schema";
 import { createColumnHelper } from "@tanstack/react-table";
-import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
+import { DisplayTimestamp } from "@/components/ui/composed/display-time";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { formatNumber } from "@/lib/locale/format-number";
