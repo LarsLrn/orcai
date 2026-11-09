@@ -189,7 +189,7 @@ describe("searchRepositories", () => {
 		);
 	});
 
-	test("shows the repository's selection in its order, recalled for more than it shows", async () => {
+	test("shows the repository's selection in its order", async () => {
 		const selected = [
 			...[
 				0,
@@ -252,11 +252,98 @@ describe("searchRepositories", () => {
 				{
 					filters: {
 						limit: 6,
-						recallLimit: 36,
 					},
 				},
 			],
 		});
+	});
+
+	test("merges repositories by rank, since their scores do not compare", async () => {
+		const ranked = (prefix: string, scores: number[]) =>
+			scores.map((score, index) => ({
+				...assetPoint({
+					id: `${prefix}${index}`,
+					index,
+				}),
+				score,
+			}));
+		answers["assetPoint.searchRepositories"] = () =>
+			Effect.succeed({
+				results: [
+					{
+						data: ranked(
+							"high",
+							[
+								0.9,
+								0.8,
+								0.7,
+							],
+						),
+					},
+					{
+						data: ranked(
+							"low",
+							[
+								0.03,
+								0.02,
+							],
+						),
+					},
+				],
+			});
+
+		const output = await searchRepositoriesTool({
+			...deps,
+			blocks: [
+				{
+					id: "block-1",
+					name: "Handbook",
+					config: {},
+				},
+				{
+					id: "block-2",
+					name: "Minutes",
+					config: {},
+				},
+			] as unknown as Repository[],
+		}).execute?.(
+			{
+				query: "refund policy",
+			},
+			options,
+		);
+
+		expect(
+			(
+				output as {
+					results: Passage[];
+				}
+			).results.map(({ id, blockName }) => [
+				id,
+				blockName,
+			]),
+		).toEqual([
+			[
+				"high0",
+				"Handbook",
+			],
+			[
+				"low0",
+				"Minutes",
+			],
+			[
+				"high1",
+				"Handbook",
+			],
+			[
+				"low1",
+				"Minutes",
+			],
+			[
+				"high2",
+				"Handbook",
+			],
+		]);
 	});
 });
 

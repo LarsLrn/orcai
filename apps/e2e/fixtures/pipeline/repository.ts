@@ -40,7 +40,6 @@ export const repositoryWithAsset = async (
 			minPassages: 1,
 			maxPassages: 5,
 			defaultPassages: 3,
-			scoreThreshold: 0,
 		},
 	});
 

@@ -24,29 +24,27 @@ const at = (similarity: number, dimensions: number) =>
 					: 0,
 	);
 
-const filler = "The office keeps its records for seven years. ".repeat(12);
-
-// "refund" is common in the collection, and the lexical points differ in length.
+// Only "meaning" is close to the query, only "keyword" says "refund", and the rest are nearer in meaning than "keyword".
 const points = {
-	close: {
+	meaning: {
 		similarity: 0.9,
 		text: "Opening hours are nine to five.",
 	},
-	far: {
-		similarity: 0.1,
+	near: {
+		similarity: 0.5,
 		text: "Parking is free for visitors.",
 	},
-	shortMatch: {
+	nearer: {
+		similarity: 0.6,
+		text: "The office keeps its records for seven years.",
+	},
+	nearest: {
+		similarity: 0.7,
+		text: "Visitors park in the north lot.",
+	},
+	keyword: {
 		similarity: 0,
 		text: "Refund policy.",
-	},
-	longMatch: {
-		similarity: 0,
-		text: `${filler}A refund is paid in time. ${filler}`,
-	},
-	repeatedMatch: {
-		similarity: 0,
-		text: "Refund rules: a refund is paid, a late refund earns interest.",
 	},
 };
 
@@ -85,11 +83,15 @@ beforeAll(
 	SETUP_TIMEOUT,
 );
 
-const search = async (retrievalMode: RetrievalMode) => {
+const search = async (retrievalMode: RetrievalMode, limit: number) => {
 	const found = await run(
 		queryAssetPoints({
-			embedding: at(1, dimensions),
-			text: "refund",
+			queries: [
+				{
+					text: "refund",
+					vector: at(1, dimensions),
+				},
+			],
 			filter: {
 				must: [
 					{
@@ -100,31 +102,33 @@ const search = async (retrievalMode: RetrievalMode) => {
 					},
 				],
 			},
-			limit: 10,
-			scoreThreshold: 0.5,
+			limit,
 			retrievalMode,
 		}),
 	);
-	return found
-		.map((point) =>
-			Object.keys(ids).find((name) => ids[name] === String(point.id)),
-		)
-		.sort();
+	return found.map((point) =>
+		Object.keys(ids).find((name) => ids[name] === String(point.id)),
+	);
 };
 
-describe("queryAssetPoints score threshold", () => {
-	test("dense keeps the points close to the query", async () => {
-		expect(await search("dense")).toEqual([
-			"close",
+describe("queryAssetPoints", () => {
+	test("dense ranks by meaning alone", async () => {
+		expect(await search("dense", 2)).toEqual([
+			"meaning",
+			"nearest",
 		]);
 	});
 
-	test("hybrid applies it to the dense side and keeps every lexical match", async () => {
-		expect(await search("hybrid")).toEqual([
-			"close",
-			"longMatch",
-			"repeatedMatch",
-			"shortMatch",
+	test("sparse finds the keyword alone", async () => {
+		expect(await search("sparse", 5)).toEqual([
+			"keyword",
+		]);
+	});
+
+	test("hybrid surfaces both the keyword match and the meaning match", async () => {
+		expect((await search("hybrid", 2)).sort()).toEqual([
+			"keyword",
+			"meaning",
 		]);
 	});
 });

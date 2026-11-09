@@ -356,18 +356,6 @@ const RepositoryFieldGroup = withFieldGroup({
 									)}
 								/>
 								<group.AppField
-									name="config.scoreThreshold"
-									children={(field) => (
-										<field.TextField
-											label={m.blocks_repository_form_score_threshold_label()}
-											type="number"
-											min={0}
-											max={1}
-											step={0.01}
-										/>
-									)}
-								/>
-								<group.AppField
 									name="config.retrievalMode"
 									children={(field) => (
 										<field.SelectField

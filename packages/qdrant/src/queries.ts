@@ -33,128 +33,97 @@ export const parseAssetPoints = (points: readonly unknown[]) =>
 			}),
 	});
 
-/** The served points matching `filter`, ranked by `retrievalMode`. */
+/** A search wording, with its vector from the active generation's model unless the search is sparse. */
+export type RetrievalQuery = {
+	readonly text: string;
+	readonly vector?: number[];
+};
+
+/**
+ * The served points matching `filter`. With queries, each wording ranks the
+ * points by meaning, by keywords (BM25) or both, as `retrievalMode` says, and
+ * Qdrant fuses several rankings by Reciprocal Rank Fusion. A point's score is
+ * its cosine similarity or BM25 score when one ranking ran, and its fused rank
+ * score otherwise, so only the order compares across searches.
+ */
 export const queryAssetPoints = (params: {
-	embedding?: number[];
-	text?: string;
+	queries?: readonly RetrievalQuery[];
 	filter?: Schemas["Filter"];
 	limit?: number | null;
-	scoreThreshold?: number;
 	retrievalMode?: RetrievalMode;
 }) =>
 	Effect.gen(function* () {
 		const { client, bm25Config } = yield* QdrantService;
 		const { collection } = yield* EmbeddingGeneration;
-		const resolvedLimit = params.limit ?? 10;
+		const limit = params.limit ?? 10;
 		const retrievalMode = params.retrievalMode ?? "dense";
-		const hasEmbedding =
-			Array.isArray(params.embedding) && params.embedding.length > 0;
-		const hasText = typeof params.text === "string" && params.text.length > 0;
 		const filter = servedFilter(params.filter);
 
+		// A wording without a vector falls back to keywords.
+		const rankings = (params.queries ?? []).flatMap(
+			({ text, vector }): Schemas["Prefetch"][] => {
+				const dense =
+					retrievalMode !== "sparse" && vector && vector.length > 0
+						? [
+								{
+									query: vector,
+									using: "dense",
+								},
+							]
+						: [];
+				const lexical =
+					text.length > 0 && (retrievalMode !== "dense" || dense.length === 0)
+						? [
+								{
+									query: {
+										text,
+										model: "qdrant/bm25",
+										options: bm25Config,
+									},
+									using: "bm25",
+								},
+							]
+						: [];
+				return [
+					...dense,
+					...lexical,
+				];
+			},
+		);
+
 		const points = yield* qdrantCall("query", async () => {
-			const queryDense = async () => {
-				if (!hasEmbedding) {
-					return [];
-				}
-
-				const response = await client.query(collection, {
-					query: params.embedding,
-					using: "dense",
-					filter,
-					limit: resolvedLimit,
-					with_payload: true,
-					score_threshold: params.scoreThreshold,
-				});
-				return response.points;
-			};
-
-			const querySparse = async () => {
-				if (!hasText) {
-					return [];
-				}
-
-				const response = await client.query(collection, {
-					query: {
-						text: params.text,
-						model: "qdrant/bm25",
-						options: bm25Config,
-					},
-					using: "bm25",
-					filter,
-					limit: resolvedLimit,
-					with_payload: true,
-					score_threshold: params.scoreThreshold,
-				});
-				return response.points;
-			};
-
-			// The threshold is a cosine similarity, so only the dense side takes it; any lexical match counts.
-			const queryHybrid = async () => {
-				if (!hasEmbedding || !hasText) {
-					return [];
-				}
-
-				const response = await client.query(collection, {
-					prefetch: [
-						{
-							query: {
-								text: params.text,
-								model: "qdrant/bm25",
-								options: bm25Config,
-							},
-							using: "bm25",
-							filter,
-							limit: Math.max(resolvedLimit, 20),
-						},
-						{
-							query: params.embedding,
-							using: "dense",
-							filter,
-							limit: Math.max(resolvedLimit, 20),
-							score_threshold: params.scoreThreshold,
-						},
-					],
-					query: {
-						fusion: "rrf",
-					},
-					limit: resolvedLimit,
-					with_payload: true,
-				});
-				return response.points;
-			};
-
-			const queryMetadataOnly = async () => {
+			const [ranking, ...more] = rankings;
+			if (!ranking) {
 				const response = await client.scroll(collection, {
 					filter,
-					limit: resolvedLimit,
+					limit,
 					with_payload: true,
 				});
-				return response.points ?? [];
-			};
-
-			if (retrievalMode === "hybrid" && hasEmbedding && hasText) {
-				return await queryHybrid();
+				return response.points;
 			}
-
-			if (retrievalMode === "dense" && hasEmbedding) {
-				return await queryDense();
-			}
-
-			if (retrievalMode === "sparse" && hasText) {
-				return await querySparse();
-			}
-
-			// Fallback to whichever modality is available when the preferred mode cannot run.
-			if (hasEmbedding) {
-				return await queryDense();
-			}
-
-			if (hasText) {
-				return await querySparse();
-			}
-
-			return await queryMetadataOnly();
+			const response = await client.query(
+				collection,
+				more.length === 0
+					? {
+							...ranking,
+							filter,
+							limit,
+							with_payload: true,
+						}
+					: {
+							prefetch: rankings.map((prefetch) => ({
+								...prefetch,
+								filter,
+								limit,
+							})),
+							query: {
+								fusion: "rrf",
+							},
+							limit,
+							with_payload: true,
+						},
+			);
+			return response.points;
 		});
 
 		return yield* parseAssetPoints(points);

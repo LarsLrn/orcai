@@ -149,9 +149,13 @@ A repository's page lists its attached assets and its retrieval configuration:
 
 - **Retrieval mode**: Dense, Sparse or Hybrid
 - **Passages per answer**: Minimum, Default and Maximum
-- **Passages per asset**, **Candidate limit** and **Score threshold**, under the advanced settings
+- **Passages per asset** and **Candidate limit**, under the advanced settings
+
+Dense ranks passages by meaning, Sparse by the words of the query (BM25), and Hybrid runs both and combines the two rankings. A search with several wordings ranks the passages for each wording and combines those rankings too, so a passage that several wordings find ranks higher. **Candidate limit** is how many passages each ranking contributes before the results are picked. There is no minimum score: a search returns the best passages it finds.
 
 **Passages per asset** keeps one long asset from crowding out the others, because a search takes at most that many passages from each asset first. When that leaves the results short, the best remaining passages fill the free places.
+
+When a bot searches several repositories, each is ranked on its own and their results take turns: the best passage of every repository first, then the second best of every repository, and so on.
 
 Above the assets of a published repository, **Explore** opens its passages at `/app/library/repositories/<block id>/explore`.
 
@@ -163,7 +167,7 @@ Each asset card shows its state in this repository: **Queued**, **Processing** (
 
 - With **All assets**, passages of every asset, in no particular order.
 - With one asset chosen, its passages in reading order: page by page, the images of a page after its text.
-- A search runs as you type and shows the best matches first, as many as **Top 10**, **Top 25** or **Top 50**, with each passage's score, using the retrieval mode you choose (Hybrid, Dense or Sparse). Unlike a bot's search, it does not limit how many passages come from one asset.
+- A search runs as you type and shows the best matches first, as many as **Top 10**, **Top 25** or **Top 50**, with each passage's score, using the retrieval mode you choose (Hybrid, Dense or Sparse). Unlike a bot's search, it does not limit how many passages come from one asset. The score is the similarity for Dense, the keyword score for Sparse and the combined rank for Hybrid, so it orders the passages of one search but does not compare across searches.
 
 The search, mode, asset and result count are kept in the page's address, so a link opens the same view.
 

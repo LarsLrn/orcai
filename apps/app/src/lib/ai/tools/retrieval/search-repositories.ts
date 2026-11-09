@@ -9,9 +9,8 @@ import { searchModelOutput } from "./outputs";
 import { searchRepositoriesInputSchema } from "./search-repositories.declaration";
 import type { Passage } from "./types";
 import {
-	flattenBlockResponses,
 	loadReadiness,
-	mergeAndSortCandidates,
+	mergeByRank,
 	resolveSearchBlocks,
 	toPassage,
 	unsearchableAssets,
@@ -91,10 +90,8 @@ export const searchRepositoriesTool = ({
 										filters: {
 											queries: normalizedQueries,
 											limit,
-											recallLimit: Math.max(limit * 6, 24),
 											assetIds,
 											retrievalMode: block.config.retrievalMode ?? "hybrid",
-											minScore: block.config.scoreThreshold,
 											candidateLimit:
 												block.config.candidateLimit ?? Math.max(limit * 8, 32),
 											maxPerAsset: block.config.maxPerAsset,
@@ -125,10 +122,7 @@ export const searchRepositoriesTool = ({
 				);
 				const notSearchable = unsearchableAssets(repositories);
 
-				const candidates = mergeAndSortCandidates(
-					flattenBlockResponses(blockResponses),
-				);
-				const boundedResults: Passage[] = candidates
+				const boundedResults: Passage[] = mergeByRank(blockResponses)
 					.slice(0, Math.min(limit, RETRIEVAL_LIMITS.maxSnippetResultsPerCall))
 					.map((point) =>
 						toPassage([

@@ -11,7 +11,6 @@ import { z } from "zod/v4";
 const repositoryFormSchema = createRepositoryInputSchema.extend({
 	description: z.string(),
 	config: createRepositoryInputSchema.shape.config.extend({
-		scoreThreshold: z.number().min(0).max(1),
 		retrievalMode: retrievalModeSchema,
 		candidateLimit: z.number().int().min(1).max(200),
 		maxPerAsset: z.number().int().min(1),

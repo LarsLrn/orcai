@@ -17,7 +17,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 
 type RepositorySearch = z.infer<typeof searchRepositoryAssetPointsInputSchema>;
 
-// Each retrieval runs up to four Qdrant queries, so a request keeps 32 in flight at most.
+// Each retrieval is one Qdrant query.
 const SEARCH_CONCURRENCY = 8;
 
 /** The points of links that still exist, with their asset's title as it is now. */
@@ -227,7 +227,6 @@ export const searchRepositories = (searches: readonly RepositorySearch[]) =>
 							data: [] as RetrievedAssetPoint[],
 							metadata: {
 								retrievalMode,
-								scoreThreshold: 0,
 								candidateCount: 0,
 								returnedCount: 0,
 							},

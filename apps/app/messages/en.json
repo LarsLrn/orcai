@@ -2016,7 +2016,6 @@
 	"blocks_repository_config_retrieval_mode_label": "Retrieval mode",
 	"blocks_repository_config_retrieval_title": "Retrieval configuration",
 	"blocks_repository_config_prepare_failed_again_action": "Prepare failed assets again",
-	"blocks_repository_config_score_threshold_label": "Score threshold",
 	"blocks_repository_form_candidate_limit_label": "Candidate limit",
 	"blocks_repository_form_content_label": "Detailed description",
 	"blocks_repository_form_create_submit_button": "Save repository",
@@ -2028,7 +2027,6 @@
 	"blocks_repository_form_name_placeholder": "Course handbook",
 	"blocks_repository_form_per_asset_label": "Passages per asset",
 	"blocks_repository_form_retrieval_mode_label": "Retrieval mode",
-	"blocks_repository_form_score_threshold_label": "Score threshold",
 	"blocks_repository_form_update_submit_button": "Update repository",
 	"blocks_delete_action": "Delete block",
 	"blocks_delete_confirm_button": [
