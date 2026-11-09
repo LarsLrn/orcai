@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { providerCompaction } from "@orcai/ai";
 import { createAssistantSession } from "@/lib/ai/tools/assistant/session";
-import type { CapabilitySet } from "../groups";
-import "../test-procedures";
+import type { CapabilitySet } from "./groups";
+import "./test-procedures";
 
 const { loadToolsTool } = await import("./load-tools");
 

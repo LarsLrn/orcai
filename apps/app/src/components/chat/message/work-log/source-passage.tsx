@@ -1,5 +1,5 @@
-import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
-import type { Passage } from "@/lib/ai/tools/rag/types";
+import { formatPageRange } from "@/lib/ai/tools/retrieval/format-page-range";
+import type { Passage } from "@/lib/ai/tools/retrieval/types";
 import { formatAssetTitle } from "@/lib/assets/asset-title";
 import { m } from "@/paraglide/messages";
 import { ClampedText } from "./clamped-text";

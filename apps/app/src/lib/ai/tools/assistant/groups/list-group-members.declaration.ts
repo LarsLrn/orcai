@@ -2,7 +2,7 @@ import { listGroupMembersInputSchema as groupMembersQuerySchema } from "@orcai/s
 import { UsersRoundIcon } from "lucide-react";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
-import { listPageSchema } from "../core/list-input";
+import { listPageSchema } from "../list-input";
 import type { listGroupMembersTool } from "./list-group-members";
 
 export const listGroupMembersInputSchema = groupMembersQuerySchema

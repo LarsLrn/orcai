@@ -1,8 +1,8 @@
 import * as Effect from "effect/Effect";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
+import { listPage, listPaging, PAGING_NOTE } from "../list-input";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
 import { findAssetsInputSchema } from "./find-assets.declaration";
-import { listPage, listPaging, PAGING_NOTE } from "./list-input";
 
 export const findAssetsTool = (deps: AssistantToolDeps) =>
 	effectTool({

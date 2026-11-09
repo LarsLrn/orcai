@@ -13,7 +13,7 @@ import {
 	HoverCardContent,
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { formatPageRange } from "@/lib/ai/tools/rag/format-page-range";
+import { formatPageRange } from "@/lib/ai/tools/retrieval/format-page-range";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";

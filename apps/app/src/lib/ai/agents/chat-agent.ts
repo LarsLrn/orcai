@@ -18,12 +18,12 @@ import type { CitableKind } from "@/lib/ai/citations/citation-rules";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { buildGenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
 import { buildQuestionTools } from "@/lib/ai/tools/questions/toolset";
-import { buildRepositoryTools } from "@/lib/ai/tools/rag/toolset";
 import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
+import { buildRepositoryTools } from "@/lib/ai/tools/retrieval/toolset";
 import {
 	storedWebSearchTools,
 	type TurnWebSearch,
-} from "@/lib/ai/tools/web/toolset";
+} from "@/lib/ai/tools/web-search/toolset";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 
 /** Every tool a plain or bot chat's stored calls may name. */

@@ -10,7 +10,7 @@ import {
 	isCreateTool,
 	offeredGroupTools,
 	offeredToolGroups,
-} from "../groups";
+} from "./groups";
 import { loadToolsInputSchema } from "./load-tools.declaration";
 
 type LoadToolsGroupResult =

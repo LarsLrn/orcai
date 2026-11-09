@@ -1,10 +1,10 @@
 import type { InferUITool, ToolUIPart } from "ai";
 import type { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
-import type { getAssetPageTool } from "@/lib/ai/tools/rag/get-asset-page";
-import type { getPassagesTool } from "@/lib/ai/tools/rag/get-passages";
-import type { listRepositoryAssetsTool } from "@/lib/ai/tools/rag/list-repository-assets";
-import type { searchRepositoriesTool } from "@/lib/ai/tools/rag/search-repositories";
-import type { searchWebTool } from "@/lib/ai/tools/web/search-web";
+import type { getAssetPageTool } from "@/lib/ai/tools/retrieval/get-asset-page";
+import type { getPassagesTool } from "@/lib/ai/tools/retrieval/get-passages";
+import type { listRepositoryAssetsTool } from "@/lib/ai/tools/retrieval/list-repository-assets";
+import type { searchRepositoriesTool } from "@/lib/ai/tools/retrieval/search-repositories";
+import type { searchWebTool } from "@/lib/ai/tools/web-search/search-web";
 
 /**
  * Repository tool parts

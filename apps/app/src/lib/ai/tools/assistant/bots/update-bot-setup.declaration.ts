@@ -3,8 +3,8 @@ import { SlidersHorizontalIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
-import { setupInputSchema } from "../bots/setup-input";
 import { CATALOGUE_CAPABILITIES } from "../capabilities";
+import { setupInputSchema } from "./setup-input";
 import type { updateBotSetupTool } from "./update-bot-setup";
 
 export const updateBotSetupInputSchema = z.strictObject({

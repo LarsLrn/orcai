@@ -1,7 +1,7 @@
 import {
 	LIST_PAGE_SIZE,
 	listPaging,
-} from "@/lib/ai/tools/assistant/core/list-input";
+} from "@/lib/ai/tools/assistant/list-input";
 import {
 	answers,
 	answersIn,

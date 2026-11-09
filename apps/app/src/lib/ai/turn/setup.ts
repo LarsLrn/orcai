@@ -27,8 +27,11 @@ import {
 	type ResolvedFeature,
 	resolveFeatures,
 } from "@/lib/ai/features/resolve-features";
-import { NO_WEB_SEARCH, type TurnWebSearch } from "@/lib/ai/tools/web/toolset";
-import { turnWebSearch } from "@/lib/ai/tools/web/turn-web-search";
+import {
+	NO_WEB_SEARCH,
+	type TurnWebSearch,
+} from "@/lib/ai/tools/web-search/toolset";
+import { turnWebSearch } from "@/lib/ai/tools/web-search/turn-web-search";
 import { capabilitySets } from "@/lib/authz/capabilities";
 import { requestZedToken } from "@/lib/authz/zed-token";
 import { effectiveModel } from "@/lib/chats/effective-model";

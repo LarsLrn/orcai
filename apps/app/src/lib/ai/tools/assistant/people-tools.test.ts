@@ -10,7 +10,7 @@ import {
 	procedureCalls,
 	resetProcedures,
 	runPromise,
-} from "../test-procedures";
+} from "./test-procedures";
 
 const id = (index: number) =>
 	`6a1f1c1e-2a3f-4c1d-9e8f-0a1b2c3d4e${String(index).padStart(2, "0")}`;
@@ -114,14 +114,16 @@ beforeEach(() => {
 		});
 });
 
-const { deleteGroups } = await import("./delete-group");
-const { removeMembers, removeMembersTool } = await import("./remove-members");
-const { changeMemberRoleTool } = await import("./change-member-role");
-const { cancelInvitations, cancelInvitationTool } = await import(
-	"./cancel-invitation"
+const { deleteGroups } = await import("./groups/delete-group");
+const { removeMembers, removeMembersTool } = await import(
+	"./members/remove-members"
 );
-const { inviteMembers } = await import("./invite-members");
-const { createAssistantTurn } = await import("../turn-state");
+const { changeMemberRoleTool } = await import("./members/change-member-role");
+const { cancelInvitations, cancelInvitationTool } = await import(
+	"./members/cancel-invitation"
+);
+const { inviteMembers } = await import("./members/invite-members");
+const { createAssistantTurn } = await import("./turn-state");
 
 const deps = (reqHeaders?: Headers) => ({
 	context: {

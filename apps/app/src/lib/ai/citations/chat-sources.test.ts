@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId } from "@orcai/core";
 import { toolPart } from "@/lib/ai/test-parts";
-import type { Passage } from "@/lib/ai/tools/rag/types";
+import type { Passage } from "@/lib/ai/tools/retrieval/types";
 import { chatSources, citableText } from "./chat-sources";
 import { sourceRef } from "./source-ref";
 

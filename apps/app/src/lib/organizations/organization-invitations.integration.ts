@@ -4,7 +4,7 @@ import { DB, dbSchema } from "@orcai/db";
 import { createUser } from "@orcai/testing";
 import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { inviteMembers } from "@/lib/ai/tools/assistant/people/invite-members";
+import { inviteMembers } from "@/lib/ai/tools/assistant/members/invite-members";
 import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import { acceptInvitation } from "@/lib/organizations/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";

@@ -6,7 +6,7 @@ import { AssetMetadataDialog } from "@/components/assets/shared/asset-metadata-d
 import { useToolSummaryLine } from "@/components/assistant/tool-summary-line";
 import { Button } from "@/components/ui/button";
 import type { ToolPartOf, ToolStatus } from "@/lib/ai/messages/turn-view";
-import { uploadedAssets } from "@/lib/ai/tools/assistant/bots/request-upload.declaration";
+import { uploadedAssets } from "@/lib/ai/tools/assistant/assets/request-upload.declaration";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { ToolEntry } from "../tool-entry";

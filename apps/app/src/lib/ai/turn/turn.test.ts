@@ -20,7 +20,7 @@ import {
 	procedureCalls,
 	resetProcedures,
 } from "../tools/assistant/test-procedures";
-import { assetPoint } from "../tools/rag/test-points";
+import { assetPoint } from "../tools/retrieval/test-points";
 import {
 	answerSetup,
 	assistantRow,

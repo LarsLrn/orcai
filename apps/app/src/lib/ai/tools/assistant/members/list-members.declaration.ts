@@ -2,7 +2,7 @@ import { UserRoundIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
-import { listPageSchema } from "./list-input";
+import { listPageSchema } from "../list-input";
 import type { listMembersTool } from "./list-members";
 
 export const listMembersInputSchema = z.strictObject({
