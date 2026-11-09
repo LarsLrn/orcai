@@ -32,7 +32,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { useResourceVisibility } from "@/hooks/authz/use-resource-access";
+import { useResourceVisibility } from "@/hooks/access/use-resource-access";
 import { withFieldGroup } from "@/hooks/form";
 import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
 import { ownerCapabilities } from "@/lib/authz/capabilities";

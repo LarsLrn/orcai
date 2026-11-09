@@ -3,7 +3,7 @@ import {
 	type DestructiveTarget,
 	singleTargetName,
 } from "@/hooks/mutations/destructive-target";
-import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import { isInstanceAdminRole } from "@/lib/instance/instance-role";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

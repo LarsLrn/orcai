@@ -4,8 +4,8 @@ import { DB, dbSchema } from "@orcai/db";
 import { createOrganization, reasonOf } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { grantResourceAccess } from "@/lib/access/resource-access";
 import { turnSetup } from "@/lib/ai/turn/setup";
-import { grantResourceAccess } from "@/lib/authz/resource-access";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,

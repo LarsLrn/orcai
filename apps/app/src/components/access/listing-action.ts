@@ -4,7 +4,7 @@ import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
 	useResourceVisibility,
 	useSetResourceListing,
-} from "@/hooks/authz/use-resource-access";
+} from "@/hooks/access/use-resource-access";
 import { m } from "@/paraglide/messages";
 
 /**

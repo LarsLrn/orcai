@@ -11,7 +11,7 @@ import { permittedEntityIds, type ReadRevision } from "@orcai/spice-db";
 import { and, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { readableNow } from "@/lib/authz/content-access";
-import { inLibrary } from "@/lib/authz/library";
+import { inLibrary } from "@/lib/library/in-library";
 import { unique } from "@/lib/utils/array-utils";
 
 /**

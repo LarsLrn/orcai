@@ -2,8 +2,8 @@ import type { UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { asc, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { isInstanceAdminRole } from "@/lib/instance/instance-role";
 
 /**
  * Locks the actor's and the targets' accounts for the enclosing transaction

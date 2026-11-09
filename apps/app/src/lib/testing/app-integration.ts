@@ -26,7 +26,6 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import type * as ManagedRuntime from "effect/ManagedRuntime";
-import { insertAllMembersGroup } from "@/lib/authz/organization-lifecycle";
 import {
 	lockOrganization,
 	writeRelationships,
@@ -34,6 +33,7 @@ import {
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { AppServices } from "@/lib/effect/app-layer";
 import { AuthzLive, AuthzService } from "@/lib/effect/services/authz";
+import { insertAllMembersGroup } from "@/lib/organizations/organization-lifecycle";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 // Loading the router blocks the event loop for seconds. Loaded with this
 // module, it is cached before the runtime opens connections that time out.

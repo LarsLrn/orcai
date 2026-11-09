@@ -7,12 +7,12 @@ import {
 } from "@orcai/schema";
 import { and, eq, inArray, isNull, type SQL, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { detachGroups } from "@/lib/access/resource-access";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
-import { detachGroups } from "@/lib/authz/resource-access";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 /** Active members of the selected group; All Members holds every member of its organisation. */

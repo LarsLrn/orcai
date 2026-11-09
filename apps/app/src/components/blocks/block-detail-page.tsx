@@ -18,7 +18,7 @@ import {
 	DetailHeaderTitle,
 } from "@/components/ui/shell/detail-header";
 import { Page, PageContent } from "@/components/ui/shell/page";
-import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
+import { resourceVisibilityQuery } from "@/hooks/access/use-resource-access";
 import { publicationStatusBadge } from "@/lib/labels/publication-status";
 import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { orpc } from "@/lib/orpc/orpc";

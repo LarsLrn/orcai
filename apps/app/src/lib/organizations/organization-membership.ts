@@ -11,32 +11,32 @@ import { cleanUpDeletions } from "@orcai/preparation";
 import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import {
+	accountAccessOrganizations,
+	issuedGrantOrganizations,
+	revokeUserGrants,
+} from "@/lib/access/resource-access";
 import { notBanned } from "@/lib/authz/eligible-owner";
-import { leaveGroups } from "@/lib/authz/group-lifecycle";
-import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
 import {
 	organizationPermitted,
 	roleGrants,
 } from "@/lib/authz/organization-access";
-import {
-	handOverAccountsContent,
-	handOverOwnedContent,
-	ownedContentOrganizations,
-} from "@/lib/authz/ownership";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
-import {
-	accountAccessOrganizations,
-	issuedGrantOrganizations,
-	revokeUserGrants,
-} from "@/lib/authz/resource-access";
 import { deleteResources } from "@/lib/authz/resource-lifecycle";
 import { deleteChatsWhere } from "@/lib/chats/chat-lifecycle";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { leaveGroups } from "@/lib/groups/group-lifecycle";
 import { deleteImages } from "@/lib/images/images";
+import { lockAsInstanceAdmin } from "@/lib/instance/instance-admin-lock";
+import {
+	handOverAccountsContent,
+	handOverOwnedContent,
+	ownedContentOrganizations,
+} from "@/lib/ownership/ownership";
 
 type Actor = {
 	userId: UserId;

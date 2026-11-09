@@ -1,4 +1,4 @@
-import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import { isInstanceAdminRole } from "@/lib/instance/instance-role";
 import { useAuthenticatedRouteContext } from "./use-authenticated-route-context";
 
 export const useIsInstanceAdmin = () => {

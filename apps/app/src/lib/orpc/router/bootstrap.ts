@@ -3,9 +3,9 @@ import { DB, dbSchema } from "@orcai/db";
 import { count, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
-import { insertOrganization } from "@/lib/authz/organization-lifecycle";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { insertOrganization } from "@/lib/organizations/organization-lifecycle";
 import { os } from "@/lib/orpc/implementation/os";
 
 const toCount = (value: number | string | bigint | null | undefined) =>

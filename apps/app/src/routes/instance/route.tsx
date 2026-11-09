@@ -2,8 +2,8 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { InstanceShell } from "@/components/instance/instance-shell";
 import { useUmami } from "@/hooks/use-umami";
-import { isInstanceAdminRole } from "@/lib/authz/instance-role";
-import { ensureSignedIn } from "@/lib/authz/route-guards";
+import { isInstanceAdminRole } from "@/lib/instance/instance-role";
+import { ensureSignedIn } from "@/lib/router/route-guards";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/instance")({

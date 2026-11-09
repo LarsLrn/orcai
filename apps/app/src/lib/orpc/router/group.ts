@@ -27,6 +27,9 @@ import {
 	visibleUserColumns,
 	visibleUserSearch,
 } from "@/lib/authz/email-visibility";
+import { visibleGroupScope } from "@/lib/authz/group-visibility";
+import { readRevision } from "@/lib/authz/zed-token";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import {
 	addGroupMembers,
 	createGroup,
@@ -35,10 +38,7 @@ import {
 	groupMemberCount,
 	removeGroupMembers,
 	updateGroup,
-} from "@/lib/authz/group-lifecycle";
-import { visibleGroupScope } from "@/lib/authz/group-visibility";
-import { readRevision } from "@/lib/authz/zed-token";
-import * as AppErrors from "@/lib/effect/utils/errors";
+} from "@/lib/groups/group-lifecycle";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";

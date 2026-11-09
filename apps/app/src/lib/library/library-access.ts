@@ -13,8 +13,8 @@ import {
 import { and, eq, isNull, or, type SQL, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { readableNow } from "@/lib/authz/content-access";
-import { inLibrary } from "@/lib/authz/library";
 import { usableHere } from "@/lib/authz/organization-use";
+import { inLibrary } from "@/lib/library/in-library";
 
 export type LibraryResource = "bot" | "block" | "asset";
 

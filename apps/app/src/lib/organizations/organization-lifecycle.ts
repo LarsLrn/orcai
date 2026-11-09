@@ -8,20 +8,20 @@ import { cleanUpDeletions } from "@orcai/preparation";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY, RESOURCE_TYPES } from "@orcai/schema";
 import { and, asc, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { deleteOrganizationGroups } from "@/lib/authz/group-lifecycle";
-import { detachUsers } from "@/lib/authz/organization-membership";
+import { issuedGrantOrganizations } from "@/lib/access/resource-access";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
-import { issuedGrantOrganizations } from "@/lib/authz/resource-access";
 import {
 	deleteResources,
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { deleteOrganizationGroups } from "@/lib/groups/group-lifecycle";
 import { deleteImages } from "@/lib/images/images";
+import { detachUsers } from "@/lib/organizations/organization-membership";
 
 /**
  * Inserts the organization's All Members group, whose members are the

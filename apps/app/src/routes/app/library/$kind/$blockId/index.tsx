@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { loadRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
 import { BlockDetailPage } from "@/components/blocks/block-detail-page";
-import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
+import { resourceVisibilityQuery } from "@/hooks/access/use-resource-access";
 
 export const Route = createFileRoute("/app/library/$kind/$blockId/")({
 	// A repository's asset states fail only themselves.

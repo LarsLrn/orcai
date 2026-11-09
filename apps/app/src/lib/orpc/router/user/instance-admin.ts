@@ -8,12 +8,12 @@ import {
 import type { InstanceUserSortKey } from "@orcai/schema";
 import { desc, eq, ilike, or } from "drizzle-orm";
 import { resetTwoFactor } from "@/lib/auth/two-factor-reset";
-import { setInstanceRole } from "@/lib/authz/instance-role-change";
+import { setInstanceRole } from "@/lib/instance/instance-role-change";
 import {
 	banAccount,
 	deleteAccounts,
 	unbanAccount,
-} from "@/lib/authz/organization-membership";
+} from "@/lib/organizations/organization-membership";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import { literalSearch } from "@/lib/utils/literal-search";

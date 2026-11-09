@@ -14,14 +14,14 @@ import { checkEntityPermission } from "@orcai/spice-db";
 import { and, desc, eq, getColumns, inArray, or, type SQL } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { invitationAddressedTo } from "@/lib/auth/invitation-signup";
-import { inviteToOrganization } from "@/lib/authz/organization-invitations";
+import { readRevision } from "@/lib/authz/zed-token";
+import * as AppErrors from "@/lib/effect/utils/errors";
+import { inviteToOrganization } from "@/lib/organizations/organization-invitations";
 import {
 	acceptInvitation as acceptInvitedMembership,
 	assertCanManageOrganizationAdmins,
 	organizationRoleRequiresAdminControl,
-} from "@/lib/authz/organization-membership";
-import { readRevision } from "@/lib/authz/zed-token";
-import * as AppErrors from "@/lib/effect/utils/errors";
+} from "@/lib/organizations/organization-membership";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";

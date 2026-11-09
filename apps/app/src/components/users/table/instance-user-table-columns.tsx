@@ -8,7 +8,7 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-col
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { useInstanceUserActions } from "@/components/users/instance-user-actions";
 import { UserAvatar } from "@/components/users/user-avatar";
-import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import { isInstanceAdminRole } from "@/lib/instance/instance-role";
 import { formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 

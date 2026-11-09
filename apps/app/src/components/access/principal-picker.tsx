@@ -9,7 +9,7 @@ import { useDebounceValue } from "usehooks-ts";
 import type { SearchablePickerRow } from "@/components/ui/composed/searchable-picker";
 import { SearchablePicker } from "@/components/ui/composed/searchable-picker";
 import { UserAvatar } from "@/components/users/user-avatar";
-import { useShareablePrincipals } from "@/hooks/authz/use-resource-access";
+import { useShareablePrincipals } from "@/hooks/access/use-resource-access";
 import { m } from "@/paraglide/messages";
 
 type PrincipalPickerProps = {

@@ -13,8 +13,8 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { activeOrganizationQuery } from "@/hooks/use-active-organization";
 import { embeddingsStatusQuery } from "@/hooks/use-embeddings-configured";
 import { useUmami } from "@/hooks/use-umami";
-import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
-import { ensureSignedIn } from "@/lib/authz/route-guards";
+import { organizationCapabilitiesQuery } from "@/lib/router/organization-capabilities-query";
+import { ensureSignedIn } from "@/lib/router/route-guards";
 
 export const Route = createFileRoute("/app")({
 	beforeLoad: ({ context }) => {

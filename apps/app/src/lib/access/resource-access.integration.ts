@@ -8,17 +8,17 @@ import {
 import { rejection } from "@orcai/testing";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { deleteOrganizationsWithAuthorization } from "@/lib/authz/organization-lifecycle";
-import {
-	deleteAccounts,
-	removeMembers,
-} from "@/lib/authz/organization-membership";
-import type { GrantPrincipal } from "@/lib/authz/relationship-facts";
 import {
 	grantResourceAccess,
 	revokeResourceAccess,
-} from "@/lib/authz/resource-access";
+} from "@/lib/access/resource-access";
+import type { GrantPrincipal } from "@/lib/authz/relationship-facts";
 import { setListing } from "@/lib/catalogue/listing";
+import { deleteOrganizationsWithAuthorization } from "@/lib/organizations/organization-lifecycle";
+import {
+	deleteAccounts,
+	removeMembers,
+} from "@/lib/organizations/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,

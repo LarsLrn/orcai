@@ -34,7 +34,7 @@ mock.module("@/lib/orpc/orpc", () =>
 );
 
 const { ensureEntityCapability, ensureOrganizationCapability } = await import(
-	"@/lib/authz/route-guards"
+	"@/lib/router/route-guards"
 );
 const { orNotFound } = await import("@/lib/router/not-found");
 

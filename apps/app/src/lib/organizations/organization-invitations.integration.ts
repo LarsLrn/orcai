@@ -6,7 +6,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { inviteMembers } from "@/lib/ai/tools/assistant/people/invite-members";
 import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
-import { acceptInvitation } from "@/lib/authz/organization-membership";
+import { acceptInvitation } from "@/lib/organizations/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,

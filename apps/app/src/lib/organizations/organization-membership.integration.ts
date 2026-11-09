@@ -16,7 +16,7 @@ import {
 	changeMemberRole,
 	deleteAccounts,
 	removeMembers,
-} from "@/lib/authz/organization-membership";
+} from "@/lib/organizations/organization-membership";
 import {
 	type Actor,
 	appIntegration,

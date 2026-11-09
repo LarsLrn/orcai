@@ -27,8 +27,8 @@ import {
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
-import { inLibrary } from "@/lib/authz/library";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { inLibrary } from "@/lib/library/in-library";
 import { botDetails } from "@/lib/library/tile-details";
 import { literalSearch } from "@/lib/utils/literal-search";
 

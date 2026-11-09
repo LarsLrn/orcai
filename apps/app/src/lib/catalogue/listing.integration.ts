@@ -4,8 +4,8 @@ import { DB, dbSchema } from "@orcai/db";
 import type { ResourceVisibility } from "@orcai/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { grantResourceAccess } from "@/lib/access/resource-access";
 import type { ResourceRef } from "@/lib/authz/relationship-facts";
-import { grantResourceAccess } from "@/lib/authz/resource-access";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,

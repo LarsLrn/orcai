@@ -12,6 +12,7 @@ import type { EntityIdFor, ReadRevision } from "@orcai/spice-db";
 import { and, asc, eq, inArray, ne, notInArray } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
+import { writeGrants } from "@/lib/access/resource-access";
 import {
 	eligibleOwnerIds,
 	notBanned,
@@ -30,7 +31,6 @@ import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
-import { writeGrants } from "@/lib/authz/resource-access";
 import {
 	homeOrganizationId,
 	resourceOrganizations,

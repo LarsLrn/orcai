@@ -9,9 +9,9 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
-import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
-import { ensureEntityCapability } from "@/lib/authz/route-guards";
+import { resourceVisibilityQuery } from "@/hooks/access/use-resource-access";
 import { orpc } from "@/lib/orpc/orpc";
+import { ensureEntityCapability } from "@/lib/router/route-guards";
 import { m } from "@/paraglide/messages";
 
 const TITLES = {

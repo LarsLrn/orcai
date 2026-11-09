@@ -9,17 +9,17 @@ import {
 import type { OrganizationMemberSortKey } from "@orcai/schema";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { effectiveAccess } from "@/lib/authz/effective-access";
+import { effectiveAccess } from "@/lib/access/effective-access";
 import { canSeeEmailIn } from "@/lib/authz/email-visibility";
+import { readRevision } from "@/lib/authz/zed-token";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import {
 	changeMemberRole,
 	removeMembers,
-} from "@/lib/authz/organization-membership";
-import { eligibleReceivers, ownedContent } from "@/lib/authz/ownership";
-import { readRevision } from "@/lib/authz/zed-token";
-import * as AppErrors from "@/lib/effect/utils/errors";
+} from "@/lib/organizations/organization-membership";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
+import { eligibleReceivers, ownedContent } from "@/lib/ownership/ownership";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 /** Anyone may read their own membership; reading another's takes `manage_members`. */

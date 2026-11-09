@@ -11,8 +11,8 @@ import type { StorageUploadRoute, UploadFileObject } from "@orcai/schema";
 import { rejection } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { deleteOrganizationsWithAuthorization } from "@/lib/authz/organization-lifecycle";
-import { deleteAccounts } from "@/lib/authz/organization-membership";
+import { deleteOrganizationsWithAuthorization } from "@/lib/organizations/organization-lifecycle";
+import { deleteAccounts } from "@/lib/organizations/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
