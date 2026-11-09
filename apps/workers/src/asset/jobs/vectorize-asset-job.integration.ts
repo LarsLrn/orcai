@@ -1124,6 +1124,7 @@ test(
 	async () => {
 		const logo = solidImage(
 			240,
+			240,
 			[
 				200,
 				30,
@@ -1131,6 +1132,7 @@ test(
 			],
 		);
 		const chart = solidImage(
+			240,
 			240,
 			[
 				30,
@@ -1226,6 +1228,67 @@ test(
 				chunkCount: points.length,
 			},
 		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a wide narrow figure is stored and described, a small icon is not",
+	async () => {
+		const strip = solidImage(
+			1200,
+			150,
+			[
+				30,
+				30,
+				200,
+			],
+		);
+		const icon = solidImage(
+			150,
+			150,
+			[
+				200,
+				30,
+				30,
+			],
+		);
+		const asset = await run(
+			seedVisionAsset({
+				capabilities: [
+					"text",
+					"image",
+				],
+				pdf: pdfWithImages([
+					strip,
+					icon,
+				]),
+			}),
+		);
+		const described = visionRequests.length;
+		await run(
+			processAsset({
+				id: crypto.randomUUID(),
+				name: "process-asset",
+				data: {
+					assetRef: {
+						bucket: buckets.processed.name,
+						prefix: asset.prefix,
+						id: asset.assetId,
+						type: asset.fileType,
+					},
+					generation: 0,
+				},
+			} as Job<ProcessAssetPayload>),
+		);
+		expect(visionRequests.length - described).toBe(1);
+		const stored = await run(
+			listObjects({
+				bucket: buckets.processed.name,
+				prefix: `${processedAssetPrefix(asset.assetId)}images/`,
+			}),
+		);
+		expect(stored).toHaveLength(1);
 	},
 	TIMEOUT,
 );

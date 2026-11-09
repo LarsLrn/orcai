@@ -1,18 +1,21 @@
 import { deflateSync } from "node:zlib";
 
-/** A square image of one colour, as a PDF image stream's bytes. */
+/** An image of one colour, as a PDF image stream's bytes. */
 export const solidImage = (
-	size: number,
+	width: number,
+	height: number,
 	rgb: [
 		number,
 		number,
 		number,
 	],
 ) => {
-	const pixels = Buffer.alloc(size * size * 3);
-	for (let pixel = 0; pixel < size * size; pixel++) pixels.set(rgb, pixel * 3);
+	const pixels = Buffer.alloc(width * height * 3);
+	for (let pixel = 0; pixel < width * height; pixel++)
+		pixels.set(rgb, pixel * 3);
 	return {
-		size,
+		width,
+		height,
 		data: deflateSync(pixels),
 	};
 };
@@ -27,7 +30,7 @@ export const pdfWithImages = (images: ReturnType<typeof solidImage>[]) => {
 		),
 		...images.flatMap((image, page) => {
 			const id = 3 + page * 3;
-			const content = `q ${image.size} 0 0 ${image.size} 50 50 cm /Im0 Do Q BT /F1 12 Tf 50 20 Td (Refunds page ${page + 1}) Tj ET`;
+			const content = `q ${image.width} 0 0 ${image.height} 50 50 cm /Im0 Do Q BT /F1 12 Tf 50 20 Td (Refunds page ${page + 1}) Tj ET`;
 			return [
 				Buffer.from(
 					`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 400 400] /Resources << /XObject << /Im0 ${id + 2} 0 R >> /Font << /F1 ${fontId} 0 R >> >> /Contents ${id + 1} 0 R >>`,
@@ -37,7 +40,7 @@ export const pdfWithImages = (images: ReturnType<typeof solidImage>[]) => {
 				),
 				Buffer.concat([
 					Buffer.from(
-						`<< /Type /XObject /Subtype /Image /Width ${image.size} /Height ${image.size} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${image.data.length} >>\nstream\n`,
+						`<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${image.data.length} >>\nstream\n`,
 					),
 					image.data,
 					Buffer.from("\nendstream"),

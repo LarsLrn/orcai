@@ -44,7 +44,10 @@ const getRequiredMimeType = (
 		),
 	);
 
-/** Stores each distinct image of the document once, skipping those 200 px or smaller. */
+/** Images below this many pixels are icons and bullets, not figures. */
+const MIN_IMAGE_PIXELS = 40_000;
+
+/** Stores each distinct image of the document once, skipping those below `MIN_IMAGE_PIXELS`. */
 const createDocumentArtifact = (params: {
 	result: Parameters<typeof createExtractionArtifact>[0]["result"];
 	jobId: string;
@@ -66,7 +69,7 @@ const createDocumentArtifact = (params: {
 			if (
 				width !== undefined &&
 				height !== undefined &&
-				(width <= 200 || height <= 200)
+				width * height < MIN_IMAGE_PIXELS
 			) {
 				yield* Effect.logWarning(
 					{
