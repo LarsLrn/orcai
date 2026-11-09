@@ -90,6 +90,9 @@ test("a row added while a drain runs is drained after the next wake", async () =
 			Effect.provide(
 				IsolatedPgBossLive({
 					clock,
+					queues: [
+						NOTIFICATION_OUTBOX_JOB_NAME,
+					],
 				}).pipe(
 					Layer.provideMerge(Layer.mergeAll(DrizzleLive, emailVia("log"))),
 				),

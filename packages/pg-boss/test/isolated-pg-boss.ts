@@ -5,7 +5,7 @@ import {
 	DrizzleLive,
 	makePgConnectionString,
 } from "@orcai/db";
-import { jobQueues } from "@orcai/schema";
+import { type JobQueue, jobQueues } from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -16,19 +16,19 @@ import { ensureQueues } from "../src/queues";
 import { PgBossService } from "../src/service";
 
 /**
- * pg-boss in a schema of its own with every queue of the queue table, so no
- * other test file sees or wakes its jobs. Errors are logged, as in
- * production. The schema goes when the scope closes.
+ * pg-boss in a schema of its own, so no other test file sees or wakes its
+ * jobs, with `queues` and their dead letter queues, every queue by default.
+ * Errors are logged, as in production. The schema goes when the scope closes.
  */
-export const IsolatedPgBossLive = (
-	options: Pick<
-		ConstructorOptions,
-		| "clock"
-		| "supervise"
-		| "superviseIntervalSeconds"
-		| "monitorIntervalSeconds"
-	> = {},
-) =>
+export const IsolatedPgBossLive = ({
+	queues = jobQueues.options,
+	...options
+}: Pick<
+	ConstructorOptions,
+	"clock" | "supervise" | "superviseIntervalSeconds" | "monitorIntervalSeconds"
+> & {
+	readonly queues?: readonly JobQueue[];
+} = {}) =>
 	Layer.effectContext(
 		Effect.gen(function* () {
 			const { config } = yield* DbConfigService;
@@ -69,10 +69,7 @@ export const IsolatedPgBossLive = (
 				boss,
 				schema,
 			});
-			yield* ensureQueues(jobQueues.options).pipe(
-				Effect.provide(service),
-				Effect.orDie,
-			);
+			yield* ensureQueues(queues).pipe(Effect.provide(service), Effect.orDie);
 			return service;
 		}),
 	).pipe(Layer.provide(Layer.mergeAll(DbConfigLive, DrizzleLive)));
