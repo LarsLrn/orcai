@@ -17,7 +17,7 @@ import { useSignOut } from "@/hooks/actions/use-sign-out";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/_pathlessLayout/register")({
+export const Route = createFileRoute("/_standalone/(sign-in)/register")({
 	validateSearch: z.object({
 		inv: z.string().optional(),
 	}),

@@ -10,21 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PathlessLayoutRouteRouteImport } from './routes/_pathlessLayout/route'
+import { Route as StandaloneRouteRouteImport } from './routes/_standalone/route'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as InstanceRouteRouteImport } from './routes/instance/route'
-import { Route as PathlessLayoutForgotPasswordRouteImport } from './routes/_pathlessLayout/forgot-password'
-import { Route as PathlessLayoutHistoryRouteRouteImport } from './routes/_pathlessLayout/history/route'
-import { Route as PathlessLayoutInitRouteImport } from './routes/_pathlessLayout/init'
-import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
-import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLayout/privacy'
-import { Route as PathlessLayoutRegisterRouteImport } from './routes/_pathlessLayout/register'
-import { Route as PathlessLayoutResetPasswordRouteImport } from './routes/_pathlessLayout/reset-password'
-import { Route as PathlessLayoutSelectOrganizationRouteImport } from './routes/_pathlessLayout/select-organization'
-import { Route as PathlessLayoutSetupTwoFactorRouteImport } from './routes/_pathlessLayout/setup-two-factor'
-import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/tou'
-import { Route as PathlessLayoutTwoFactorRouteImport } from './routes/_pathlessLayout/two-factor'
-import { Route as PathlessLayoutVerifyEmailRouteImport } from './routes/_pathlessLayout/verify-email'
+import { Route as StandaloneHistoryRouteRouteImport } from './routes/_standalone/history/route'
+import { Route as StandaloneSelectOrganizationRouteImport } from './routes/_standalone/select-organization'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AppHomeRouteRouteImport } from './routes/app/_home/route'
 import { Route as AppAccountRouteRouteImport } from './routes/app/account/route'
@@ -40,8 +30,18 @@ import { Route as AppOrganizationRouteRouteImport } from './routes/app/organizat
 import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
 import { Route as AppQuotaPoolsRouteRouteImport } from './routes/app/quota-pools/route'
 import { Route as InstanceIndexRouteImport } from './routes/instance/index'
-import { Route as PathlessLayoutHistoryIndexRouteImport } from './routes/_pathlessLayout/history/index'
-import { Route as PathlessLayoutHistoryChatIdRouteImport } from './routes/_pathlessLayout/history/$chatId'
+import { Route as StandalonelegalPrivacyRouteImport } from './routes/_standalone/(legal)/privacy'
+import { Route as StandalonelegalTouRouteImport } from './routes/_standalone/(legal)/tou'
+import { Route as StandalonesignInForgotPasswordRouteImport } from './routes/_standalone/(sign-in)/forgot-password'
+import { Route as StandalonesignInInitRouteImport } from './routes/_standalone/(sign-in)/init'
+import { Route as StandalonesignInLoginRouteImport } from './routes/_standalone/(sign-in)/login'
+import { Route as StandalonesignInRegisterRouteImport } from './routes/_standalone/(sign-in)/register'
+import { Route as StandalonesignInResetPasswordRouteImport } from './routes/_standalone/(sign-in)/reset-password'
+import { Route as StandalonesignInSetupTwoFactorRouteImport } from './routes/_standalone/(sign-in)/setup-two-factor'
+import { Route as StandalonesignInTwoFactorRouteImport } from './routes/_standalone/(sign-in)/two-factor'
+import { Route as StandalonesignInVerifyEmailRouteImport } from './routes/_standalone/(sign-in)/verify-email'
+import { Route as StandaloneHistoryIndexRouteImport } from './routes/_standalone/history/index'
+import { Route as StandaloneHistoryChatIdRouteImport } from './routes/_standalone/history/$chatId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiDataExportsDataExportIdRouteImport } from './routes/api/data-exports/$dataExportId'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
@@ -126,8 +126,8 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PathlessLayoutRouteRoute = PathlessLayoutRouteRouteImport.update({
-  id: '/_pathlessLayout',
+const StandaloneRouteRoute = StandaloneRouteRouteImport.update({
+  id: '/_standalone',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRouteRoute = AppRouteRouteImport.update({
@@ -140,71 +140,16 @@ const InstanceRouteRoute = InstanceRouteRouteImport.update({
   path: '/instance',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PathlessLayoutForgotPasswordRoute =
-  PathlessLayoutForgotPasswordRouteImport.update({
-    id: '/forgot-password',
-    path: '/forgot-password',
-    getParentRoute: () => PathlessLayoutRouteRoute,
-  } as any)
-const PathlessLayoutHistoryRouteRoute =
-  PathlessLayoutHistoryRouteRouteImport.update({
-    id: '/history',
-    path: '/history',
-    getParentRoute: () => PathlessLayoutRouteRoute,
-  } as any)
-const PathlessLayoutInitRoute = PathlessLayoutInitRouteImport.update({
-  id: '/init',
-  path: '/init',
-  getParentRoute: () => PathlessLayoutRouteRoute,
+const StandaloneHistoryRouteRoute = StandaloneHistoryRouteRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => StandaloneRouteRoute,
 } as any)
-const PathlessLayoutLoginRoute = PathlessLayoutLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => PathlessLayoutRouteRoute,
-} as any)
-const PathlessLayoutPrivacyRoute = PathlessLayoutPrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => PathlessLayoutRouteRoute,
-} as any)
-const PathlessLayoutRegisterRoute = PathlessLayoutRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => PathlessLayoutRouteRoute,
-} as any)
-const PathlessLayoutResetPasswordRoute =
-  PathlessLayoutResetPasswordRouteImport.update({
-    id: '/reset-password',
-    path: '/reset-password',
-    getParentRoute: () => PathlessLayoutRouteRoute,
-  } as any)
-const PathlessLayoutSelectOrganizationRoute =
-  PathlessLayoutSelectOrganizationRouteImport.update({
+const StandaloneSelectOrganizationRoute =
+  StandaloneSelectOrganizationRouteImport.update({
     id: '/select-organization',
     path: '/select-organization',
-    getParentRoute: () => PathlessLayoutRouteRoute,
-  } as any)
-const PathlessLayoutSetupTwoFactorRoute =
-  PathlessLayoutSetupTwoFactorRouteImport.update({
-    id: '/setup-two-factor',
-    path: '/setup-two-factor',
-    getParentRoute: () => PathlessLayoutRouteRoute,
-  } as any)
-const PathlessLayoutTouRoute = PathlessLayoutTouRouteImport.update({
-  id: '/tou',
-  path: '/tou',
-  getParentRoute: () => PathlessLayoutRouteRoute,
-} as any)
-const PathlessLayoutTwoFactorRoute = PathlessLayoutTwoFactorRouteImport.update({
-  id: '/two-factor',
-  path: '/two-factor',
-  getParentRoute: () => PathlessLayoutRouteRoute,
-} as any)
-const PathlessLayoutVerifyEmailRoute =
-  PathlessLayoutVerifyEmailRouteImport.update({
-    id: '/verify-email',
-    path: '/verify-email',
-    getParentRoute: () => PathlessLayoutRouteRoute,
+    getParentRoute: () => StandaloneRouteRoute,
   } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
@@ -280,18 +225,72 @@ const InstanceIndexRoute = InstanceIndexRouteImport.update({
   path: '/',
   getParentRoute: () => InstanceRouteRoute,
 } as any)
-const PathlessLayoutHistoryIndexRoute =
-  PathlessLayoutHistoryIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => PathlessLayoutHistoryRouteRoute,
+const StandalonelegalPrivacyRoute = StandalonelegalPrivacyRouteImport.update({
+  id: '/(legal)/privacy',
+  path: '/privacy',
+  getParentRoute: () => StandaloneRouteRoute,
+} as any)
+const StandalonelegalTouRoute = StandalonelegalTouRouteImport.update({
+  id: '/(legal)/tou',
+  path: '/tou',
+  getParentRoute: () => StandaloneRouteRoute,
+} as any)
+const StandalonesignInForgotPasswordRoute =
+  StandalonesignInForgotPasswordRouteImport.update({
+    id: '/(sign-in)/forgot-password',
+    path: '/forgot-password',
+    getParentRoute: () => StandaloneRouteRoute,
   } as any)
-const PathlessLayoutHistoryChatIdRoute =
-  PathlessLayoutHistoryChatIdRouteImport.update({
-    id: '/$chatId',
-    path: '/$chatId',
-    getParentRoute: () => PathlessLayoutHistoryRouteRoute,
+const StandalonesignInInitRoute = StandalonesignInInitRouteImport.update({
+  id: '/(sign-in)/init',
+  path: '/init',
+  getParentRoute: () => StandaloneRouteRoute,
+} as any)
+const StandalonesignInLoginRoute = StandalonesignInLoginRouteImport.update({
+  id: '/(sign-in)/login',
+  path: '/login',
+  getParentRoute: () => StandaloneRouteRoute,
+} as any)
+const StandalonesignInRegisterRoute =
+  StandalonesignInRegisterRouteImport.update({
+    id: '/(sign-in)/register',
+    path: '/register',
+    getParentRoute: () => StandaloneRouteRoute,
   } as any)
+const StandalonesignInResetPasswordRoute =
+  StandalonesignInResetPasswordRouteImport.update({
+    id: '/(sign-in)/reset-password',
+    path: '/reset-password',
+    getParentRoute: () => StandaloneRouteRoute,
+  } as any)
+const StandalonesignInSetupTwoFactorRoute =
+  StandalonesignInSetupTwoFactorRouteImport.update({
+    id: '/(sign-in)/setup-two-factor',
+    path: '/setup-two-factor',
+    getParentRoute: () => StandaloneRouteRoute,
+  } as any)
+const StandalonesignInTwoFactorRoute =
+  StandalonesignInTwoFactorRouteImport.update({
+    id: '/(sign-in)/two-factor',
+    path: '/two-factor',
+    getParentRoute: () => StandaloneRouteRoute,
+  } as any)
+const StandalonesignInVerifyEmailRoute =
+  StandalonesignInVerifyEmailRouteImport.update({
+    id: '/(sign-in)/verify-email',
+    path: '/verify-email',
+    getParentRoute: () => StandaloneRouteRoute,
+  } as any)
+const StandaloneHistoryIndexRoute = StandaloneHistoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StandaloneHistoryRouteRoute,
+} as any)
+const StandaloneHistoryChatIdRoute = StandaloneHistoryChatIdRouteImport.update({
+  id: '/$chatId',
+  path: '/$chatId',
+  getParentRoute: () => StandaloneHistoryRouteRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -710,7 +709,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/instance': typeof InstanceRouteRouteWithChildren
-  '/history': typeof PathlessLayoutHistoryRouteRouteWithChildren
+  '/history': typeof StandaloneHistoryRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
   '/app/analytics': typeof AppAnalyticsRouteRouteWithChildren
   '/app/assistant': typeof AppAssistantRouteRouteWithChildren
@@ -723,17 +722,7 @@ export interface FileRoutesByFullPath {
   '/app/organization': typeof AppOrganizationRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/quota-pools': typeof AppQuotaPoolsRouteRouteWithChildren
-  '/forgot-password': typeof PathlessLayoutForgotPasswordRoute
-  '/init': typeof PathlessLayoutInitRoute
-  '/login': typeof PathlessLayoutLoginRoute
-  '/privacy': typeof PathlessLayoutPrivacyRoute
-  '/register': typeof PathlessLayoutRegisterRoute
-  '/reset-password': typeof PathlessLayoutResetPasswordRoute
-  '/select-organization': typeof PathlessLayoutSelectOrganizationRoute
-  '/setup-two-factor': typeof PathlessLayoutSetupTwoFactorRoute
-  '/tou': typeof PathlessLayoutTouRoute
-  '/two-factor': typeof PathlessLayoutTwoFactorRoute
-  '/verify-email': typeof PathlessLayoutVerifyEmailRoute
+  '/select-organization': typeof StandaloneSelectOrganizationRoute
   '/api/health': typeof ApiHealthRoute
   '/instance/': typeof InstanceIndexRoute
   '/app/catalogue/$kind': typeof AppCatalogueKindRouteRouteWithChildren
@@ -747,7 +736,17 @@ export interface FileRoutesByFullPath {
   '/app/quota-pools/$quotaPoolId': typeof AppQuotaPoolsQuotaPoolIdRouteRouteWithChildren
   '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdRouteRouteWithChildren
   '/instance/users/$userId': typeof InstanceUsersUserIdRouteRouteWithChildren
-  '/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
+  '/privacy': typeof StandalonelegalPrivacyRoute
+  '/tou': typeof StandalonelegalTouRoute
+  '/forgot-password': typeof StandalonesignInForgotPasswordRoute
+  '/init': typeof StandalonesignInInitRoute
+  '/login': typeof StandalonesignInLoginRoute
+  '/register': typeof StandalonesignInRegisterRoute
+  '/reset-password': typeof StandalonesignInResetPasswordRoute
+  '/setup-two-factor': typeof StandalonesignInSetupTwoFactorRoute
+  '/two-factor': typeof StandalonesignInTwoFactorRoute
+  '/verify-email': typeof StandalonesignInVerifyEmailRoute
+  '/history/$chatId': typeof StandaloneHistoryChatIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -764,7 +763,7 @@ export interface FileRoutesByFullPath {
   '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quota-pools/add': typeof AppQuotaPoolsAddRoute
-  '/history/': typeof PathlessLayoutHistoryIndexRoute
+  '/history/': typeof StandaloneHistoryIndexRoute
   '/app/': typeof AppHomeIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
   '/app/analytics/': typeof AppAnalyticsIndexRoute
@@ -820,20 +819,20 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppHomeIndexRoute
-  '/forgot-password': typeof PathlessLayoutForgotPasswordRoute
-  '/init': typeof PathlessLayoutInitRoute
-  '/login': typeof PathlessLayoutLoginRoute
-  '/privacy': typeof PathlessLayoutPrivacyRoute
-  '/register': typeof PathlessLayoutRegisterRoute
-  '/reset-password': typeof PathlessLayoutResetPasswordRoute
-  '/select-organization': typeof PathlessLayoutSelectOrganizationRoute
-  '/setup-two-factor': typeof PathlessLayoutSetupTwoFactorRoute
-  '/tou': typeof PathlessLayoutTouRoute
-  '/two-factor': typeof PathlessLayoutTwoFactorRoute
-  '/verify-email': typeof PathlessLayoutVerifyEmailRoute
+  '/select-organization': typeof StandaloneSelectOrganizationRoute
   '/api/health': typeof ApiHealthRoute
   '/instance': typeof InstanceIndexRoute
-  '/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
+  '/privacy': typeof StandalonelegalPrivacyRoute
+  '/tou': typeof StandalonelegalTouRoute
+  '/forgot-password': typeof StandalonesignInForgotPasswordRoute
+  '/init': typeof StandalonesignInInitRoute
+  '/login': typeof StandalonesignInLoginRoute
+  '/register': typeof StandalonesignInRegisterRoute
+  '/reset-password': typeof StandalonesignInResetPasswordRoute
+  '/setup-two-factor': typeof StandalonesignInSetupTwoFactorRoute
+  '/two-factor': typeof StandalonesignInTwoFactorRoute
+  '/verify-email': typeof StandalonesignInVerifyEmailRoute
+  '/history/$chatId': typeof StandaloneHistoryChatIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -850,7 +849,7 @@ export interface FileRoutesByTo {
   '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quota-pools/add': typeof AppQuotaPoolsAddRoute
-  '/history': typeof PathlessLayoutHistoryIndexRoute
+  '/history': typeof StandaloneHistoryIndexRoute
   '/app/account': typeof AppAccountIndexRoute
   '/app/analytics': typeof AppAnalyticsIndexRoute
   '/app/assistant': typeof AppAssistantIndexRoute
@@ -901,10 +900,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_pathlessLayout': typeof PathlessLayoutRouteRouteWithChildren
+  '/_standalone': typeof StandaloneRouteRouteWithChildren
   '/app': typeof AppRouteRouteWithChildren
   '/instance': typeof InstanceRouteRouteWithChildren
-  '/_pathlessLayout/history': typeof PathlessLayoutHistoryRouteRouteWithChildren
+  '/_standalone/history': typeof StandaloneHistoryRouteRouteWithChildren
   '/app/_home': typeof AppHomeRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
   '/app/analytics': typeof AppAnalyticsRouteRouteWithChildren
@@ -918,17 +917,7 @@ export interface FileRoutesById {
   '/app/organization': typeof AppOrganizationRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/quota-pools': typeof AppQuotaPoolsRouteRouteWithChildren
-  '/_pathlessLayout/forgot-password': typeof PathlessLayoutForgotPasswordRoute
-  '/_pathlessLayout/init': typeof PathlessLayoutInitRoute
-  '/_pathlessLayout/login': typeof PathlessLayoutLoginRoute
-  '/_pathlessLayout/privacy': typeof PathlessLayoutPrivacyRoute
-  '/_pathlessLayout/register': typeof PathlessLayoutRegisterRoute
-  '/_pathlessLayout/reset-password': typeof PathlessLayoutResetPasswordRoute
-  '/_pathlessLayout/select-organization': typeof PathlessLayoutSelectOrganizationRoute
-  '/_pathlessLayout/setup-two-factor': typeof PathlessLayoutSetupTwoFactorRoute
-  '/_pathlessLayout/tou': typeof PathlessLayoutTouRoute
-  '/_pathlessLayout/two-factor': typeof PathlessLayoutTwoFactorRoute
-  '/_pathlessLayout/verify-email': typeof PathlessLayoutVerifyEmailRoute
+  '/_standalone/select-organization': typeof StandaloneSelectOrganizationRoute
   '/api/health': typeof ApiHealthRoute
   '/instance/': typeof InstanceIndexRoute
   '/app/catalogue/$kind': typeof AppCatalogueKindRouteRouteWithChildren
@@ -942,7 +931,17 @@ export interface FileRoutesById {
   '/app/quota-pools/$quotaPoolId': typeof AppQuotaPoolsQuotaPoolIdRouteRouteWithChildren
   '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdRouteRouteWithChildren
   '/instance/users/$userId': typeof InstanceUsersUserIdRouteRouteWithChildren
-  '/_pathlessLayout/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
+  '/_standalone/(legal)/privacy': typeof StandalonelegalPrivacyRoute
+  '/_standalone/(legal)/tou': typeof StandalonelegalTouRoute
+  '/_standalone/(sign-in)/forgot-password': typeof StandalonesignInForgotPasswordRoute
+  '/_standalone/(sign-in)/init': typeof StandalonesignInInitRoute
+  '/_standalone/(sign-in)/login': typeof StandalonesignInLoginRoute
+  '/_standalone/(sign-in)/register': typeof StandalonesignInRegisterRoute
+  '/_standalone/(sign-in)/reset-password': typeof StandalonesignInResetPasswordRoute
+  '/_standalone/(sign-in)/setup-two-factor': typeof StandalonesignInSetupTwoFactorRoute
+  '/_standalone/(sign-in)/two-factor': typeof StandalonesignInTwoFactorRoute
+  '/_standalone/(sign-in)/verify-email': typeof StandalonesignInVerifyEmailRoute
+  '/_standalone/history/$chatId': typeof StandaloneHistoryChatIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -959,7 +958,7 @@ export interface FileRoutesById {
   '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quota-pools/add': typeof AppQuotaPoolsAddRoute
-  '/_pathlessLayout/history/': typeof PathlessLayoutHistoryIndexRoute
+  '/_standalone/history/': typeof StandaloneHistoryIndexRoute
   '/app/_home/': typeof AppHomeIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
   '/app/analytics/': typeof AppAnalyticsIndexRoute
@@ -1031,17 +1030,7 @@ export interface FileRouteTypes {
     | '/app/organization'
     | '/app/providers'
     | '/app/quota-pools'
-    | '/forgot-password'
-    | '/init'
-    | '/login'
-    | '/privacy'
-    | '/register'
-    | '/reset-password'
     | '/select-organization'
-    | '/setup-two-factor'
-    | '/tou'
-    | '/two-factor'
-    | '/verify-email'
     | '/api/health'
     | '/instance/'
     | '/app/catalogue/$kind'
@@ -1055,6 +1044,16 @@ export interface FileRouteTypes {
     | '/app/quota-pools/$quotaPoolId'
     | '/instance/organizations/$organizationId'
     | '/instance/users/$userId'
+    | '/privacy'
+    | '/tou'
+    | '/forgot-password'
+    | '/init'
+    | '/login'
+    | '/register'
+    | '/reset-password'
+    | '/setup-two-factor'
+    | '/two-factor'
+    | '/verify-email'
     | '/history/$chatId'
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
@@ -1128,19 +1127,19 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/app'
+    | '/select-organization'
+    | '/api/health'
+    | '/instance'
+    | '/privacy'
+    | '/tou'
     | '/forgot-password'
     | '/init'
     | '/login'
-    | '/privacy'
     | '/register'
     | '/reset-password'
-    | '/select-organization'
     | '/setup-two-factor'
-    | '/tou'
     | '/two-factor'
     | '/verify-email'
-    | '/api/health'
-    | '/instance'
     | '/history/$chatId'
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
@@ -1208,10 +1207,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/_pathlessLayout'
+    | '/_standalone'
     | '/app'
     | '/instance'
-    | '/_pathlessLayout/history'
+    | '/_standalone/history'
     | '/app/_home'
     | '/app/account'
     | '/app/analytics'
@@ -1225,17 +1224,7 @@ export interface FileRouteTypes {
     | '/app/organization'
     | '/app/providers'
     | '/app/quota-pools'
-    | '/_pathlessLayout/forgot-password'
-    | '/_pathlessLayout/init'
-    | '/_pathlessLayout/login'
-    | '/_pathlessLayout/privacy'
-    | '/_pathlessLayout/register'
-    | '/_pathlessLayout/reset-password'
-    | '/_pathlessLayout/select-organization'
-    | '/_pathlessLayout/setup-two-factor'
-    | '/_pathlessLayout/tou'
-    | '/_pathlessLayout/two-factor'
-    | '/_pathlessLayout/verify-email'
+    | '/_standalone/select-organization'
     | '/api/health'
     | '/instance/'
     | '/app/catalogue/$kind'
@@ -1249,7 +1238,17 @@ export interface FileRouteTypes {
     | '/app/quota-pools/$quotaPoolId'
     | '/instance/organizations/$organizationId'
     | '/instance/users/$userId'
-    | '/_pathlessLayout/history/$chatId'
+    | '/_standalone/(legal)/privacy'
+    | '/_standalone/(legal)/tou'
+    | '/_standalone/(sign-in)/forgot-password'
+    | '/_standalone/(sign-in)/init'
+    | '/_standalone/(sign-in)/login'
+    | '/_standalone/(sign-in)/register'
+    | '/_standalone/(sign-in)/reset-password'
+    | '/_standalone/(sign-in)/setup-two-factor'
+    | '/_standalone/(sign-in)/two-factor'
+    | '/_standalone/(sign-in)/verify-email'
+    | '/_standalone/history/$chatId'
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
@@ -1266,7 +1265,7 @@ export interface FileRouteTypes {
     | '/app/organizations/$organizationId'
     | '/app/providers/add'
     | '/app/quota-pools/add'
-    | '/_pathlessLayout/history/'
+    | '/_standalone/history/'
     | '/app/_home/'
     | '/app/account/'
     | '/app/analytics/'
@@ -1322,7 +1321,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PathlessLayoutRouteRoute: typeof PathlessLayoutRouteRouteWithChildren
+  StandaloneRouteRoute: typeof StandaloneRouteRouteWithChildren
   AppRouteRoute: typeof AppRouteRouteWithChildren
   InstanceRouteRoute: typeof InstanceRouteRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
@@ -1342,11 +1341,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_pathlessLayout': {
-      id: '/_pathlessLayout'
+    '/_standalone': {
+      id: '/_standalone'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof PathlessLayoutRouteRouteImport
+      preLoaderRoute: typeof StandaloneRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -1363,89 +1362,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstanceRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_pathlessLayout/forgot-password': {
-      id: '/_pathlessLayout/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof PathlessLayoutForgotPasswordRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/history': {
-      id: '/_pathlessLayout/history'
+    '/_standalone/history': {
+      id: '/_standalone/history'
       path: '/history'
       fullPath: '/history'
-      preLoaderRoute: typeof PathlessLayoutHistoryRouteRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
+      preLoaderRoute: typeof StandaloneHistoryRouteRouteImport
+      parentRoute: typeof StandaloneRouteRoute
     }
-    '/_pathlessLayout/init': {
-      id: '/_pathlessLayout/init'
-      path: '/init'
-      fullPath: '/init'
-      preLoaderRoute: typeof PathlessLayoutInitRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/login': {
-      id: '/_pathlessLayout/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof PathlessLayoutLoginRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/privacy': {
-      id: '/_pathlessLayout/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PathlessLayoutPrivacyRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/register': {
-      id: '/_pathlessLayout/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof PathlessLayoutRegisterRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/reset-password': {
-      id: '/_pathlessLayout/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof PathlessLayoutResetPasswordRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/select-organization': {
-      id: '/_pathlessLayout/select-organization'
+    '/_standalone/select-organization': {
+      id: '/_standalone/select-organization'
       path: '/select-organization'
       fullPath: '/select-organization'
-      preLoaderRoute: typeof PathlessLayoutSelectOrganizationRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/setup-two-factor': {
-      id: '/_pathlessLayout/setup-two-factor'
-      path: '/setup-two-factor'
-      fullPath: '/setup-two-factor'
-      preLoaderRoute: typeof PathlessLayoutSetupTwoFactorRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/tou': {
-      id: '/_pathlessLayout/tou'
-      path: '/tou'
-      fullPath: '/tou'
-      preLoaderRoute: typeof PathlessLayoutTouRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/two-factor': {
-      id: '/_pathlessLayout/two-factor'
-      path: '/two-factor'
-      fullPath: '/two-factor'
-      preLoaderRoute: typeof PathlessLayoutTwoFactorRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
-    }
-    '/_pathlessLayout/verify-email': {
-      id: '/_pathlessLayout/verify-email'
-      path: '/verify-email'
-      fullPath: '/verify-email'
-      preLoaderRoute: typeof PathlessLayoutVerifyEmailRouteImport
-      parentRoute: typeof PathlessLayoutRouteRoute
+      preLoaderRoute: typeof StandaloneSelectOrganizationRouteImport
+      parentRoute: typeof StandaloneRouteRoute
     }
     '/api/health': {
       id: '/api/health'
@@ -1552,19 +1481,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstanceIndexRouteImport
       parentRoute: typeof InstanceRouteRoute
     }
-    '/_pathlessLayout/history/': {
-      id: '/_pathlessLayout/history/'
+    '/_standalone/(legal)/privacy': {
+      id: '/_standalone/(legal)/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof StandalonelegalPrivacyRouteImport
+      parentRoute: typeof StandaloneRouteRoute
+    }
+    '/_standalone/(legal)/tou': {
+      id: '/_standalone/(legal)/tou'
+      path: '/tou'
+      fullPath: '/tou'
+      preLoaderRoute: typeof StandalonelegalTouRouteImport
+      parentRoute: typeof StandaloneRouteRoute
+    }
+    '/_standalone/(sign-in)/forgot-password': {
+      id: '/_standalone/(sign-in)/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof StandalonesignInForgotPasswordRouteImport
+      parentRoute: typeof StandaloneRouteRoute
+    }
+    '/_standalone/(sign-in)/init': {
+      id: '/_standalone/(sign-in)/init'
+      path: '/init'
+      fullPath: '/init'
+      preLoaderRoute: typeof StandalonesignInInitRouteImport
+      parentRoute: typeof StandaloneRouteRoute
+    }
+    '/_standalone/(sign-in)/login': {
+      id: '/_standalone/(sign-in)/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof StandalonesignInLoginRouteImport
+      parentRoute: typeof StandaloneRouteRoute
+    }
+    '/_standalone/(sign-in)/register': {
+      id: '/_standalone/(sign-in)/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof StandalonesignInRegisterRouteImport
+      parentRoute: typeof StandaloneRouteRoute
+    }
+    '/_standalone/(sign-in)/reset-password': {
+      id: '/_standalone/(sign-in)/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof StandalonesignInResetPasswordRouteImport
+      parentRoute: typeof StandaloneRouteRoute
+    }
+    '/_standalone/(sign-in)/setup-two-factor': {
+      id: '/_standalone/(sign-in)/setup-two-factor'
+      path: '/setup-two-factor'
+      fullPath: '/setup-two-factor'
+      preLoaderRoute: typeof StandalonesignInSetupTwoFactorRouteImport
+      parentRoute: typeof StandaloneRouteRoute
+    }
+    '/_standalone/(sign-in)/two-factor': {
+      id: '/_standalone/(sign-in)/two-factor'
+      path: '/two-factor'
+      fullPath: '/two-factor'
+      preLoaderRoute: typeof StandalonesignInTwoFactorRouteImport
+      parentRoute: typeof StandaloneRouteRoute
+    }
+    '/_standalone/(sign-in)/verify-email': {
+      id: '/_standalone/(sign-in)/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof StandalonesignInVerifyEmailRouteImport
+      parentRoute: typeof StandaloneRouteRoute
+    }
+    '/_standalone/history/': {
+      id: '/_standalone/history/'
       path: '/'
       fullPath: '/history/'
-      preLoaderRoute: typeof PathlessLayoutHistoryIndexRouteImport
-      parentRoute: typeof PathlessLayoutHistoryRouteRoute
+      preLoaderRoute: typeof StandaloneHistoryIndexRouteImport
+      parentRoute: typeof StandaloneHistoryRouteRoute
     }
-    '/_pathlessLayout/history/$chatId': {
-      id: '/_pathlessLayout/history/$chatId'
+    '/_standalone/history/$chatId': {
+      id: '/_standalone/history/$chatId'
       path: '/$chatId'
       fullPath: '/history/$chatId'
-      preLoaderRoute: typeof PathlessLayoutHistoryChatIdRouteImport
-      parentRoute: typeof PathlessLayoutHistoryRouteRoute
+      preLoaderRoute: typeof StandaloneHistoryChatIdRouteImport
+      parentRoute: typeof StandaloneHistoryRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -2115,54 +2114,55 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface PathlessLayoutHistoryRouteRouteChildren {
-  PathlessLayoutHistoryChatIdRoute: typeof PathlessLayoutHistoryChatIdRoute
-  PathlessLayoutHistoryIndexRoute: typeof PathlessLayoutHistoryIndexRoute
+interface StandaloneHistoryRouteRouteChildren {
+  StandaloneHistoryChatIdRoute: typeof StandaloneHistoryChatIdRoute
+  StandaloneHistoryIndexRoute: typeof StandaloneHistoryIndexRoute
 }
 
-const PathlessLayoutHistoryRouteRouteChildren: PathlessLayoutHistoryRouteRouteChildren =
+const StandaloneHistoryRouteRouteChildren: StandaloneHistoryRouteRouteChildren =
   {
-    PathlessLayoutHistoryChatIdRoute: PathlessLayoutHistoryChatIdRoute,
-    PathlessLayoutHistoryIndexRoute: PathlessLayoutHistoryIndexRoute,
+    StandaloneHistoryChatIdRoute: StandaloneHistoryChatIdRoute,
+    StandaloneHistoryIndexRoute: StandaloneHistoryIndexRoute,
   }
 
-const PathlessLayoutHistoryRouteRouteWithChildren =
-  PathlessLayoutHistoryRouteRoute._addFileChildren(
-    PathlessLayoutHistoryRouteRouteChildren,
+const StandaloneHistoryRouteRouteWithChildren =
+  StandaloneHistoryRouteRoute._addFileChildren(
+    StandaloneHistoryRouteRouteChildren,
   )
 
-interface PathlessLayoutRouteRouteChildren {
-  PathlessLayoutHistoryRouteRoute: typeof PathlessLayoutHistoryRouteRouteWithChildren
-  PathlessLayoutForgotPasswordRoute: typeof PathlessLayoutForgotPasswordRoute
-  PathlessLayoutInitRoute: typeof PathlessLayoutInitRoute
-  PathlessLayoutLoginRoute: typeof PathlessLayoutLoginRoute
-  PathlessLayoutPrivacyRoute: typeof PathlessLayoutPrivacyRoute
-  PathlessLayoutRegisterRoute: typeof PathlessLayoutRegisterRoute
-  PathlessLayoutResetPasswordRoute: typeof PathlessLayoutResetPasswordRoute
-  PathlessLayoutSelectOrganizationRoute: typeof PathlessLayoutSelectOrganizationRoute
-  PathlessLayoutSetupTwoFactorRoute: typeof PathlessLayoutSetupTwoFactorRoute
-  PathlessLayoutTouRoute: typeof PathlessLayoutTouRoute
-  PathlessLayoutTwoFactorRoute: typeof PathlessLayoutTwoFactorRoute
-  PathlessLayoutVerifyEmailRoute: typeof PathlessLayoutVerifyEmailRoute
+interface StandaloneRouteRouteChildren {
+  StandaloneHistoryRouteRoute: typeof StandaloneHistoryRouteRouteWithChildren
+  StandaloneSelectOrganizationRoute: typeof StandaloneSelectOrganizationRoute
+  StandalonelegalPrivacyRoute: typeof StandalonelegalPrivacyRoute
+  StandalonelegalTouRoute: typeof StandalonelegalTouRoute
+  StandalonesignInForgotPasswordRoute: typeof StandalonesignInForgotPasswordRoute
+  StandalonesignInInitRoute: typeof StandalonesignInInitRoute
+  StandalonesignInLoginRoute: typeof StandalonesignInLoginRoute
+  StandalonesignInRegisterRoute: typeof StandalonesignInRegisterRoute
+  StandalonesignInResetPasswordRoute: typeof StandalonesignInResetPasswordRoute
+  StandalonesignInSetupTwoFactorRoute: typeof StandalonesignInSetupTwoFactorRoute
+  StandalonesignInTwoFactorRoute: typeof StandalonesignInTwoFactorRoute
+  StandalonesignInVerifyEmailRoute: typeof StandalonesignInVerifyEmailRoute
 }
 
-const PathlessLayoutRouteRouteChildren: PathlessLayoutRouteRouteChildren = {
-  PathlessLayoutHistoryRouteRoute: PathlessLayoutHistoryRouteRouteWithChildren,
-  PathlessLayoutForgotPasswordRoute: PathlessLayoutForgotPasswordRoute,
-  PathlessLayoutInitRoute: PathlessLayoutInitRoute,
-  PathlessLayoutLoginRoute: PathlessLayoutLoginRoute,
-  PathlessLayoutPrivacyRoute: PathlessLayoutPrivacyRoute,
-  PathlessLayoutRegisterRoute: PathlessLayoutRegisterRoute,
-  PathlessLayoutResetPasswordRoute: PathlessLayoutResetPasswordRoute,
-  PathlessLayoutSelectOrganizationRoute: PathlessLayoutSelectOrganizationRoute,
-  PathlessLayoutSetupTwoFactorRoute: PathlessLayoutSetupTwoFactorRoute,
-  PathlessLayoutTouRoute: PathlessLayoutTouRoute,
-  PathlessLayoutTwoFactorRoute: PathlessLayoutTwoFactorRoute,
-  PathlessLayoutVerifyEmailRoute: PathlessLayoutVerifyEmailRoute,
+const StandaloneRouteRouteChildren: StandaloneRouteRouteChildren = {
+  StandaloneHistoryRouteRoute: StandaloneHistoryRouteRouteWithChildren,
+  StandaloneSelectOrganizationRoute: StandaloneSelectOrganizationRoute,
+  StandalonelegalPrivacyRoute: StandalonelegalPrivacyRoute,
+  StandalonelegalTouRoute: StandalonelegalTouRoute,
+  StandalonesignInForgotPasswordRoute: StandalonesignInForgotPasswordRoute,
+  StandalonesignInInitRoute: StandalonesignInInitRoute,
+  StandalonesignInLoginRoute: StandalonesignInLoginRoute,
+  StandalonesignInRegisterRoute: StandalonesignInRegisterRoute,
+  StandalonesignInResetPasswordRoute: StandalonesignInResetPasswordRoute,
+  StandalonesignInSetupTwoFactorRoute: StandalonesignInSetupTwoFactorRoute,
+  StandalonesignInTwoFactorRoute: StandalonesignInTwoFactorRoute,
+  StandalonesignInVerifyEmailRoute: StandalonesignInVerifyEmailRoute,
 }
 
-const PathlessLayoutRouteRouteWithChildren =
-  PathlessLayoutRouteRoute._addFileChildren(PathlessLayoutRouteRouteChildren)
+const StandaloneRouteRouteWithChildren = StandaloneRouteRoute._addFileChildren(
+  StandaloneRouteRouteChildren,
+)
 
 interface AppHomeRouteRouteChildren {
   AppHomeManageRoute: typeof AppHomeManageRoute
@@ -2658,7 +2658,7 @@ const InstanceRouteRouteWithChildren = InstanceRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PathlessLayoutRouteRoute: PathlessLayoutRouteRouteWithChildren,
+  StandaloneRouteRoute: StandaloneRouteRouteWithChildren,
   AppRouteRoute: AppRouteRouteWithChildren,
   InstanceRouteRoute: InstanceRouteRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,

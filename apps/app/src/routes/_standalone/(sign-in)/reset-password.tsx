@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/_pathlessLayout/reset-password")({
+export const Route = createFileRoute("/_standalone/(sign-in)/reset-password")({
 	validateSearch: z.object({
 		token: z.string().optional(),
 	}),

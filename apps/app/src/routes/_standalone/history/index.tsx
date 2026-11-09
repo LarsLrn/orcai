@@ -28,7 +28,7 @@ import {
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/_pathlessLayout/history/")({
+export const Route = createFileRoute("/_standalone/history/")({
 	validateSearch: z.object(paginationSearchShape),
 	search: {
 		middlewares: [

@@ -41,7 +41,7 @@ const organizationsQuery = (params: { search: string; pageCount: number }) =>
 		},
 	});
 
-export const Route = createFileRoute("/_pathlessLayout/select-organization")({
+export const Route = createFileRoute("/_standalone/select-organization")({
 	beforeLoad: ({ context }) => ({
 		auth: ensureSignedIn(context.auth),
 	}),

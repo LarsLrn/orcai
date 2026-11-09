@@ -6,7 +6,7 @@ import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { AuroraBackground } from "@/components/ui/aceternity/aurora-background";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/_pathlessLayout")({
+export const Route = createFileRoute("/_standalone")({
 	component: PathlessLayoutComponent,
 	pendingComponent: LoadingPage,
 });

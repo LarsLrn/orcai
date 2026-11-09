@@ -3,7 +3,7 @@ import { ensureSignedIn } from "@/lib/router/route-guards";
 import { m } from "@/paraglide/messages";
 
 /** Needs a sign-in only, so a user without any membership still reaches their chats. */
-export const Route = createFileRoute("/_pathlessLayout/history")({
+export const Route = createFileRoute("/_standalone/history")({
 	beforeLoad: ({ context }) => {
 		ensureSignedIn(context.auth);
 	},

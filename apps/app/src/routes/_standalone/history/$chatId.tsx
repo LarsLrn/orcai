@@ -11,7 +11,7 @@ import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { parseParam } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/_pathlessLayout/history/$chatId")({
+export const Route = createFileRoute("/_standalone/history/$chatId")({
 	params: {
 		parse: (params) => ({
 			chatId: parseParam(chatIdSchema, params.chatId),

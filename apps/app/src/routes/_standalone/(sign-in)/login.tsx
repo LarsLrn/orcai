@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/_pathlessLayout/login")({
+export const Route = createFileRoute("/_standalone/(sign-in)/login")({
 	// An invitation link's sign-in returns to the invitation.
 	validateSearch: z.object({
 		inv: z.string().optional(),
