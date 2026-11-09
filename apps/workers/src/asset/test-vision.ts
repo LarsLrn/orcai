@@ -99,17 +99,32 @@ const PNG = Buffer.from(
 /**
  * An organisation whose utility model has `capabilities`, a pool of `budget`
  * tokens for all members unless `pool` is false, and an asset uploaded by a
- * user in `locale` when given, with its image stored. The rows are written in
- * one transaction; no membership is stored, as nothing here reads it.
+ * user in `locale` when given: an image, or the document `pdf` when given, with
+ * its file stored. The rows are written in one transaction; no membership is
+ * stored, as nothing here reads it.
  */
-export const seedImageAsset = (params: {
+export const seedVisionAsset = (params: {
 	capabilities: ModelCapability[];
 	pool?: boolean;
 	budget?: number;
 	locale?: Locale;
+	pdf?: Buffer;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
+		const file = params.pdf
+			? {
+					title: "refunds.pdf",
+					fileType: "pdf" as const,
+					body: params.pdf,
+					contentType: "application/pdf",
+				}
+			: {
+					title: "chart.png",
+					fileType: "png" as const,
+					body: PNG,
+					contentType: "image/png",
+				};
 		const apiKeyEncrypted = yield* encryptApiKey("integration-key");
 		const { organization, admin, uploader, asset } = yield* db.transaction(() =>
 			Effect.gen(function* () {
@@ -183,9 +198,9 @@ export const seedImageAsset = (params: {
 					.values({
 						bucket: buckets.processed.name,
 						prefix: `integration/${uploader.id}`,
-						title: "chart.png",
-						size: PNG.length,
-						fileType: "png",
+						title: file.title,
+						size: file.body.length,
+						fileType: file.fileType,
 						userId: uploader.id,
 					})
 					.returning();
@@ -207,8 +222,8 @@ export const seedImageAsset = (params: {
 		yield* sendPutObjectCommand({
 			bucket: buckets.processed.name,
 			key: sourcePath,
-			body: PNG,
-			contentType: "image/png",
+			body: file.body,
+			contentType: file.contentType,
 		});
 
 		return {
@@ -217,6 +232,7 @@ export const seedImageAsset = (params: {
 			uploaderId: uploader.id,
 			assetId: asset.id,
 			prefix: asset.prefix,
+			fileType: file.fileType,
 			artifact: createImageOnlyExtractionArtifact({
 				mimeType: "image/png",
 				format: "png",
