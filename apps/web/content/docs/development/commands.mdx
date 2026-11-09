@@ -63,12 +63,12 @@ These options apply to every command and can stand anywhere before `--`:
 
 | Command | Purpose |
 | --- | --- |
-| `bun run verify` | Run Biome, TypeScript checks, the migration check, and unit tests. |
+| `bun run verify` | Run `lint` and unit tests. |
 | `bun run test:integration` | Run the integration tier against the stack. |
 | `bun run e2e` | Alias for `bun run stack e2e`. |
-| `bun run lint` | Run Biome, TypeScript checks, and the migration check. |
-| `bun run lint-full` | Run Biome, TypeScript checks, the migration check, and ESLint. |
-| `bun run knip` | Find unused dependencies and exports. |
+| `bun run lint` | Run Biome, TypeScript checks, the migration check, and Knip. |
+| `bun run lint-full` | Run `lint` and ESLint. |
+| `bun run knip` | Run only Knip. |
 | `bun run prepush` | Run the full pre-push check. |
 | `bun run prompt-evals` | Run the prompt evals against real models through OpenRouter or `PROMPT_EVALS_ENDPOINT`. Costs money and never runs in CI, see [Contributing](/docs/development/contributing#model-facing-text). |
 
@@ -80,6 +80,9 @@ needs no database and fails when two migrations branch from the same parent
 and change the same table, column, or other entity. That happens when a branch
 with a new migration is rebased onto a `main` that gained one. Regenerate the
 branch's migration on top.
+
+Knip fails on unused files, exports and dependencies. Delete the dead code
+or the `export` keyword rather than adding an ignore.
 
 `lint:eslint`, which `lint-full` runs, enumerates the workspaces
 (`apps/app`, `apps/web`, then `apps/e2e` and `apps/workers`) because
