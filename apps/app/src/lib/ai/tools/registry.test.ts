@@ -669,6 +669,30 @@ describe("readDocs summary", () => {
 	});
 });
 
+describe("findPeople summary", () => {
+	test("counts everyone found from the output total", () => {
+		expect(
+			summaryOf("findPeople", {
+				input: {
+					targetType: "bot",
+					targetId: id(1),
+				},
+				output: {
+					grantees: [],
+					total: 3,
+				},
+			}).line(lookedUp),
+		).toBe(
+			m.assistant_tool_find_people_summary_found({
+				count: 3,
+				resource: m.assistant_tool_quoted_name({
+					name: "bot 1",
+				}),
+			}),
+		);
+	});
+});
+
 describe("block summaries", () => {
 	const line = (
 		name: string,

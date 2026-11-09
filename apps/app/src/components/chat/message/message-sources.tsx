@@ -1,6 +1,6 @@
 import { GlobeIcon } from "lucide-react";
 import { ConfirmedLink } from "@/components/chat/link-confirm";
-import { hostOf } from "@/components/chat/message/work-log/web-source";
+import { hostOf } from "@/components/chat/link-safety";
 import { badgeVariants } from "@/components/ui/badge";
 import type { CitedWebSource } from "@/lib/ai/tools/web/sources";
 import { cn } from "@/lib/utils";
