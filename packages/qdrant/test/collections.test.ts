@@ -87,6 +87,137 @@ describe("ensureCollection", () => {
 			shardChecks: 1,
 		});
 	});
+
+	/**
+	 * An empty collection whose updates apply in order like Qdrant's: an index
+	 * name builds that index, anything else is a write. It exists with
+	 * `pending` updates ahead, or with `exists: false` this caller creates it,
+	 * or another caller does first when `conflict` is set.
+	 */
+	const queueingClient = ({
+		exists = true,
+		conflict = false,
+		pending = [],
+	}: {
+		readonly exists?: boolean;
+		readonly conflict?: boolean;
+		readonly pending?: readonly string[];
+	}) => {
+		const applied = new Set<string>();
+		const queue = [
+			...pending,
+		];
+		const queued: string[] = [];
+		const calls = {
+			reads: 0,
+		};
+		const client = {
+			collectionExists: async () => ({
+				exists,
+			}),
+			createCollection: () =>
+				conflict
+					? Promise.reject(
+							Object.assign(new Error("Conflict"), {
+								status: 409,
+							}),
+						)
+					: Promise.resolve(true),
+			getCollection: () => {
+				calls.reads++;
+				return Promise.resolve({
+					points_count: 0,
+					payload_schema: Object.fromEntries(
+						[
+							...applied,
+						].map((key) => [
+							key,
+							{},
+						]),
+					),
+				});
+			},
+			createPayloadIndex: (
+				_: string,
+				{
+					field_name,
+				}: {
+					field_name: string;
+				},
+			) => {
+				queued.push(field_name);
+				queue.push(field_name);
+				return Promise.resolve();
+			},
+			delete: () => {
+				for (const update of queue.splice(0)) {
+					if (update !== "write") applied.add(update);
+				}
+				return Promise.resolve();
+			},
+		} as unknown as QdrantClient;
+		return {
+			client,
+			applied,
+			queued,
+			calls,
+		};
+	};
+
+	const everyIndex: string[] = Object.values(payloadKey);
+
+	test.each([
+		[
+			"it creates",
+			{
+				exists: false,
+			},
+			everyIndex.length,
+		],
+		[
+			"another caller created with its builds pending",
+			{
+				exists: false,
+				conflict: true,
+				pending: everyIndex,
+			},
+			0,
+		],
+		[
+			"it exists with nothing pending",
+			{},
+			everyIndex.length,
+		],
+		[
+			"it exists with only writes pending",
+			{
+				pending: [
+					"write",
+				],
+			},
+			everyIndex.length,
+		],
+	])(
+		"returns with every index of an empty collection built when %s, queuing only what nobody queued",
+		async (_, collection, queuedCount) => {
+			const { client, applied, queued } = queueingClient(collection);
+
+			await Effect.runPromise(ensureCollection(client, "empty", 2));
+
+			expect(applied).toEqual(new Set(everyIndex));
+			expect(queued).toHaveLength(queuedCount);
+		},
+	);
+
+	test("its creator queues the indexes without reading the collection first", async () => {
+		const { client, calls } = queueingClient({
+			exists: false,
+		});
+
+		await Effect.runPromise(ensureCollection(client, "new", 2));
+
+		expect(calls.reads).toBe(0);
+	});
 });
 
 describe("collectionDimensions", () => {
