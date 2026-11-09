@@ -13,8 +13,8 @@ import { SearchField } from "@/components/ui/composed/search-field";
 import { StateBadge } from "@/components/ui/composed/state-badge";
 import { Pager } from "@/components/ui/pager";
 import { usePickerList } from "@/hooks/use-picker-list";
+import { publicationStatusBadge } from "@/lib/labels/publication-status";
 import { orpc } from "@/lib/orpc/orpc";
-import { publicationStatusBadge } from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

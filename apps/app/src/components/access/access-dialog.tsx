@@ -15,8 +15,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import type { ResourceKind } from "@/lib/labels/resource-kind";
 import { orpc } from "@/lib/orpc/orpc";
-import type { ResourceKind } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
 type AccessDialogProps = {

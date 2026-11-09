@@ -8,7 +8,7 @@ import {
 	appOrigin,
 	diagramLoadsNothing,
 	markdownImage,
-} from "@/lib/presentation/markdown-image";
+} from "@/lib/markdown/markdown-image";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import "katex/dist/katex.min.css";

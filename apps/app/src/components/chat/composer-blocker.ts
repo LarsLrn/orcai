@@ -1,6 +1,6 @@
 import type { BotId } from "@orcai/core";
 import type { QuotaStatus } from "@orcai/schema";
-import { isExhaustedShare } from "@/lib/presentation/quota-share";
+import { isExhaustedShare } from "@/lib/quota/quota-share";
 
 /** Why the composer cannot send. */
 type ComposerBlocker =

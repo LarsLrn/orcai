@@ -1,6 +1,6 @@
 import { assetIdSchema, blockIdSchema, botIdSchema } from "@orcai/schema";
 import type { LinkProps } from "@tanstack/react-router";
-import type { ResourceKind } from "@/lib/presentation/resource-kind";
+import type { ResourceKind } from "@/lib/labels/resource-kind";
 
 /** The resource's page in the active organisation's library. */
 export const libraryLink = (resource: {

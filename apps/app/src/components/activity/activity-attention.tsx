@@ -3,10 +3,13 @@ import type { ActivityFailure } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useRouteContext } from "@tanstack/react-router";
 import { XIcon } from "lucide-react";
+import {
+	failureSummary,
+	failureTitle,
+} from "@/components/activity/activity-text";
 import { Button } from "@/components/ui/button";
 import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mutations";
 import { orpc } from "@/lib/orpc/orpc";
-import { failureSummary, failureTitle } from "@/lib/presentation/activity";
 import { m } from "@/paraglide/messages";
 import { activityOpen } from "./activity-state";
 import { AttentionWell } from "./activity-visuals";

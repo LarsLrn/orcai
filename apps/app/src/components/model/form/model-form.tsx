@@ -17,8 +17,8 @@ import {
 	useCreateModelMutation,
 	useUpdateModelMutation,
 } from "@/hooks/mutations/use-model-mutations";
+import { getModelCapabilityLabel } from "@/lib/labels/model-capability";
 import { orpc } from "@/lib/orpc/orpc";
-import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import { m } from "@/paraglide/messages";
 import { modelFormOptions } from "./model-form-options";
 

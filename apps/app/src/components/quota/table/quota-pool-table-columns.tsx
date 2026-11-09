@@ -13,9 +13,9 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-col
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-pool-mutations";
-import { formatNumber } from "@/lib/presentation/format-number";
-import { getQuotaPeriodLabel } from "@/lib/presentation/quota-period";
-import { quotaPoolStatusBadge } from "@/lib/presentation/quota-pool-status";
+import { getQuotaPeriodLabel } from "@/lib/labels/quota-period";
+import { quotaPoolStatusBadge } from "@/lib/labels/quota-pool-status";
+import { formatNumber } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;

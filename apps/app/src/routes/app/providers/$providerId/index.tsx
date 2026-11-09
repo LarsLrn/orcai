@@ -62,11 +62,11 @@ import {
 	dataTableSearchDefaults,
 	paginationSearchShape,
 } from "@/lib/browse/data-table-search-params";
+import { getModelCapabilityLabel } from "@/lib/labels/model-capability";
+import { getProviderKindLabel } from "@/lib/labels/provider-kind";
+import { providerStatusBadge } from "@/lib/labels/provider-status";
+import { formatPrice } from "@/lib/locale/format-number";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatPrice } from "@/lib/presentation/format-number";
-import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
-import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
-import { providerStatusBadge } from "@/lib/presentation/provider-status";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = listModelsInputSchema

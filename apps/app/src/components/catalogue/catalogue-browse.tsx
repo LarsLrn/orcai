@@ -25,7 +25,7 @@ import {
 	catalogueSearchSchemas,
 } from "@/lib/catalogue/catalogue-filters";
 import { catalogueCountsQuery } from "@/lib/catalogue/catalogue-queries";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { m } from "@/paraglide/messages";
 
 /** The catalogue's list views; every other catalogue route is an entry's page or its wizard. */

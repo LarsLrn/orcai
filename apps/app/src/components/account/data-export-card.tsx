@@ -12,8 +12,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRequestDataExportMutation } from "@/hooks/mutations/use-data-export-mutation";
 import { useDisplayTime } from "@/hooks/use-display-time";
+import { formatFileSize } from "@/lib/locale/format-file-size";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatFileSize } from "@/lib/presentation/format-file-size";
 import { m } from "@/paraglide/messages";
 
 /** How often the status refreshes while an export is being prepared. */

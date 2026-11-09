@@ -20,11 +20,8 @@ import {
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { useUtilityModel } from "@/hooks/use-utility-model";
 import { ownerCapabilities } from "@/lib/authz/capabilities";
+import { isAssetWorking, METADATA_POLL_MS } from "@/lib/labels/metadata-status";
 import { orpc } from "@/lib/orpc/orpc";
-import {
-	isAssetWorking,
-	METADATA_POLL_MS,
-} from "@/lib/presentation/metadata-status";
 import { m } from "@/paraglide/messages";
 
 type IntakeStep = "upload" | "review";

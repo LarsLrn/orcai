@@ -9,7 +9,7 @@ import {
 	turnView,
 } from "@/lib/ai/turn-view/turn-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
-import { formatAssetTitle } from "@/lib/presentation/asset-title";
+import { formatAssetTitle } from "@/lib/assets/asset-title";
 import { m } from "@/paraglide/messages";
 
 /** How a cited source reads in copied text; a docs page names its URL only with the docs URL known. */

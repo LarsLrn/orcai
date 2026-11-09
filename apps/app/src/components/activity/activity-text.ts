@@ -4,7 +4,7 @@ import type {
 	ActivityRun,
 	PipelineFailure,
 } from "@orcai/schema";
-import { metadataFieldLabels } from "@/lib/presentation/metadata-fields";
+import { metadataFieldLabels } from "@/lib/labels/metadata-fields";
 import { m } from "@/paraglide/messages";
 
 const joined = (parts: readonly (string | null | undefined)[]) =>

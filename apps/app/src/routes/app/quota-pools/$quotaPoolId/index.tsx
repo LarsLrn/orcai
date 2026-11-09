@@ -63,11 +63,11 @@ import {
 	dataTableSearchDefaults,
 	paginationSearchShape,
 } from "@/lib/browse/data-table-search-params";
+import { getMeteringModeLabel } from "@/lib/labels/metering-mode";
+import { getQuotaPeriodLabel } from "@/lib/labels/quota-period";
+import { quotaPoolStatusBadge } from "@/lib/labels/quota-pool-status";
+import { formatNumber } from "@/lib/locale/format-number";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatNumber } from "@/lib/presentation/format-number";
-import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
-import { getQuotaPeriodLabel } from "@/lib/presentation/quota-period";
-import { quotaPoolStatusBadge } from "@/lib/presentation/quota-pool-status";
 import { m } from "@/paraglide/messages";
 
 const updateBudgetFormSchema = z.object({

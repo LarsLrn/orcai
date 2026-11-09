@@ -3,8 +3,8 @@ import type { InferToolInput, InferToolOutput, Tool } from "ai";
 import type { LucideIcon } from "lucide-react";
 import type { z } from "zod/v4";
 import type { Source } from "@/lib/ai/citations/source-ref";
-import { formatList } from "@/lib/presentation/format-list";
-import type { ResourceKind } from "@/lib/presentation/resource-kind";
+import type { ResourceKind } from "@/lib/labels/resource-kind";
+import { formatList } from "@/lib/locale/format-list";
 import { m } from "@/paraglide/messages";
 import type { EntityKind, EntityRef } from "./entity-kind";
 

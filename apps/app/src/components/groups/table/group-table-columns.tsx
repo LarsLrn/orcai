@@ -8,7 +8,7 @@ import type { DataTableFeatures } from "@/components/ui/data-table/data-table-fe
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteGroupsMutation } from "@/hooks/mutations/use-group-mutations";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, GroupListRow>();

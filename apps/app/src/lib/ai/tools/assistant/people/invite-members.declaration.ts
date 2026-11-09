@@ -2,7 +2,7 @@ import { createOrganizationInvitationsInputSchema } from "@orcai/schema";
 import { MailPlusIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
-import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
+import { getOrganizationRoleLabel } from "@/lib/labels/organization-role";
 import { m } from "@/paraglide/messages";
 import type { inviteMembersTool } from "./invite-members";
 

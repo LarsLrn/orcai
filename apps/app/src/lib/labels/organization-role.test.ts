@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { membershipControl } from "./organization-role-metadata";
+import { membershipControl } from "./organization-role";
 
 const self = "00000000-0000-4000-8000-000000000001";
 const other = "00000000-0000-4000-8000-000000000002";

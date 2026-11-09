@@ -61,8 +61,8 @@ import {
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { reasonMessage } from "@/lib/errors/reason-messages";
+import { formatList } from "@/lib/locale/format-list";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatList } from "@/lib/presentation/format-list";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

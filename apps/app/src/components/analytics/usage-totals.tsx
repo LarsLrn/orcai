@@ -1,6 +1,6 @@
 import type { AnalyticsUsage } from "@orcai/schema";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { formatCosts, formatCount } from "@/lib/presentation/format-number";
+import { formatCosts, formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 export const UsageTotals = ({ totals }: { totals: AnalyticsUsage }) => {

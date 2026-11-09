@@ -18,13 +18,13 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveOrganization } from "@/hooks/use-active-organization";
 import type { FilterValues } from "@/lib/browse/browse-search";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import {
 	type LibraryView,
 	libraryFilters,
 	librarySearchSchema,
 } from "@/lib/library/library-filters";
 import { libraryCountsQuery } from "@/lib/library/library-queries";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
 /** The library's list views; every other library route is a detail or form. */

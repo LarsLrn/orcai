@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { WrittenResource } from "@/lib/ai/tools/declaration";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { libraryLink } from "@/lib/navigation/library-link";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { WrittenResourcesContext } from "./written-resources";

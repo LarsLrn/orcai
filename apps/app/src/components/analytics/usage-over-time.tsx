@@ -15,8 +15,8 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
-import { formatCompactNumber } from "@/lib/presentation/format-number";
-import { formatDisplayDay } from "@/lib/presentation/format-timestamp";
+import { formatCompactNumber } from "@/lib/locale/format-number";
+import { formatDisplayDay } from "@/lib/locale/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const dayLabel = (date: unknown) =>

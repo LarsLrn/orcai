@@ -7,10 +7,6 @@ import {
 import { useId } from "react";
 import { AllowedDomainsField } from "@/components/features/allowed-domains-field";
 import {
-	featureDescription,
-	featureLabel,
-} from "@/components/features/feature-labels";
-import {
 	Field,
 	FieldContent,
 	FieldDescription,
@@ -21,6 +17,7 @@ import {
 	FieldTitle,
 } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
+import { featureDescription, featureLabel } from "@/lib/labels/feature";
 import { m } from "@/paraglide/messages";
 
 const setFeature = (

@@ -18,7 +18,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { formatCount, formatPercent } from "@/lib/presentation/format-number";
+import { formatCount, formatPercent } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 const RATINGS: ReadonlyArray<

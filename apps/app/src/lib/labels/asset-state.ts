@@ -5,7 +5,7 @@ import {
 	type PipelineFailure,
 } from "@orcai/schema";
 import { LoaderCircleIcon } from "lucide-react";
-import type { BadgeItem } from "@/lib/presentation/badge-item";
+import type { BadgeItem } from "@/lib/labels/badge-item";
 import { m } from "@/paraglide/messages";
 
 const assetStateLabels: Record<AssetState, () => string> = {

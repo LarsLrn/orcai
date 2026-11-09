@@ -15,7 +15,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useEmbeddingsConfigured } from "@/hooks/use-embeddings-configured";
-import { assetStateBadge } from "@/lib/presentation/asset-state";
+import { assetStateBadge } from "@/lib/labels/asset-state";
 import { m } from "@/paraglide/messages";
 
 const ReadOnlyBehaviourCard = ({ block }: { block: BotEditorBehaviour }) => {

@@ -1,10 +1,7 @@
 import { type FeatureId, type Features, featureIdSchema } from "@orcai/schema";
 import { SparklesIcon } from "lucide-react";
-import {
-	featureDescription,
-	featureLabel,
-} from "@/components/features/feature-labels";
 import { Badge } from "@/components/ui/badge";
+import { featureDescription, featureLabel } from "@/lib/labels/feature";
 import { cn } from "@/lib/utils";
 
 const enabledFeatureIds = (features: Features): FeatureId[] =>

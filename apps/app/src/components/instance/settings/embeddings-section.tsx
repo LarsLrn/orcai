@@ -12,8 +12,8 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
 import { useAppForm } from "@/hooks/form";
 import { describeError, errorReasonOf } from "@/lib/errors/describe-error";
+import { formatCount } from "@/lib/locale/format-number";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
 const embeddingsFormSchema = (keyStored: boolean) =>

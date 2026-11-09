@@ -1,5 +1,5 @@
 import type { GenerationSettings } from "@orcai/schema";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 /** Read-only generation settings, such as a bot's required ones; unset values keep the provider's defaults. */

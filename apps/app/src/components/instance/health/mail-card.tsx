@@ -19,7 +19,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useSendTestEmailMutation } from "@/hooks/mutations/use-send-test-email-mutation";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 const channelLabel = (channel: EmailDeliveryChannel | null) => {

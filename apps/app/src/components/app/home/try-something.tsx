@@ -9,8 +9,8 @@ import {
 	TileIcon,
 	TileTitle,
 } from "@/components/ui/shell/tile";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { orpc } from "@/lib/orpc/orpc";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 import { HomeSection } from "./home-section";
 

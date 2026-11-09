@@ -1,7 +1,7 @@
 import type { NameOf } from "@/lib/ai/tools/declaration";
 import { NAME_FIELDS } from "@/lib/ai/tools/entity-kind";
 import { toolSummary } from "@/lib/ai/tools/registry";
-import { withLocale } from "@/lib/presentation/with-locale";
+import { withLocale } from "@/lib/locale/with-locale";
 
 /** One tool call that returned an output. */
 export interface ToolExecution {

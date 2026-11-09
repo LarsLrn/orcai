@@ -19,8 +19,8 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { usePublicConfig } from "@/hooks/use-public-config";
 import type { StreamedCitations } from "@/lib/ai/citations/chat-sources";
+import { formatAssetTitle } from "@/lib/assets/asset-title";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatAssetTitle } from "@/lib/presentation/asset-title";
 import { m } from "@/paraglide/messages";
 
 const CitePill = ({

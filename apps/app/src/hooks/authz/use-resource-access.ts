@@ -22,8 +22,8 @@ import {
 	useMutationAction,
 } from "@/hooks/actions/use-mutation-action";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
+import { formatList } from "@/lib/locale/format-list";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 
 const getResourceInput = (resourceRef: ResourceRef) => {

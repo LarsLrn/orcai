@@ -10,7 +10,7 @@ import { createDataTableSelectColumn } from "@/components/ui/data-table/data-tab
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { useMembershipControl } from "@/hooks/authz/use-membership-control";
-import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
+import { getOrganizationRoleLabel } from "@/lib/labels/organization-role";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<

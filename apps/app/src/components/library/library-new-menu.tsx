@@ -12,7 +12,7 @@ import {
 	filterByCapabilities,
 	useOrganizationCapabilities,
 } from "@/hooks/authz/use-capabilities";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { m } from "@/paraglide/messages";
 
 const NEW_ITEMS: {

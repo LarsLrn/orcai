@@ -8,8 +8,8 @@ import {
 	RESOURCE_GRANT_ORIGIN,
 } from "@orcai/schema";
 import { Badge } from "@/components/ui/badge";
+import { getResourceRoleLabel } from "@/lib/labels/access";
 import { m } from "@/paraglide/messages";
-import { getResourceRoleLabel } from "@/settings/display-config";
 
 const roleLabel = (role: ResourceGrantRole) => getResourceRoleLabel(role);
 

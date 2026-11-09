@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "@tanstack/react-store";
 import { ActivityIcon } from "lucide-react";
+import { activityLabel } from "@/components/activity/activity-text";
 import { Button } from "@/components/ui/button";
 import {
 	Drawer,
@@ -16,7 +17,6 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { activityLabel } from "@/lib/presentation/activity";
 import { m } from "@/paraglide/messages";
 import { ActivityPanel } from "./activity-panel";
 import { activityOpen, activitySummaryOptions } from "./activity-state";

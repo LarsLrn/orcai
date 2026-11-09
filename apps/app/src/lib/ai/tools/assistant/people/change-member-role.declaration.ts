@@ -1,7 +1,7 @@
 import { organizationMemberSchema } from "@orcai/schema";
 import { UserCogIcon } from "lucide-react";
 import { declareTool } from "@/lib/ai/tools/declaration";
-import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
+import { getOrganizationRoleLabel } from "@/lib/labels/organization-role";
 import { m } from "@/paraglide/messages";
 import type { changeMemberRoleTool } from "./change-member-role";
 import { receiverIdSchema } from "./receiver-input";

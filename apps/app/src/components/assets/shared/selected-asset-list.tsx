@@ -6,12 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StateBadge } from "@/components/ui/composed/state-badge";
 import { hasCapability } from "@/lib/authz/capabilities";
-import { getFileTypeLabel } from "@/lib/presentation/file-type";
+import { getFileTypeLabel } from "@/lib/labels/file-type";
 import {
 	generatingMetadataBadge,
 	isGeneratingMetadata,
-} from "@/lib/presentation/metadata-status";
-import { processingStatusBadge } from "@/lib/presentation/processing-status";
+} from "@/lib/labels/metadata-status";
+import { processingStatusBadge } from "@/lib/labels/processing-status";
 import { m } from "@/paraglide/messages";
 
 /** Assets with their processing state, metadata editing and, given `onRemove`, removal. */

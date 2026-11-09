@@ -6,7 +6,7 @@ import { useEffect, useMemo, useSyncExternalStore } from "react";
 import {
 	formatDisplayDate,
 	formatDisplayTimestamp,
-} from "@/lib/presentation/format-timestamp";
+} from "@/lib/locale/format-timestamp";
 
 const TIME_ZONE_COOKIE_NAME = "time_zone";
 const TIME_ZONE_COOKIE_MAX_AGE_DAYS = 365;

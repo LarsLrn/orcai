@@ -2,7 +2,7 @@ import { indent } from "@/lib/ai/tools/gen-ui/markdown";
 import type { QuizResultView } from "@/lib/ai/tools/gen-ui/quiz-result/read";
 import { verdictLabel } from "@/lib/ai/tools/gen-ui/quiz-result/verdict";
 import type { QuizResult } from "@/lib/ai/tools/questions/quiz-result";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 type GradedQuestion = QuizResult["sections"][number]["questions"][number];

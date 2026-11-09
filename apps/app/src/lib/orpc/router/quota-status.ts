@@ -5,7 +5,7 @@ import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
-import { usedShareOf } from "@/lib/presentation/quota-share";
+import { usedShareOf } from "@/lib/quota/quota-share";
 
 const quotaStatus = authed.quota.status
 	.use(requireOrganization("read"))

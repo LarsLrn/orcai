@@ -6,12 +6,12 @@ import {
 	activitySummaryOptions,
 	openActivity,
 } from "@/components/activity/activity-state";
+import { runStage, runTitle } from "@/components/activity/activity-text";
 import {
 	AttentionWell,
 	RunProgress,
 } from "@/components/activity/activity-visuals";
 import { orpc } from "@/lib/orpc/orpc";
-import { runStage, runTitle } from "@/lib/presentation/activity";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

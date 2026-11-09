@@ -11,11 +11,11 @@ import {
 import { InfoDot } from "@/components/ui/composed/info-dot";
 import { StateBadge } from "@/components/ui/composed/state-badge";
 import { usePrepareAssetAgainMutation } from "@/hooks/mutations/use-asset-mutations";
-import { getPipelineFailureDescription } from "@/lib/presentation/asset-state";
+import { getPipelineFailureDescription } from "@/lib/labels/asset-state";
 import {
 	getProcessingStatusDescription,
 	processingStatusBadge,
-} from "@/lib/presentation/processing-status";
+} from "@/lib/labels/processing-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

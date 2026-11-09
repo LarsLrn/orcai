@@ -11,9 +11,6 @@ import {
 	XIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import { orpc } from "@/lib/orpc/orpc";
 import {
 	fieldSummary,
 	type MemberStage,
@@ -21,8 +18,11 @@ import {
 	memberStageLabels,
 	runSummary,
 	runTitle,
-} from "@/lib/presentation/activity";
-import { formatRelativeTime } from "@/lib/presentation/format-timestamp";
+} from "@/components/activity/activity-text";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { formatRelativeTime } from "@/lib/locale/format-timestamp";
+import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { activityOpen, RUNNING_POLL_MS } from "./activity-state";

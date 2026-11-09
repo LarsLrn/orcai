@@ -34,12 +34,12 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { getModelCapabilityLabel } from "@/lib/labels/model-capability";
+import { modelStatusBadge } from "@/lib/labels/model-status";
+import { getProviderKindLabel } from "@/lib/labels/provider-kind";
+import { providerStatusBadge } from "@/lib/labels/provider-status";
+import { formatNumber, formatPrice } from "@/lib/locale/format-number";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatNumber, formatPrice } from "@/lib/presentation/format-number";
-import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
-import { modelStatusBadge } from "@/lib/presentation/model-status";
-import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
-import { providerStatusBadge } from "@/lib/presentation/provider-status";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/models/$modelId/")({

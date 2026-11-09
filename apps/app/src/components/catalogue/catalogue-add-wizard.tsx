@@ -28,9 +28,9 @@ import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { hasCapability } from "@/lib/authz/capabilities";
 import type { CatalogueOrigin } from "@/lib/catalogue/catalogue-filters";
 import { catalogueEntryQuery } from "@/lib/catalogue/catalogue-queries";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { libraryLink } from "@/lib/navigation/library-link";
 import { orpc } from "@/lib/orpc/orpc";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

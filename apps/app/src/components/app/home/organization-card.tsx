@@ -4,8 +4,8 @@ import { Link, useRouteContext } from "@tanstack/react-router";
 import { ChevronRightIcon, PencilIcon } from "lucide-react";
 import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { buttonVariants } from "@/components/ui/button";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { orpc } from "@/lib/orpc/orpc";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

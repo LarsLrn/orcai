@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatFileSize } from "@/lib/presentation/format-file-size";
+import { formatFileSize } from "@/lib/locale/format-file-size";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

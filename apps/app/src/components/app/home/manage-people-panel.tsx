@@ -13,8 +13,8 @@ import {
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { activeOrganizationQuery } from "@/hooks/use-active-organization";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { formatCount } from "@/lib/locale/format-number";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
 const COUNT_INPUT = {

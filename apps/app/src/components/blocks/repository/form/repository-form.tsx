@@ -7,7 +7,7 @@ import {
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
-import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
+import { getPublicationStatusOptions } from "@/lib/labels/publication-status";
 import { m } from "@/paraglide/messages";
 import { RepositoryFieldGroup } from "./repository-field-group";
 import { repositoryFormOptions } from "./repository-form-options";
