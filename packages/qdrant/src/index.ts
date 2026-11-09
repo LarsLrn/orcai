@@ -19,6 +19,7 @@ export {
 	type EmbeddingIndexScope,
 	embeddingSettings,
 	GenerationWrite,
+	holdGeneration,
 	inspectActiveCollection,
 	maintainCollections,
 	onActiveGeneration,
