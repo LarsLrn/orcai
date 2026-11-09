@@ -27,12 +27,12 @@ import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Tracer from "effect/Tracer";
 import { activitySummary } from "@/lib/activity/summary";
-import { deleteOrganizationsWithAuthorization } from "@/lib/authz/organization-lifecycle";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
 	deleteResourcesWithAuthorization,
 	initializeResourceAuthorization,
 } from "@/lib/authz/resource-lifecycle";
+import { deleteOrganizationsWithAuthorization } from "@/lib/organizations/organization-lifecycle";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,

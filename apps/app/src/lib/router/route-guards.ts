@@ -6,8 +6,8 @@ import type {
 import type { QueryClient } from "@tanstack/react-query";
 import { notFound, redirect } from "@tanstack/react-router";
 import { hasCapability } from "@/lib/authz/capabilities";
-import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
 import { orpc } from "@/lib/orpc/orpc";
+import { organizationCapabilitiesQuery } from "@/lib/router/organization-capabilities-query";
 
 type RouteAuth =
 	| {

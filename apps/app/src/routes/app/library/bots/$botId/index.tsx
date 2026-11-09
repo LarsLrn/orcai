@@ -32,7 +32,7 @@ import {
 	DetailHeaderTitle,
 } from "@/components/ui/shell/detail-header";
 import { Page, PageContent } from "@/components/ui/shell/page";
-import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
+import { resourceVisibilityQuery } from "@/hooks/access/use-resource-access";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { reasonMessage } from "@/lib/errors/reason-messages";
 import { publicationStatusBadge } from "@/lib/labels/publication-status";

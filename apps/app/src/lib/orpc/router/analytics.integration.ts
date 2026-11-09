@@ -18,7 +18,7 @@ import type {
 import { createOrganization, createUser, rejection } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { removeMembers } from "@/lib/authz/organization-membership";
+import { removeMembers } from "@/lib/organizations/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,

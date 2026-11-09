@@ -51,7 +51,7 @@ import {
 	resourceVisibilityQuery,
 	useResourceGrants,
 	useResourceVisibility,
-} from "@/hooks/authz/use-resource-access";
+} from "@/hooks/access/use-resource-access";
 import { useAppForm } from "@/hooks/form";
 import { useSetBlockStatusMutation } from "@/hooks/mutations/use-block-mutations";
 import {

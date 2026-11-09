@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Page, PageContent } from "@/components/ui/shell/page";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { hasCapability } from "@/lib/authz/capabilities";
-import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
+import { organizationCapabilitiesQuery } from "@/lib/router/organization-capabilities-query";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/_home")({

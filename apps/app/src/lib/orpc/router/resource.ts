@@ -26,6 +26,11 @@ import {
 	notInArray,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import {
+	activeGrants,
+	grantResourceAccess,
+	revokeResourceAccess,
+} from "@/lib/access/resource-access";
 import { readableIds } from "@/lib/authz/content-access";
 import {
 	canSeeEmailIn,
@@ -34,12 +39,6 @@ import {
 	visibleUserSearch,
 } from "@/lib/authz/email-visibility";
 import { visibleGroupScope } from "@/lib/authz/group-visibility";
-import { handOverItem, itemReceivers } from "@/lib/authz/ownership";
-import {
-	activeGrants,
-	grantResourceAccess,
-	revokeResourceAccess,
-} from "@/lib/authz/resource-access";
 import { requireAdministersIn } from "@/lib/authz/resource-authority";
 import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
 import { readRevision } from "@/lib/authz/zed-token";
@@ -48,6 +47,7 @@ import { libraryAccess } from "@/lib/library/library-access";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { requireResourceAccess } from "@/lib/orpc/middlewares/permission";
+import { handOverItem, itemReceivers } from "@/lib/ownership/ownership";
 import { readableResources } from "@/lib/resources/readable";
 import { recentResources } from "@/lib/resources/recents";
 import { literalSearch } from "@/lib/utils/literal-search";

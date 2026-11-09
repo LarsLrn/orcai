@@ -16,10 +16,10 @@ import {
 import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { activeGrants } from "@/lib/access/resource-access";
 import { canSeeEmailIn } from "@/lib/authz/email-visibility";
 import { visibleGroupScope } from "@/lib/authz/group-visibility";
 import { writeRelationships } from "@/lib/authz/relationship-write";
-import { activeGrants } from "@/lib/authz/resource-access";
 import { administersIn } from "@/lib/authz/resource-authority";
 import { resourceOrganizations } from "@/lib/authz/resource-lifecycle";
 import { checkChatModel, checkMaxTokens } from "@/lib/chats/chat-model";

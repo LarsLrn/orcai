@@ -3,16 +3,16 @@ import type { BlockId, GroupId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { grantResourceAccess } from "@/lib/access/resource-access";
 import { readableNow } from "@/lib/authz/content-access";
 import {
 	addGroupMembers,
 	createGroup,
 	deleteGroups,
 	removeGroupMembers,
-} from "@/lib/authz/group-lifecycle";
-import { deleteOrganizationsWithAuthorization } from "@/lib/authz/organization-lifecycle";
-import { removeMembers } from "@/lib/authz/organization-membership";
-import { grantResourceAccess } from "@/lib/authz/resource-access";
+} from "@/lib/groups/group-lifecycle";
+import { deleteOrganizationsWithAuthorization } from "@/lib/organizations/organization-lifecycle";
+import { removeMembers } from "@/lib/organizations/organization-membership";
 import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
 const { run, organizationWith, createBlock, outboxDelivered, readTuples } =

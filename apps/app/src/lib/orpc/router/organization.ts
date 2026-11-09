@@ -34,17 +34,17 @@ import {
 	or,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
-import { insertInvitations } from "@/lib/authz/organization-invitations";
-import {
-	deleteOrganizationsWithAuthorization,
-	insertOrganization,
-} from "@/lib/authz/organization-lifecycle";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { listedCounts } from "@/lib/catalogue/catalogue-browse";
 import { listedHomeResources } from "@/lib/catalogue/listing";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage, setImage } from "@/lib/images/images";
+import { lockAsInstanceAdmin } from "@/lib/instance/instance-admin-lock";
+import { insertInvitations } from "@/lib/organizations/organization-invitations";
+import {
+	deleteOrganizationsWithAuthorization,
+	insertOrganization,
+} from "@/lib/organizations/organization-lifecycle";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireOrganizationById } from "@/lib/orpc/middlewares/organization";

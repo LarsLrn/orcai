@@ -7,8 +7,8 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
-import { ensureEntityCapability } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
+import { ensureEntityCapability } from "@/lib/router/route-guards";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library/assets/$assetId/edit")({

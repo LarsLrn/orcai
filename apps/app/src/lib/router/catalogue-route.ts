@@ -6,9 +6,9 @@ import {
 } from "@orcai/schema";
 import type { QueryClient } from "@tanstack/react-query";
 import { notFound, redirect } from "@tanstack/react-router";
-import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
 import { catalogueEntryQuery } from "@/lib/catalogue/catalogue-queries";
 import { orNotFound, parseParam } from "@/lib/router/not-found";
+import { ensureOrganizationCapability } from "@/lib/router/route-guards";
 
 /** The entry a kind's path names, as `catalogue.find`, `add` and `remove` take it; an id that does not parse is not found. */
 export const catalogueEntryRef = (

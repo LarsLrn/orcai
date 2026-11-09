@@ -31,12 +31,12 @@ import {
 } from "@/components/ui/shell/section";
 import { useInstanceUserActions } from "@/components/users/instance-user-actions";
 import { UserAvatar } from "@/components/users/user-avatar";
-import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import {
 	dataTableQuerySchema,
 	dataTableSearchDefaults,
 	paginationSearchShape,
 } from "@/lib/browse/data-table-search-params";
+import { isInstanceAdminRole } from "@/lib/instance/instance-role";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

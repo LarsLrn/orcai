@@ -1,4 +1,4 @@
-import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import { isInstanceAdminRole } from "@/lib/instance/instance-role";
 
 /** Who must use two-factor authentication: nobody, instance admins, or everyone. */
 export const TWO_FACTOR_POLICIES = [

@@ -21,7 +21,7 @@ import {
 	useSetInstanceRoleMutation,
 	useUnbanUserMutation,
 } from "@/hooks/mutations/use-user-admin-mutations";
-import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import { isInstanceAdminRole } from "@/lib/instance/instance-role";
 import { m } from "@/paraglide/messages";
 
 /**

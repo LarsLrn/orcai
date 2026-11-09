@@ -35,7 +35,7 @@ import {
 	useResourceVisibility,
 	useRevokeResourceAccess,
 	useSetResourceListing,
-} from "@/hooks/authz/use-resource-access";
+} from "@/hooks/access/use-resource-access";
 import {
 	getResourceAccessHint,
 	getResourceRoleOptions,

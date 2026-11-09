@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
+import { organizationCapabilitiesQuery } from "@/lib/router/organization-capabilities-query";
 
 export { filterByCapabilities } from "@/lib/authz/capability-filter";
 

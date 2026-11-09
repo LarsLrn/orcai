@@ -9,8 +9,8 @@ import {
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useCatalogueAddBlocksMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import { activeOrganizationQuery } from "@/hooks/use-active-organization";
-import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
 import { catalogueEntryQuery } from "@/lib/catalogue/catalogue-queries";
+import { organizationCapabilitiesQuery } from "@/lib/router/organization-capabilities-query";
 import { m } from "@/paraglide/messages";
 
 const labels = {

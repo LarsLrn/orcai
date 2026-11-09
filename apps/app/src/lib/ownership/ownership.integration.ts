@@ -17,9 +17,9 @@ import {
 } from "@orcai/testing";
 import { and, eq, inArray, ne, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { handOverItem } from "@/lib/authz/ownership";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { handOverItem } from "@/lib/ownership/ownership";
 import {
 	type Actor,
 	appIntegration,

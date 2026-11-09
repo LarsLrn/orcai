@@ -23,7 +23,7 @@ import {
 } from "@/lib/authz/content-access";
 import { committedRoles, roleGrants } from "@/lib/authz/organization-access";
 import { usableInOrganization } from "@/lib/authz/organization-use";
-import { handOverableIds } from "@/lib/authz/ownership";
+import { handOverableIds } from "@/lib/ownership/ownership";
 
 type CapabilityParams<Entity extends CapabilityEntityType> = {
 	entityType: Entity;

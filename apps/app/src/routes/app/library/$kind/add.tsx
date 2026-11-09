@@ -9,7 +9,7 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
-import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
+import { ensureOrganizationCapability } from "@/lib/router/route-guards";
 import { m } from "@/paraglide/messages";
 
 const PAGES = {

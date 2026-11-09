@@ -7,7 +7,7 @@ import * as Effect from "effect/Effect";
 import {
 	banAccount,
 	deleteAccounts,
-} from "@/lib/authz/organization-membership";
+} from "@/lib/organizations/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,

@@ -12,18 +12,18 @@ import {
 } from "@orcai/schema";
 import { and, asc, eq, getColumns, ilike, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { inviteToOrganization } from "@/lib/authz/organization-invitations";
+import * as AppErrors from "@/lib/effect/utils/errors";
+import { removeImage } from "@/lib/images/images";
+import { inviteToOrganization } from "@/lib/organizations/organization-invitations";
 import {
 	addMember as addOrganizationMember,
 	changeMemberRole as changeOrganizationMemberRole,
 	removeMembers,
-} from "@/lib/authz/organization-membership";
-import { eligibleReceivers, ownedContent } from "@/lib/authz/ownership";
-import * as AppErrors from "@/lib/effect/utils/errors";
-import { removeImage } from "@/lib/images/images";
+} from "@/lib/organizations/organization-membership";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import { instanceUserColumns } from "@/lib/orpc/router/user/instance-user-columns";
+import { eligibleReceivers, ownedContent } from "@/lib/ownership/ownership";
 import { organizationReadiness as readOrganizationReadiness } from "@/lib/readiness/readiness";
 import { literalSearch } from "@/lib/utils/literal-search";
 

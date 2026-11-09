@@ -21,9 +21,9 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchField } from "@/components/ui/composed/search-field";
 import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mutations";
-import { isInstanceAdminRole } from "@/lib/authz/instance-role";
-import { ensureSignedIn } from "@/lib/authz/route-guards";
+import { isInstanceAdminRole } from "@/lib/instance/instance-role";
 import { orpc } from "@/lib/orpc/orpc";
+import { ensureSignedIn } from "@/lib/router/route-guards";
 import { m } from "@/paraglide/messages";
 
 const PAGE_SIZE = 12;

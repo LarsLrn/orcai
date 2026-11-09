@@ -8,9 +8,9 @@ import { enqueueNotification } from "@orcai/notifications";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { requiresTwoFactor } from "@/lib/auth/two-factor-policy";
-import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { lockAsInstanceAdmin } from "@/lib/instance/instance-admin-lock";
 
 /**
  * Makes an account an instance administrator or a user again, and emails its

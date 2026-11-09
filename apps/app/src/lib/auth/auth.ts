@@ -34,10 +34,10 @@ import {
 	pendingInvitationsFor,
 	soleOrganizationOf,
 } from "@/lib/auth/invitation-signup";
-import { acceptInvitation } from "@/lib/authz/organization-membership";
 import { secureCookiesFor, zedTokenCookieOptions } from "@/lib/authz/zed-token";
 import { runPromise } from "@/lib/effect/runtime";
 import { loadAppConfigSync } from "@/lib/effect/services/config";
+import { acceptInvitation } from "@/lib/organizations/organization-membership";
 import {
 	cookieMaxAge,
 	cookieName,

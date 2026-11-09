@@ -2,12 +2,12 @@ import type { BlockId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema, isHome } from "@orcai/db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { revokeIssuedGrants } from "@/lib/access/resource-access";
 import {
 	RelationshipFact,
 	type ResourceRef,
 } from "@/lib/authz/relationship-facts";
 import { recordRelationshipFacts } from "@/lib/authz/relationship-write";
-import { revokeIssuedGrants } from "@/lib/authz/resource-access";
 import { draftUnreadyBots } from "@/lib/bots/bot-readiness";
 
 /** The resource's added scopes: its active scopes other than its home. */

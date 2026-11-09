@@ -19,9 +19,9 @@ import {
 	memberMatching,
 	usageIdentities,
 } from "@/lib/analytics/usage-identities";
-import { groupMemberCount } from "@/lib/authz/group-lifecycle";
 import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { groupMemberCount } from "@/lib/groups/group-lifecycle";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
