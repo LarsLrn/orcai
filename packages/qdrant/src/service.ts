@@ -8,6 +8,7 @@ import {
 	QdrantConfigLive,
 	QdrantConfigService,
 } from "./config";
+import { CollectionSetupsLive } from "./setups";
 
 /** The Qdrant client; collections come from the active embedding generation. */
 export class QdrantService extends Context.Service<
@@ -34,6 +35,7 @@ const QdrantServiceLive = Layer.effect(
 	}),
 );
 
-export const QdrantLive = QdrantServiceLive.pipe(
-	Layer.provide(QdrantConfigLive),
-);
+export const QdrantLive = Layer.merge(
+	QdrantServiceLive,
+	CollectionSetupsLive,
+).pipe(Layer.provide(QdrantConfigLive));

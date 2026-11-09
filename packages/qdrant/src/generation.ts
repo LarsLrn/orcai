@@ -11,11 +11,15 @@ import {
 	advisoryXactLockShared,
 	DB,
 	dbSchema,
+	isLockTimeout,
 } from "@orcai/db";
 import { eq, sql } from "drizzle-orm";
 import type { PgTableWithColumns } from "drizzle-orm/pg-core";
 import * as Context from "effect/Context";
+import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
+import * as FiberMap from "effect/FiberMap";
 import * as Option from "effect/Option";
 import {
 	collectionDimensions,
@@ -30,6 +34,7 @@ import {
 	StaleEmbeddingGenerationError,
 } from "./errors";
 import { QdrantService } from "./service";
+import { CollectionSetups } from "./setups";
 
 /** The instance settings table, in the instance's schema or a test's own. */
 type InstanceSettingsTable = PgTableWithColumns<{
@@ -187,7 +192,8 @@ const lockGenerations = (exclusive: boolean) =>
 		);
 	});
 
-const ensured = new Set<string>();
+/** Each index's collection known to exist, by collection prefix. */
+const ensured = new Map<string, string>();
 
 /**
  * The active collection exists once anything runs on it: a new generation's
@@ -198,14 +204,15 @@ const ensureActiveCollection = (generation: {
 	readonly dimensions: number;
 }) =>
 	Effect.gen(function* () {
-		if (ensured.has(generation.collection)) return;
+		const { collectionPrefix } = yield* EmbeddingIndex;
+		if (ensured.get(collectionPrefix) === generation.collection) return;
 		const { client } = yield* QdrantService;
 		yield* ensureCollection(
 			client,
 			generation.collection,
 			generation.dimensions,
 		);
-		ensured.add(generation.collection);
+		ensured.set(collectionPrefix, generation.collection);
 	});
 
 /**
@@ -315,29 +322,72 @@ export const storedEmbeddingApiKey = readStored.pipe(
 );
 
 /**
- * The active generation's collection as Qdrant has it, ensured like on any
- * use: under the generation lock, so a replaced one is not created again.
+ * Sets up the active generation's collection like any use does, and reads it
+ * back, under the generation lock: a replaced one is not created again, and
+ * the read is of the generation it set up. Undefined before setup. A lock
+ * held past `lockWait` fails it `LockTimeoutError`.
  */
-export const inspectActiveCollection = Effect.gen(function* () {
-	const db = yield* DB;
-	return yield* db.transaction(() =>
-		Effect.gen(function* () {
-			yield* lockGenerations(false);
-			const stored = yield* readStored;
-			if (!stored) return undefined;
-			yield* ensureActiveCollection(stored);
-			const { client } = yield* QdrantService;
-			return {
-				collection: stored.collection,
-				dimensions: stored.dimensions,
-				collectionDimensions: yield* collectionDimensions(
+export const setUpActiveCollection = (lockWait: Duration.Input) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		return yield* db.transaction(() =>
+			Effect.gen(function* () {
+				const { collectionPrefix } = yield* EmbeddingIndex;
+				yield* db.execute(
+					sql`SELECT set_config('lock_timeout', ${`${Duration.toMillis(Duration.fromInputUnsafe(lockWait))}ms`}, true)`,
+				);
+				yield* lockGenerations(false);
+				const stored = yield* readStored;
+				if (!stored) return undefined;
+				yield* ensureActiveCollection(stored);
+				const { client } = yield* QdrantService;
+				const dimensions = yield* collectionDimensions(
 					client,
 					stored.collection,
-				),
-			};
-		}),
-	);
-});
+				);
+				// Deleted since its setup, so the next use creates it again.
+				if (
+					dimensions === "missing" &&
+					ensured.get(collectionPrefix) === stored.collection
+				)
+					ensured.delete(collectionPrefix);
+				return {
+					collection: stored.collection,
+					dimensions: stored.dimensions,
+					collectionDimensions: dimensions,
+				};
+			}),
+		);
+	});
+
+/**
+ * The active generation's collection as Qdrant has it, set up first; undefined
+ * before setup. Callers outside a transaction join one running setup, and one
+ * that outlasts `patience` keeps running while this answers "preparing". A
+ * setup that waits for the generation lock longer than `lockWait`, behind a
+ * save, fails, and this answers "saving".
+ */
+export const inspectActiveCollection = (options: {
+	readonly patience: Duration.Input;
+	readonly lockWait: Duration.Input;
+}) =>
+	Effect.gen(function* () {
+		const { collectionPrefix } = yield* EmbeddingIndex;
+		const setups = yield* CollectionSetups;
+		const run =
+			yield* FiberMap.runtime(setups)<
+				Effect.Services<ReturnType<typeof setUpActiveCollection>>
+			>();
+		const setup = Option.getOrElse(
+			FiberMap.getUnsafe(setups, collectionPrefix),
+			() => run(collectionPrefix, setUpActiveCollection(options.lockWait)),
+		);
+		return yield* Fiber.join(setup).pipe(
+			Effect.timeoutOption(options.patience),
+			Effect.map(Option.getOrElse(() => "preparing" as const)),
+			Effect.catchIf(isLockTimeout, () => Effect.succeed("saving" as const)),
+		);
+	});
 
 type GenerationSetup = {
 	readonly baseUrl: string;

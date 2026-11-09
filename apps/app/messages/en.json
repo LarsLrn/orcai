@@ -3863,8 +3863,10 @@
 	"check_reason_embeddings_collection_incompatible": "The Qdrant collection of the embedding model has no dense vectors OrcAI can use. Delete the collection, and the workers create it again within a minute.",
 	"check_reason_embeddings_collection_mismatch": "The Qdrant collection does not match the dimensions of the embedding model.",
 	"check_reason_embeddings_collection_missing": "The Qdrant collection of the embedding model is missing. The workers create it again within a minute.",
+	"check_reason_embeddings_collection_preparing": "OrcAI is creating the Qdrant collection of the embedding model. Check again in a moment.",
 	"check_reason_embeddings_not_configured": "Search is unavailable until an instance admin sets up embeddings.",
 	"check_reason_embeddings_ready": "Embeddings are set up.",
+	"check_reason_embeddings_settings_saving": "OrcAI is saving the embedding settings. Check again in a moment.",
 	"check_reason_mail_dead": [
 		{
 			"declarations": [

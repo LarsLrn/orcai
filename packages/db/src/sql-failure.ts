@@ -18,3 +18,7 @@ export const uniqueViolationConstraint = (
 	const reason = sqlFailure(error)?.reason;
 	return reason?._tag === "UniqueViolation" ? reason.constraint : undefined;
 };
+
+/** Whether `error` is a lock wait that ran past `lock_timeout`. */
+export const isLockTimeout = (error: unknown) =>
+	sqlFailure(error)?.reason._tag === "LockTimeoutError";
