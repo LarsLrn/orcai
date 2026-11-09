@@ -6,9 +6,11 @@ import {
 	searchQuerySchema,
 } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { SearchIcon } from "lucide-react";
-import { useState } from "react";
+import {
+	createFileRoute,
+	notFound,
+	stripSearchParams,
+} from "@tanstack/react-router";
 import { z } from "zod/v4";
 import {
 	ExploreBrowse,
@@ -18,9 +20,8 @@ import {
 	TOP_K_OPTIONS,
 	type TopK,
 } from "@/components/assets/explore/explore-results";
-import { Button } from "@/components/ui/button";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
-import { Input } from "@/components/ui/input";
+import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
 	Page,
 	PageContent,
@@ -34,7 +35,7 @@ import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
 	/** A search query; without one the page browses. */
-	q: searchQuerySchema.optional().catch(undefined),
+	query: searchQuerySchema.trim().catch("").default(""),
 	mode: retrievalModeSchema.optional().catch(undefined),
 	/** One asset of the repository. */
 	asset: assetIdSchema.optional().catch(undefined),
@@ -49,12 +50,12 @@ const ALL_ASSETS = "all";
 
 /** The search with its defaults. */
 const exploreSearch = ({
-	q,
+	query,
 	mode = "hybrid",
 	asset,
 	k = 10,
 }: z.infer<typeof searchSchema>) => ({
-	q,
+	q: query || undefined,
 	mode,
 	asset,
 	k,
@@ -72,6 +73,13 @@ const selectedAssetId = (
 
 export const Route = createFileRoute("/app/library/$kind/$blockId/explore")({
 	validateSearch: searchSchema,
+	search: {
+		middlewares: [
+			stripSearchParams({
+				query: "",
+			}),
+		],
+	},
 	loaderDeps: ({ search }) => exploreSearch(search),
 	beforeLoad: ({ params: { kind } }) => {
 		if (kind !== "repository") throw notFound();
@@ -162,18 +170,11 @@ function RouteComponent() {
 			</PageHeader>
 			<PageContent className="space-y-6">
 				<div className="space-y-3">
-					<SearchForm
-						// A new query in the URL, from a search or Back, resets the draft.
-						key={q ?? ""}
-						query={q}
-						onSearch={(next) =>
-							navigate({
-								search: (previous) => ({
-									...previous,
-									q: next || undefined,
-								}),
-							})
-						}
+					<DataTableSearch
+						label={m.blocks_explore_search_label()}
+						placeholder={m.blocks_explore_search_placeholder()}
+						maxLength={SEARCH_QUERY_MAX_LENGTH}
+						className="w-full"
 					/>
 					<div className="flex flex-wrap items-center gap-2">
 						<OptionPicker
@@ -259,37 +260,3 @@ function RouteComponent() {
 		</Page>
 	);
 }
-
-const SearchForm = ({
-	query,
-	onSearch,
-}: {
-	query?: string;
-	onSearch: (query: string) => void;
-}) => {
-	const [draft, setDraft] = useState(query ?? "");
-
-	return (
-		<form
-			className="flex flex-wrap items-center gap-2"
-			onSubmit={(event) => {
-				event.preventDefault();
-				onSearch(draft.trim());
-			}}
-		>
-			<Input
-				type="search"
-				value={draft}
-				onChange={(event) => setDraft(event.target.value)}
-				maxLength={SEARCH_QUERY_MAX_LENGTH}
-				aria-label={m.blocks_explore_search_label()}
-				placeholder={m.blocks_explore_search_placeholder()}
-				className="min-w-48 flex-1"
-			/>
-			<Button type="submit">
-				<SearchIcon />
-				{m.blocks_explore_search_submit()}
-			</Button>
-		</form>
-	);
-};

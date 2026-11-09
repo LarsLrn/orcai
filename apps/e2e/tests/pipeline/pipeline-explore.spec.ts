@@ -110,23 +110,17 @@ test("pipeline: Explore browses a repository with Load more, reads an asset in o
 		marker(3),
 	]);
 
-	// A search ranks the one passage that matches the term first, with its score.
-	await page
-		.getByRole("searchbox", {
-			name: message("blocks_explore_search_label"),
-		})
-		.fill(NEEDLE);
-	await page
-		.getByRole("button", {
-			name: message("blocks_explore_search_submit"),
-		})
-		.click();
+	// A search runs as you type and ranks the one passage that matches the term first, with its score.
+	const searchbox = page.getByRole("textbox", {
+		name: message("blocks_explore_search_label"),
+	});
+	await searchbox.fill(NEEDLE);
+	await expect(page).toHaveURL(/query=zanzibarquokka/);
 	await choose(
 		page,
 		"blocks_explore_mode_label",
 		message("blocks_retrieval_mode_sparse_label"),
 	);
-	await expect(page).toHaveURL(/q=zanzibarquokka/);
 	await expect(page).toHaveURL(/mode=sparse/);
 	const hits = page
 		.getByRole("list", {
@@ -138,30 +132,37 @@ test("pipeline: Explore browses a repository with Load more, reads an asset in o
 	await expect(first.getByText(marker(42))).toBeVisible();
 	await expect(first.getByText(/^Score /)).toBeVisible();
 
-	// Back to an earlier search shows its query in the box, and searching again keeps it.
-	const searchbox = page.getByRole("searchbox", {
-		name: message("blocks_explore_search_label"),
-	});
+	// Typing changes the search in place; Back returns to the step before and shows its query.
+	await choose(
+		page,
+		"blocks_explore_top_k_label",
+		message("blocks_explore_top_k_option", {
+			count: 25,
+		}),
+	);
+	await expect(page).toHaveURL(/k=25/);
 	await searchbox.fill(ABSENT);
-	await page
-		.getByRole("button", {
-			name: message("blocks_explore_search_submit"),
-		})
-		.click();
 	// The URL moves before the page renders the search; wait for its answer.
-	await expect(page).toHaveURL(new RegExp(`q=${ABSENT}`));
+	await expect(page).toHaveURL(new RegExp(`query=${ABSENT}`));
 	await expect(
 		page.getByText(message("blocks_explore_search_empty_title")),
 	).toBeVisible();
 	await page.goBack();
-	await expect(page).toHaveURL(/q=zanzibarquokka/);
-	await expect(hits).toHaveCount(1);
+	await expect(page).not.toHaveURL(/k=25/);
+	await expect(page).toHaveURL(/query=zanzibarquokka/);
 	await expect(searchbox).toHaveValue(NEEDLE);
+	await expect(hits).toHaveCount(1);
+	await expect(first.getByText(marker(42))).toBeVisible();
+
+	// Clearing the search browses the asset again.
 	await page
 		.getByRole("button", {
-			name: message("blocks_explore_search_submit"),
+			name: message("data_table_search_clear_label"),
 		})
 		.click();
-	await expect(page).toHaveURL(/q=zanzibarquokka/);
-	await expect(first.getByText(marker(42))).toBeVisible();
+	await expect(page).not.toHaveURL(/query=/);
+	await expect(
+		page.getByText(message("blocks_explore_browse_asset_hint")),
+	).toBeVisible();
+	await expect(passages(page)).toHaveCount(50);
 });
