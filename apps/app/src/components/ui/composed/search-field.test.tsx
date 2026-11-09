@@ -34,4 +34,21 @@ describe("SearchField", () => {
 
 		expect(onValueChange).not.toHaveBeenCalled();
 	});
+
+	test("an example placeholder leaves the name to the label", () => {
+		render(
+			<SearchField
+				value=""
+				onValueChange={() => undefined}
+				placeholder="e.g. trains"
+				aria-label="Search query"
+			/>,
+		);
+
+		expect(
+			screen.getByRole("textbox", {
+				name: "Search query",
+			}),
+		).toBeDefined();
+	});
 });

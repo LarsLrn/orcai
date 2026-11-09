@@ -53,13 +53,15 @@ export const withSorting = <
 	sort: sorting,
 });
 
-/** Search params after a search query change, back on the first page. */
+/** Search params after a search query change, back on the first page if they page. */
 export const withQuery = <TSearch extends object>(
 	search: TSearch,
 	query: string,
 ) => ({
 	...search,
-	pageIndex: 0,
+	...("pageIndex" in search && {
+		pageIndex: 0,
+	}),
 	query,
 });
 

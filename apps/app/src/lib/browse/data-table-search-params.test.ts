@@ -75,6 +75,20 @@ describe("withQuery", () => {
 			query: "abc",
 		});
 	});
+
+	test("adds no page to search params without one", () => {
+		expect(
+			withQuery(
+				{
+					mode: "hybrid",
+				},
+				"abc",
+			),
+		).toEqual({
+			mode: "hybrid",
+			query: "abc",
+		});
+	});
 });
 
 describe("paginationSearchShape", () => {

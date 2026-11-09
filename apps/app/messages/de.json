@@ -2191,7 +2191,6 @@
 	"blocks_explore_search_label": "Suchanfrage",
 	"blocks_explore_search_placeholder": "z. B. wie buche ich ein Zugticket",
 	"blocks_explore_search_results_label": "Suchergebnisse",
-	"blocks_explore_search_submit": "Suchen",
 	"blocks_explore_top_k_label": "Treffer",
 	"blocks_explore_top_k_option": "Top {count}",
 	"blocks_publication_status_description": "Legen Sie fest, ob dieser Block noch ein Entwurf ist oder veröffentlicht.",

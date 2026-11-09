@@ -32,7 +32,7 @@ const SearchField = ({
 			disabled={disabled}
 			value={value}
 			onChange={(event) => onValueChange(event.target.value)}
-			aria-label={placeholder}
+			aria-label={inputProps["aria-label"] ?? placeholder}
 			placeholder={placeholder}
 			className="h-8 pr-9 pl-9"
 		/>

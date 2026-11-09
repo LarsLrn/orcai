@@ -2191,7 +2191,6 @@
 	"blocks_explore_search_label": "Search query",
 	"blocks_explore_search_placeholder": "e.g. how do I book a train ticket",
 	"blocks_explore_search_results_label": "Search results",
-	"blocks_explore_search_submit": "Search",
 	"blocks_explore_top_k_label": "Results",
 	"blocks_explore_top_k_option": "Top {count}",
 	"blocks_publication_status_description": "Control whether this block is still in draft or published.",

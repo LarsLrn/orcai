@@ -8,8 +8,11 @@ import {
 
 type DataTableSearchProps = {
 	placeholder?: string;
+	/** The field's name when the placeholder is an example rather than one. */
+	label?: string;
 	debounceMs?: number;
 	className?: string;
+	maxLength?: number;
 };
 
 type Emission = {
@@ -28,8 +31,10 @@ const emissionId = () => Math.random().toString(36).slice(2);
  */
 const DataTableSearch = ({
 	placeholder,
+	label,
 	debounceMs = 250,
 	className = "min-w-40 flex-1 sm:max-w-xs",
+	maxLength = dataTableQuerySchema.maxLength ?? undefined,
 }: DataTableSearchProps) => {
 	const navigate = useNavigate();
 	const location = useLocation({
@@ -108,7 +113,8 @@ const DataTableSearch = ({
 			onCompositionStart={() => setComposing(true)}
 			onCompositionEnd={() => setComposing(false)}
 			placeholder={placeholder}
-			maxLength={dataTableQuerySchema.maxLength ?? undefined}
+			aria-label={label}
+			maxLength={maxLength}
 			className={className}
 		/>
 	);
