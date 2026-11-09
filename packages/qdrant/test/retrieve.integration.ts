@@ -231,9 +231,10 @@ describe("retrievePassages", () => {
 				limit: 5,
 			},
 		});
-		expect(pages.points.map(([name]) => name)).toEqual([
-			"b4",
+		// b3 and b4 tie on keywords, so only the pages' passages are certain.
+		expect(pages.points.map(([name]) => name).sort()).toEqual([
 			"b3",
+			"b4",
 			"b5",
 		]);
 

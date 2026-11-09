@@ -4,15 +4,34 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 
+/** Qdrant's German stopwords with umlauts or ß. */
+const GERMAN_ACCENTED_STOPWORDS = [
+	"daß",
+	"für",
+	"können",
+	"könnte",
+	"über",
+	"während",
+	"würde",
+	"würden",
+];
+
+const foldToAscii = (word: string) =>
+	word.normalize("NFD").replace(/\p{M}/gu, "").replaceAll("ß", "ss");
+
 export const defaultBm25Config = {
 	tokenizer: "multilingual",
 	ascii_folding: true,
 	stemmer: {
 		type: "none",
 	},
+	// Qdrant folds accents before it drops stopwords, so these only match folded.
 	stopwords: {
-		languages: [],
-		custom: [],
+		languages: [
+			"german",
+			"english",
+		],
+		custom: GERMAN_ACCENTED_STOPWORDS.map(foldToAscii),
 	},
 } satisfies Schemas["Bm25Config"];
 
