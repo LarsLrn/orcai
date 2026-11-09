@@ -3,7 +3,7 @@ import { displayCallText } from "@/lib/ai/citations/chat-sources";
 import { citeTags } from "@/lib/ai/citations/cite-tag";
 import { SOURCE_REF } from "@/lib/ai/citations/source-ref";
 import { toolDeclarationOf } from "@/lib/ai/tools/registry";
-import { searchWebOutputSchema } from "@/lib/ai/tools/web/outputs";
+import { searchWebOutputSchema } from "@/lib/ai/tools/web-search/outputs";
 import type { Transcript } from "./harness";
 
 /** A property of a run, graded in code. */

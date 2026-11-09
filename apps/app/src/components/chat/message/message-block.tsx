@@ -26,7 +26,7 @@ import { useMessageScrollerInView } from "@/components/ui/message-scroller";
 import { InView } from "@/components/ui/motion/in-view";
 import { getChatMessageAttachments } from "@/lib/ai/messages/chat-attachment";
 import type { MessageView } from "@/lib/ai/messages/turn-view";
-import { citedWebSources } from "@/lib/ai/tools/web/sources";
+import { citedWebSources } from "@/lib/ai/tools/web-search/sources";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { ChatMessageAttachments } from "./chat-message-attachments";

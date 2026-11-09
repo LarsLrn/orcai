@@ -1,7 +1,7 @@
 import type { ModelMessage } from "ai";
 import { sourceRef } from "@/lib/ai/citations/source-ref";
-import { searchModelOutput } from "@/lib/ai/tools/rag/outputs";
-import type { Passage } from "@/lib/ai/tools/rag/types";
+import { searchModelOutput } from "@/lib/ai/tools/retrieval/outputs";
+import type { Passage } from "@/lib/ai/tools/retrieval/types";
 import {
 	answersIn,
 	calls,

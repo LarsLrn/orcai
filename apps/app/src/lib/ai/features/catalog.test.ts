@@ -2,7 +2,10 @@ import { describe, expect, test } from "bun:test";
 import * as Effect from "effect/Effect";
 import { referenceMatrix } from "@/lib/ai/tools/gen-ui/matrix/fixtures";
 import { referenceReview } from "@/lib/ai/tools/gen-ui/review/fixtures";
-import { NO_WEB_SEARCH, type TurnWebSearch } from "@/lib/ai/tools/web/toolset";
+import {
+	NO_WEB_SEARCH,
+	type TurnWebSearch,
+} from "@/lib/ai/tools/web-search/toolset";
 import { resolveFeatures } from "./resolve-features";
 
 const offeredTools = (

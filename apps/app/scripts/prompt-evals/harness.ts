@@ -46,7 +46,10 @@ import type {
 	AskUserInput,
 	AskUserOutput,
 } from "@/lib/ai/tools/questions/ask-user";
-import { NO_WEB_SEARCH, type TurnWebSearch } from "@/lib/ai/tools/web/toolset";
+import {
+	NO_WEB_SEARCH,
+	type TurnWebSearch,
+} from "@/lib/ai/tools/web-search/toolset";
 import { attachmentText } from "@/lib/ai/turn/attachments";
 import { capabilitySets } from "@/lib/authz/capabilities";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";

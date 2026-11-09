@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { asSchema, InvalidToolInputError, type ToolSet } from "ai";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
-import { buildRepositoryTools } from "@/lib/ai/tools/rag/toolset";
+import { buildRepositoryTools } from "@/lib/ai/tools/retrieval/toolset";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import { repairRepositoryToolCall } from "./repair-tool-call";

@@ -1,12 +1,12 @@
 import * as Effect from "effect/Effect";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { isUnreadable } from "@/lib/ai/tools/tool-error";
-import { readSetup } from "../bots/bot-setup";
 import {
 	type AssistantToolDeps,
 	callProcedure,
 	expectType,
 } from "../procedure-tool";
+import { readSetup } from "./bot-setup";
 import { getBotInputSchema } from "./get-bot.declaration";
 
 /** Editors get the links from the editor view; readers get the linked blocks they can read. */

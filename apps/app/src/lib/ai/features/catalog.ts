@@ -14,7 +14,7 @@ import { buildQuestionTools } from "@/lib/ai/tools/questions/toolset";
 import {
 	buildWebSearchTools,
 	type TurnWebSearch,
-} from "@/lib/ai/tools/web/toolset";
+} from "@/lib/ai/tools/web-search/toolset";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 
 /** What the turn offers features beyond their settings. */

@@ -30,7 +30,7 @@ import {
 } from "@/lib/ai/tools/assistant/tool-lines";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
-import { NO_WEB_SEARCH } from "@/lib/ai/tools/web/toolset";
+import { NO_WEB_SEARCH } from "@/lib/ai/tools/web-search/toolset";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
 /** The assistant's fixed features. */

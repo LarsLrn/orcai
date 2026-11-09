@@ -8,11 +8,11 @@ import {
 	type UIMessageChunk,
 } from "ai";
 import { convertArrayToReadableStream, MockLanguageModelV4 } from "ai/test";
+import { findPeopleTool } from "@/lib/ai/tools/assistant/access/find-people";
 import { deleteBotInputSchema } from "@/lib/ai/tools/assistant/bots/delete-bot.declaration";
-import { findBotsTool } from "@/lib/ai/tools/assistant/core/find-bots";
+import { findBotsTool } from "@/lib/ai/tools/assistant/bots/find-bots";
 import { planSchema } from "@/lib/ai/tools/assistant/plan/plan";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
-import { findPeopleTool } from "@/lib/ai/tools/assistant/sharing/find-people";
 import {
 	type ChatAgentUIMessage,
 	toChatAgentParts,

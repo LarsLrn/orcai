@@ -1,6 +1,6 @@
 import * as Effect from "effect/Effect";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
-import { listPage, listPaging, PAGING_NOTE } from "../core/list-input";
+import { listPage, listPaging, PAGING_NOTE } from "../list-input";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
 import { findModelsInputSchema } from "./find-models.declaration";
 

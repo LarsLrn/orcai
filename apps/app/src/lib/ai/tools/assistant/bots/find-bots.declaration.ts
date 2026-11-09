@@ -2,8 +2,8 @@ import { SearchIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
+import { listPageSchema, listQuerySchema } from "../list-input";
 import type { findBotsTool } from "./find-bots";
-import { listPageSchema, listQuerySchema } from "./list-input";
 
 export const findBotsInputSchema = z.strictObject({
 	query: listQuerySchema,

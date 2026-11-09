@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import { CONTENT_CAPABILITIES } from "../capabilities";
-import { listPageSchema, listQuerySchema } from "../core/list-input";
+import { listPageSchema, listQuerySchema } from "../list-input";
 import type { findModelsTool } from "./find-models";
 
 export const findModelsInputSchema = z.strictObject({

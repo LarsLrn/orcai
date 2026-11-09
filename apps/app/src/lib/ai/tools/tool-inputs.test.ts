@@ -10,8 +10,8 @@ import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import "./assistant/test-procedures";
 import { createAssistantTurn } from "./assistant/turn-state";
 import { buildQuestionTools } from "./questions/toolset";
-import { buildRepositoryTools } from "./rag/toolset";
-import { storedWebSearchTools } from "./web/toolset";
+import { buildRepositoryTools } from "./retrieval/toolset";
+import { storedWebSearchTools } from "./web-search/toolset";
 
 const { buildAssistantTools } = await import("./assistant/toolset");
 

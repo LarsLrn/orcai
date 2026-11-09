@@ -3,7 +3,7 @@ import { UserSearchIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
-import { listPageSchema } from "../core/list-input";
+import { listPageSchema } from "../list-input";
 import type { findPeopleTool } from "./find-people";
 import { targetShape } from "./resource-target-input";
 import { quoted, targetRef } from "./summary-refs";

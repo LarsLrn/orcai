@@ -1,7 +1,7 @@
 import * as Effect from "effect/Effect";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
-import { writeSetup } from "../bots/bot-setup";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
+import { writeSetup } from "./bot-setup";
 import { updateBotSetupInputSchema } from "./update-bot-setup.declaration";
 
 export const updateBotSetupTool = (deps: AssistantToolDeps) =>

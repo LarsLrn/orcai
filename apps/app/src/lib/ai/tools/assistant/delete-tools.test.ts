@@ -3,7 +3,7 @@ import type { AssetId, BlockId } from "@orcai/core";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import { answers, procedureCalls, resetProcedures } from "./test-procedures";
 
 /** Readable deletable, readable without delete, and unreadable. */
 const records = new Map<
@@ -73,9 +73,9 @@ beforeEach(() => {
 const deleteCalls = () =>
 	procedureCalls.filter(({ procedure }) => procedure.endsWith(".delete"));
 
-const { deleteBlockTool } = await import("./delete-block");
-const { deleteAssetTool } = await import("./delete-asset");
-const { createAssistantTurn } = await import("../turn-state");
+const { deleteBlockTool } = await import("./blocks/delete-block");
+const { deleteAssetTool } = await import("./assets/delete-asset");
+const { createAssistantTurn } = await import("./turn-state");
 
 const deps = () => ({
 	context: {} as ORPCContext,

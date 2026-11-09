@@ -2,7 +2,7 @@ import { GlobeIcon } from "lucide-react";
 import { ConfirmedLink } from "@/components/chat/link-confirm";
 import { hostOf } from "@/components/chat/link-safety";
 import { badgeVariants } from "@/components/ui/badge";
-import type { CitedWebSource } from "@/lib/ai/tools/web/sources";
+import type { CitedWebSource } from "@/lib/ai/tools/web-search/sources";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

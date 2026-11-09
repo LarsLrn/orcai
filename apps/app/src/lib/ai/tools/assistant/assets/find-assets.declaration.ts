@@ -3,8 +3,8 @@ import { SearchIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
+import { listPageSchema, listQuerySchema } from "../list-input";
 import type { findAssetsTool } from "./find-assets";
-import { listPageSchema, listQuerySchema } from "./list-input";
 
 export const findAssetsInputSchema = z.strictObject({
 	query: listQuerySchema.describe(

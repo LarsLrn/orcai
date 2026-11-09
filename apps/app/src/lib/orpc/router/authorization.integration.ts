@@ -11,7 +11,7 @@ mock.module("@/lib/effect/runtime", () => ({
 	runPromise: <A, E>(effect: Effect.Effect<A, E, never>) => run(effect),
 }));
 const { listInvitationsTool } = await import(
-	"@/lib/ai/tools/assistant/people/list-invitations"
+	"@/lib/ai/tools/assistant/members/list-invitations"
 );
 const { createAssistantTurn } = await import(
 	"@/lib/ai/tools/assistant/turn-state"
