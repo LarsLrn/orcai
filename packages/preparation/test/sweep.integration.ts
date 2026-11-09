@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, onTestFinished, test } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
 import { EncryptionKeyLive } from "@orcai/ai";
-import type { ActivityRunId, AssetId } from "@orcai/core";
+import type { ActivityRunId, AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	defineWorker,
@@ -23,7 +23,6 @@ import {
 	processingAttempt,
 	releaseJobLeases,
 	type StageAttempts,
-	SWEEP_START,
 	type SweepCursor,
 	settleProcessingAttempt,
 	strandedJobLeases,
@@ -79,6 +78,18 @@ beforeAll(async () => {
 
 type Stage = "pending" | "active" | "completed";
 
+/**
+ * This run's assets take ids from a range of their own, and the sweep's reads
+ * start and stop at its ends: read from the start, they would walk every
+ * stage other runs left in the database.
+ */
+const ID_RANGE = crypto.randomUUID().slice(0, 24);
+const RANGE_START = `${ID_RANGE}000000000000` as AssetId;
+const RANGE_END = `${ID_RANGE}ffffffffffff` as AssetId;
+let assetsSeeded = 0;
+const nextAssetId = () =>
+	`${ID_RANGE}${(++assetsSeeded).toString(16).padStart(12, "0")}` as AssetId;
+
 /** An asset in a repository, its stages as given, and a run waiting on its processing. */
 const seed = (stages: {
 	processing: Stage;
@@ -95,6 +106,7 @@ const seed = (stages: {
 			const [asset] = yield* db
 				.insert(dbSchema.asset)
 				.values({
+					id: nextAssetId(),
 					bucket: "uploads",
 					prefix: `users/${user.id}/asset`,
 					title: "Sweep asset",
@@ -252,6 +264,29 @@ const work = async (
 	);
 };
 
+/** Where the cursor goes on, without the stages it has read past the range. */
+const inRange = (cursor: SweepCursor | undefined): SweepCursor | undefined => {
+	const processing =
+		cursor?.processing?.after && cursor.processing.after < RANGE_END
+			? cursor.processing
+			: undefined;
+	const metadata =
+		cursor?.metadata?.after && cursor.metadata.after < RANGE_END
+			? cursor.metadata
+			: undefined;
+	const indexing =
+		cursor?.indexing?.after && cursor.indexing.after.assetId < RANGE_END
+			? cursor.indexing
+			: undefined;
+	return processing || metadata || indexing
+		? {
+				processing,
+				metadata,
+				indexing,
+			}
+		: undefined;
+};
+
 /**
  * The test's own unfinished stages, read batch by batch as the sweep reads
  * them, and with `stranded` only those each batch finds no live job for:
@@ -274,7 +309,20 @@ const readStages = (
 				indexing: [] as StageAttempts["indexing"][number][],
 				metadata: [] as StageAttempts["metadata"][number][],
 			};
-			let cursor: SweepCursor | undefined = SWEEP_START;
+			let cursor: SweepCursor | undefined = {
+				processing: {
+					after: RANGE_START,
+				},
+				metadata: {
+					after: RANGE_START,
+				},
+				indexing: {
+					after: {
+						assetId: RANGE_START,
+						blockId: "00000000-0000-0000-0000-000000000000" as BlockId,
+					},
+				},
+			};
 			while (cursor) {
 				const batch: Effect.Success<ReturnType<typeof unfinishedStages>> =
 					yield* unfinishedStages(cursor, options.limit);
@@ -282,7 +330,7 @@ const readStages = (
 				found.processing.push(...kept.processing.filter(ours));
 				found.indexing.push(...kept.indexing.filter(ours));
 				found.metadata.push(...kept.metadata.filter(ours));
-				cursor = batch.next;
+				cursor = inRange(batch.next);
 			}
 			return found satisfies StageAttempts;
 		}),
