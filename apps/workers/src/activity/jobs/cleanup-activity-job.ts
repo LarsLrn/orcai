@@ -1,6 +1,16 @@
 import { DB, dbSchema } from "@orcai/db";
 import { runningRun } from "@orcai/preparation";
-import { and, inArray, isNotNull, isNull, lt, not, or, sql } from "drizzle-orm";
+import {
+	and,
+	isNotNull,
+	isNull,
+	lt,
+	not,
+	or,
+	type SQL,
+	sql,
+} from "drizzle-orm";
+import type { PgTable } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
 
 export const BATCH_SIZE = 1000;
@@ -18,14 +28,30 @@ const {
 	dataExport,
 } = dbSchema;
 
-/** Runs `deleteBatch` until it deletes less than a batch; the rows deleted. */
-const deleteInBatches = <E, R>(
-	deleteBatch: Effect.Effect<readonly unknown[], E, R>,
-) =>
+/**
+ * Deletes the rows of `table` matching `condition`, a batch per statement;
+ * the rows deleted. The batch is picked by `ctid` in one pass, so no plan
+ * reruns the condition per row however stale the table's statistics are.
+ */
+const deleteInBatches = (table: PgTable, condition: SQL | undefined) =>
 	Effect.gen(function* () {
+		const db = yield* DB;
 		let deleted = 0;
 		while (true) {
-			const batch = yield* deleteBatch;
+			const batch = yield* db
+				.delete(table)
+				.where(
+					sql`ctid = any(array${db
+						.select({
+							ctid: sql`ctid`,
+						})
+						.from(table)
+						.where(condition)
+						.limit(BATCH_SIZE)})`,
+				)
+				.returning({
+					deleted: sql<number>`1`,
+				});
 			deleted += batch.length;
 			if (batch.length < BATCH_SIZE) return deleted;
 		}
@@ -67,51 +93,17 @@ export const cleanupActivity = Effect.gen(function* () {
 		.where(and(isNotNull(activityRun.finishedSeenAt), runningRun));
 
 	const runs = yield* deleteInBatches(
-		db
-			.delete(activityRun)
-			.where(
-				inArray(
-					activityRun.id,
-					db
-						.select({
-							id: activityRun.id,
-						})
-						.from(activityRun)
-						.where(
-							and(
-								not(runningRun),
-								or(
-									isNotNull(activityRun.dismissedAt),
-									lt(activityRun.finishedSeenAt, sql`now() - ${RETENTION}`),
-									sql`not exists (select 1 from ${activityMember} where ${activityMember.runId} = ${activityRun.id})`,
-								),
-							),
-						)
-						.limit(BATCH_SIZE),
-				),
-			)
-			.returning({
-				id: activityRun.id,
-			}),
+		activityRun,
+		and(
+			not(runningRun),
+			or(
+				isNotNull(activityRun.dismissedAt),
+				lt(activityRun.finishedSeenAt, sql`now() - ${RETENTION}`),
+				sql`not exists (select 1 from ${activityMember} where ${activityMember.runId} = ${activityRun.id})`,
+			),
+		),
 	);
-
-	const dismissals = yield* deleteInBatches(
-		db
-			.delete(activityDismissal)
-			.where(
-				sql`(${activityDismissal.userId}, ${activityDismissal.occurrenceId}) in ${db
-					.select({
-						userId: activityDismissal.userId,
-						occurrenceId: activityDismissal.occurrenceId,
-					})
-					.from(activityDismissal)
-					.where(staleDismissal)
-					.limit(BATCH_SIZE)}`,
-			)
-			.returning({
-				occurrenceId: activityDismissal.occurrenceId,
-			}),
-	);
+	const dismissals = yield* deleteInBatches(activityDismissal, staleDismissal);
 
 	yield* Effect.logInfo(
 		{
