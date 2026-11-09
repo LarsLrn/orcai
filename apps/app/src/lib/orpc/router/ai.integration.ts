@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { createOrganization } from "@orcai/testing";
+import { createOrganization, rejection } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
@@ -226,7 +226,7 @@ describe("ai.recordTurnWrites", () => {
 		async () => {
 			const { other, record } = await finishedTurn();
 
-			await expect(record(other)).rejects.toMatchObject({
+			expect(await rejection(record(other))).toMatchObject({
 				_tag: "ForbiddenError",
 			});
 		},

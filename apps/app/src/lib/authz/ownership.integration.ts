@@ -11,6 +11,7 @@ import { DB, dbSchema } from "@orcai/db";
 import {
 	createOrganization,
 	createUser,
+	reasonOf,
 	rejection,
 	rolledBack,
 } from "@orcai/testing";
@@ -201,27 +202,27 @@ describe("adding a chat upload to the Library", () => {
 			);
 			await quietly.makeChatUpload(asset.id);
 
-			await expect(
-				queueBehindOrganizationLock(
-					organizationId,
-					async () =>
-						run(
-							procedures.organizationMember.delete(
-								{
-									refs: [
-										{
-											userId: owner.user.id,
-										},
-									],
-								},
-								await procedureOptions(admin, zedToken),
+			expect(
+				await reasonOf(
+					queueBehindOrganizationLock(
+						organizationId,
+						async () =>
+							run(
+								procedures.organizationMember.delete(
+									{
+										refs: [
+											{
+												userId: owner.user.id,
+											},
+										],
+									},
+									await procedureOptions(admin, zedToken),
+								),
 							),
-						),
-					() => addToLibrary(owner, asset.id, assetToken),
+						() => addToLibrary(owner, asset.id, assetToken),
+					),
 				),
-			).rejects.toMatchObject({
-				reason: "PERMISSION_DENIED",
-			});
+			).toBe("PERMISSION_DENIED");
 			expect(await keptInOf(asset.id)).toBe("chat");
 		},
 		TIMEOUT,
@@ -675,13 +676,13 @@ describe("removing a member", () => {
 					),
 				);
 
-			await expect(
-				queueBehindOrganizationLock(organizationId, removal, () =>
-					createBlock(owner, token()),
+			expect(
+				await reasonOf(
+					queueBehindOrganizationLock(organizationId, removal, () =>
+						createBlock(owner, token()),
+					),
 				),
-			).rejects.toMatchObject({
-				reason: "PERMISSION_DENIED",
-			});
+			).toBe("PERMISSION_DENIED");
 			const owned = await run(
 				Effect.gen(function* () {
 					return yield* (yield* DB)
@@ -1181,15 +1182,15 @@ describe("handing one item over", () => {
 				resourceId: content.botId,
 			};
 
-			await expect(
-				queueBehindOrganizationLock(
-					organizationId,
-					() => handOver(owner, bot, first.user.id),
-					() => handOver(owner, bot, second.user.id),
+			expect(
+				await reasonOf(
+					queueBehindOrganizationLock(
+						organizationId,
+						() => handOver(owner, bot, first.user.id),
+						() => handOver(owner, bot, second.user.id),
+					),
 				),
-			).rejects.toMatchObject({
-				reason: "PERMISSION_DENIED",
-			});
+			).toBe("PERMISSION_DENIED");
 
 			expect((await ownersOf(content)).bot).toBe(first.user.id);
 			await outboxDelivered(content.botId);

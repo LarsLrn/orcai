@@ -295,44 +295,44 @@ describe("activity runs", () => {
 					stranger.zedToken,
 				),
 			).toEqual([]);
-			await expect(
-				run(
-					p.activity.runMembers(
-						{
-							runId,
-							pageIndex: 0,
-							pageSize: 10,
-						},
-						options,
+			expect(
+				await reasonOf(
+					run(
+						p.activity.runMembers(
+							{
+								runId,
+								pageIndex: 0,
+								pageSize: 10,
+							},
+							options,
+						),
 					),
 				),
-			).rejects.toMatchObject({
-				reason: "ACTIVITY_RUN_NOT_FOUND",
-			});
-			await expect(
-				run(
-					p.activity.dismissRun(
-						{
-							runId,
-						},
-						options,
+			).toBe("ACTIVITY_RUN_NOT_FOUND");
+			expect(
+				await reasonOf(
+					run(
+						p.activity.dismissRun(
+							{
+								runId,
+							},
+							options,
+						),
 					),
 				),
-			).rejects.toMatchObject({
-				reason: "ACTIVITY_RUN_NOT_FOUND",
-			});
-			await expect(
-				run(
-					p.activity.dismissFailure(
-						{
-							occurrenceId: failure as string,
-						},
-						options,
+			).toBe("ACTIVITY_RUN_NOT_FOUND");
+			expect(
+				await reasonOf(
+					run(
+						p.activity.dismissFailure(
+							{
+								occurrenceId: failure as string,
+							},
+							options,
+						),
 					),
 				),
-			).rejects.toMatchObject({
-				reason: "ACTIVITY_FAILURE_NOT_FOUND",
-			});
+			).toBe("ACTIVITY_FAILURE_NOT_FOUND");
 			const listed = await run(
 				p.asset.list(
 					{
@@ -582,18 +582,18 @@ describe("activity runs", () => {
 			const p = await procedures();
 			const options = await procedureOptions(owner, zedToken);
 			const first = await prepareAgain(owner, asset.id, zedToken);
-			await expect(
-				run(
-					p.activity.dismissRun(
-						{
-							runId: first,
-						},
-						options,
+			expect(
+				await reasonOf(
+					run(
+						p.activity.dismissRun(
+							{
+								runId: first,
+							},
+							options,
+						),
 					),
 				),
-			).rejects.toMatchObject({
-				reason: "ACTIVITY_RUN_RUNNING",
-			});
+			).toBe("ACTIVITY_RUN_RUNNING");
 			const failure = await endProcessing(asset.id, first, "failed");
 			const before = (await summary(owner, zedToken)).attention;
 			await run(
