@@ -6,7 +6,7 @@ import { createImageOnlyExtractionArtifact } from "@orcai/process";
 import { createQuotaPoolWithInitialPeriod } from "@orcai/quota";
 import { assetObjectKey } from "@orcai/s3";
 import { sendPutObjectCommand } from "@orcai/s3/server";
-import type { ModelCapability } from "@orcai/schema";
+import type { Locale, ModelCapability } from "@orcai/schema";
 import { createOrganization, createUser } from "@orcai/testing";
 import { serve } from "bun";
 import { eq } from "drizzle-orm";
@@ -98,101 +98,111 @@ const PNG = Buffer.from(
 
 /**
  * An organisation whose utility model has `capabilities`, a pool of `budget`
- * tokens for every member unless `pool` is false, and an uploaded asset of
- * `uploader`'s with its image stored.
+ * tokens for all members unless `pool` is false, and an asset uploaded by a
+ * user in `locale` when given, with its image stored. The rows are written in
+ * one transaction; no membership is stored, as nothing here reads it.
  */
 export const seedImageAsset = (params: {
 	capabilities: ModelCapability[];
 	pool?: boolean;
 	budget?: number;
+	locale?: Locale;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const admin = yield* createUser();
-		const uploader = yield* createUser();
-		const { organization } = yield* createOrganization({
-			members: [
-				{
-					userId: admin.id,
-					role: "admin",
-				},
-				{
-					userId: uploader.id,
-					role: "member",
-				},
-			],
-		});
-		const [provider] = yield* db
-			.insert(dbSchema.provider)
-			.values({
-				organizationId: organization.id,
-				name: "Vision provider",
-				kind: "openai-compatible",
-				description: "",
-				endpoint: `${inference.url.origin}/v1`,
-				apiKeyEncrypted: yield* encryptApiKey("integration-key"),
-			})
-			.returning();
-		const [model] = yield* db
-			.insert(dbSchema.model)
-			.values({
-				providerId: provider.id,
-				providerModelId: "vision",
-				name: "Vision",
-				description: "",
-				capabilities: params.capabilities,
-			})
-			.returning();
-		yield* db
-			.update(dbSchema.organization)
-			.set({
-				utilityModelId: model.id,
-			})
-			.where(eq(dbSchema.organization.id, organization.id));
+		const apiKeyEncrypted = yield* encryptApiKey("integration-key");
+		const { organization, admin, uploader, asset } = yield* db.transaction(() =>
+			Effect.gen(function* () {
+				const admin = yield* createUser();
+				const uploader = yield* createUser();
+				if (params.locale) {
+					yield* db
+						.update(dbSchema.user)
+						.set({
+							locale: params.locale,
+						})
+						.where(eq(dbSchema.user.id, uploader.id));
+				}
+				const { organization } = yield* createOrganization();
+				const [provider] = yield* db
+					.insert(dbSchema.provider)
+					.values({
+						organizationId: organization.id,
+						name: "Vision provider",
+						kind: "openai-compatible",
+						description: "",
+						endpoint: `${inference.url.origin}/v1`,
+						apiKeyEncrypted,
+					})
+					.returning();
+				const [model] = yield* db
+					.insert(dbSchema.model)
+					.values({
+						providerId: provider.id,
+						providerModelId: "vision",
+						name: "Vision",
+						description: "",
+						capabilities: params.capabilities,
+					})
+					.returning();
+				yield* db
+					.update(dbSchema.organization)
+					.set({
+						utilityModelId: model.id,
+					})
+					.where(eq(dbSchema.organization.id, organization.id));
 
-		if (params.pool !== false) {
-			const [allMembers] = yield* db
-				.insert(dbSchema.group)
-				.values({
+				if (params.pool !== false) {
+					const [allMembers] = yield* db
+						.insert(dbSchema.group)
+						.values({
+							organizationId: organization.id,
+							name: "All members",
+							kind: "system",
+							systemKey: "all_members",
+							createdBy: admin.id,
+						})
+						.returning();
+					yield* createQuotaPoolWithInitialPeriod({
+						organizationId: organization.id,
+						name: "Utility pool",
+						providerId: provider.id,
+						periodType: "monthly",
+						budgetAmount: params.budget ?? 100_000,
+						priority: 0,
+						isDefault: true,
+						createdByUserId: admin.id,
+						assignedGroupIds: [
+							allMembers.id,
+						],
+					});
+				}
+
+				const [asset] = yield* db
+					.insert(dbSchema.asset)
+					.values({
+						bucket: buckets.processed.name,
+						prefix: `integration/${uploader.id}`,
+						title: "chart.png",
+						size: PNG.length,
+						fileType: "png",
+						userId: uploader.id,
+					})
+					.returning();
+				yield* db.insert(dbSchema.resourceScope).values({
+					resourceType: "asset",
+					resourceId: asset.id,
 					organizationId: organization.id,
-					name: "All members",
-					kind: "system",
-					systemKey: "all_members",
-					createdBy: admin.id,
-				})
-				.returning();
-			yield* createQuotaPoolWithInitialPeriod({
-				organizationId: organization.id,
-				name: "Utility pool",
-				providerId: provider.id,
-				periodType: "monthly",
-				budgetAmount: params.budget ?? 100_000,
-				priority: 0,
-				isDefault: true,
-				createdByUserId: admin.id,
-				assignedGroupIds: [
-					allMembers.id,
-				],
-			});
-		}
-
-		const [asset] = yield* db
-			.insert(dbSchema.asset)
-			.values({
-				bucket: buckets.processed.name,
-				prefix: `integration/${uploader.id}`,
-				title: "chart.png",
-				size: PNG.length,
-				fileType: "png",
-				userId: uploader.id,
-			})
-			.returning();
-		yield* db.insert(dbSchema.resourceScope).values({
-			resourceType: "asset",
-			resourceId: asset.id,
-			organizationId: organization.id,
-			assignedBy: uploader.id,
-		});
+					assignedBy: uploader.id,
+				});
+				return {
+					organization,
+					admin,
+					uploader,
+					asset,
+				};
+			}),
+		);
 		const sourcePath = assetObjectKey(asset);
 		yield* sendPutObjectCommand({
 			bucket: buckets.processed.name,

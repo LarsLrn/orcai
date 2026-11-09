@@ -7,7 +7,7 @@ import type { ExtractionArtifact } from "@orcai/process";
 import { QuotaReservationsLive } from "@orcai/quota";
 import { S3Live } from "@orcai/s3/server";
 import { integrationRuntime } from "@orcai/testing";
-import { eq, like } from "drizzle-orm";
+import { like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { describeImages } from "@/asset/image-descriptions";
@@ -107,22 +107,13 @@ test("an image asset is described in one call, charged to its organisation and u
 });
 
 test("every figure is described, in the uploader's language", async () => {
-	const { assetId, artifact, uploaderId } = await seed({
+	const { assetId, artifact } = await seed({
 		capabilities: [
 			"text",
 			"image",
 		],
+		locale: "de",
 	});
-	await run(
-		Effect.gen(function* () {
-			yield* (yield* DB)
-				.update(dbSchema.user)
-				.set({
-					locale: "de",
-				})
-				.where(eq(dbSchema.user.id, uploaderId));
-		}),
-	);
 
 	const described = await describe(assetId, asFigures(artifact, 2), false);
 
