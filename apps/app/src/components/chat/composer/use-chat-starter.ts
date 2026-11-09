@@ -7,14 +7,14 @@ import {
 } from "@orcai/schema";
 import { type QueryClient, skipToken, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
-import type { ChatDraft } from "@/components/chat/chat-draft";
-import { composerBlocker } from "@/components/chat/composer-blocker";
-import { starterModel } from "@/components/chat/model-picker-state";
+import type { ChatDraft } from "@/components/chat/composer/chat-draft";
+import { composerBlocker } from "@/components/chat/composer/composer-blocker";
+import { starterModel } from "@/components/chat/composer/model-picker-state";
 import {
 	defaultChatModelQuery,
 	useDefaultChatModel,
-} from "@/components/chat/use-default-chat-model";
-import { useStartChat } from "@/components/chat/use-start-chat";
+} from "@/components/chat/composer/use-default-chat-model";
+import { useStartChat } from "@/components/chat/composer/use-start-chat";
 import {
 	quotaStatusQuery,
 	useQuotaStatus,

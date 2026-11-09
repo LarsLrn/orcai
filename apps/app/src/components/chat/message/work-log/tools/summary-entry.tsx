@@ -1,4 +1,4 @@
-import { useToolSummaryLine } from "@/components/assistant/tool-summary-line";
+import { useToolSummaryLine } from "@/components/chat/message/assistant/tool-summary-line";
 import type { ToolPart, ToolStatus } from "@/lib/ai/messages/turn-view";
 import { ToolEntry } from "../tool-entry";
 

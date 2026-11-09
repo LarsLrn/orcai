@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useId, useState } from "react";
-import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
+import { ChatActionsDropdown } from "@/components/chat/list/chat-actions-dropdown";
 import { Button } from "@/components/ui/button";
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { Spinner } from "@/components/ui/spinner";

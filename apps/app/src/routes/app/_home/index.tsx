@@ -7,7 +7,7 @@ import {
 	tryBotsQuery,
 } from "@/components/app/home/try-something";
 import { UserHome } from "@/components/app/home/user-home";
-import { loadChatStarter } from "@/components/chat/use-chat-starter";
+import { loadChatStarter } from "@/components/chat/composer/use-chat-starter";
 import {
 	failingRequired,
 	readinessQuery,

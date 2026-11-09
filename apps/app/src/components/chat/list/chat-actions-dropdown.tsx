@@ -13,10 +13,10 @@ import {
 } from "lucide-react";
 import { cloneElement, useState } from "react";
 import { toast } from "sonner";
-import { downloadChat } from "@/components/chat/chat-history";
-import { ChatSettings } from "@/components/chat/chat-settings";
+import { downloadChat } from "@/components/chat/list/chat-history";
+import { RenameDialog } from "@/components/chat/list/rename-dialog";
+import { ChatSettings } from "@/components/chat/settings/chat-settings";
 import { useTour } from "@/components/tour/tour-provider";
-import { RenameDialog } from "@/components/ui/dialog/rename-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,

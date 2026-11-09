@@ -29,10 +29,10 @@ mock.module("@/components/assets/use-asset-intake", () => ({
 mock.module("@/components/chat/usage/usage-indicator", () => ({
 	UsageIndicator: () => null,
 }));
-mock.module("@/components/chat/chat-asset-picker", () => ({
+mock.module("@/components/chat/composer/chat-asset-picker", () => ({
 	ChatAssetPicker: () => null,
 }));
-mock.module("@/components/chat/chat-model-notice", () => ({
+mock.module("@/components/chat/composer/chat-model-notice", () => ({
 	ChatModelNotice: () => null,
 }));
 

@@ -13,10 +13,10 @@ import {
 import { type QueryClient, skipToken, useQuery } from "@tanstack/react-query";
 import { TriangleAlertIcon } from "lucide-react";
 import { useId } from "react";
-import { ModelSelectorButton } from "@/components/chat/model-selector";
 import { formTriggerText } from "@/components/forms/fields/form-field";
 import { FormSection } from "@/components/forms/form-layout";
 import { OrganizationLogoSettings } from "@/components/images/image-settings";
+import { ModelSelectorButton } from "@/components/model/model-selector";
 import { InitialAdminField } from "@/components/organizations/form/initial-admin-field";
 import {
 	SearchPoolNotice,

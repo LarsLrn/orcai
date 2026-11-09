@@ -6,8 +6,8 @@ import {
 import { AssetsPanel } from "@/components/assets/readiness/assets-panel";
 import { useChatRepositoryIds } from "@/components/assets/readiness/use-repository-readiness";
 import { ChatPlaceholder } from "@/components/chat/chat-placeholder";
-import { NewChatComposer } from "@/components/chat/new-chat-composer";
-import { useChatStarter } from "@/components/chat/use-chat-starter";
+import { NewChatComposer } from "@/components/chat/composer/new-chat-composer";
+import { useChatStarter } from "@/components/chat/composer/use-chat-starter";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
 import { ChatEmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
 import {

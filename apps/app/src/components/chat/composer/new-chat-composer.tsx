@@ -1,9 +1,9 @@
 import { skipToken, useQuery } from "@tanstack/react-query";
-import { BotSelectorButton } from "@/components/chat/bot-selector";
-import { Composer } from "@/components/chat/composer";
-import { ModelPicker } from "@/components/chat/model-picker";
-import { modelPickerState } from "@/components/chat/model-picker-state";
-import type { useChatStarter } from "@/components/chat/use-chat-starter";
+import { BotSelectorButton } from "@/components/chat/composer/bot-selector";
+import { Composer } from "@/components/chat/composer/composer";
+import { ModelPicker } from "@/components/chat/composer/model-picker";
+import { modelPickerState } from "@/components/chat/composer/model-picker-state";
+import type { useChatStarter } from "@/components/chat/composer/use-chat-starter";
 import { orpc } from "@/lib/orpc/orpc";
 
 /** The composer of a chat yet to be created, with its bot and model pickers. */

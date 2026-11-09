@@ -1,7 +1,7 @@
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
-import type { ChatDraft } from "@/components/chat/chat-draft";
-import { composerBlocker } from "@/components/chat/composer-blocker";
-import { useStartChat } from "@/components/chat/use-start-chat";
+import type { ChatDraft } from "@/components/chat/composer/chat-draft";
+import { composerBlocker } from "@/components/chat/composer/composer-blocker";
+import { useStartChat } from "@/components/chat/composer/use-start-chat";
 import { useQuotaStatus } from "@/components/quota/use-quota-status";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";

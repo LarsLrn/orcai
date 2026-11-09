@@ -6,7 +6,7 @@ import {
 	TriangleAlertIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { ComposerPanel } from "@/components/chat/composer-panel";
+import { ComposerPanel } from "@/components/ui/composed/composer-panel";
 import { Spinner } from "@/components/ui/spinner";
 import { m } from "@/paraglide/messages";
 import { assetsPanelView } from "./assets-panel-view";

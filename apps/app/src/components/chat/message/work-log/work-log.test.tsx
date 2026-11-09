@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import {
 	chatLinkSafety,
 	LinkSafetyContext,
-} from "@/components/chat/link-confirm";
+} from "@/components/ui/composed/link-confirm";
 import { m } from "@/paraglide/messages";
 import { ActivityLine } from "./activity-line";
 import { ReasoningEntry } from "./reasoning-entry";

@@ -23,7 +23,7 @@ mock.module("@/hooks/use-public-config", () => ({
 const { MessageResponse } = await import("./message");
 const { CitationsContext } = await import("./cite");
 const { chatLinkSafety, LinkSafetyContext } = await import(
-	"@/components/chat/link-confirm"
+	"@/components/ui/composed/link-confirm"
 );
 const { MessageSources } = await import(
 	"@/components/chat/message/message-sources"

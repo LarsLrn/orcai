@@ -1,7 +1,7 @@
 import { safeExternalUrl } from "@orcai/core";
 import { ExternalLinkIcon } from "lucide-react";
-import { ConfirmedLink } from "@/components/chat/link-confirm";
-import { hostOf } from "@/components/chat/link-safety";
+import { ConfirmedLink } from "@/components/ui/composed/link-confirm";
+import { hostOf } from "@/components/ui/composed/link-safety";
 import { ClampedText } from "./clamped-text";
 import { SourcePassageList } from "./source-passage";
 

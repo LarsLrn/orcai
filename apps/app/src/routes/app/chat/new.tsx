@@ -2,8 +2,8 @@ import { botIdSchema } from "@orcai/schema";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { loadChatRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
+import { loadChatStarter } from "@/components/chat/composer/use-chat-starter";
 import { NewChat } from "@/components/chat/new-chat";
-import { loadChatStarter } from "@/components/chat/use-chat-starter";
 import { loadWebSearchNotice } from "@/components/chat/web-search-notice";
 import { m } from "@/paraglide/messages";
 

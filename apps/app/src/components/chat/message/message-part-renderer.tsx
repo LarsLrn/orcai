@@ -1,10 +1,10 @@
 import { use } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
-import { ConfirmationCard } from "@/components/assistant/confirmation-card";
-import { ResourceCard } from "@/components/assistant/resource-card";
 import { DisplayPart } from "@/components/chat/gen-ui/display-part";
+import { ConfirmationCard } from "@/components/chat/message/assistant/confirmation-card";
+import { ResourceCard } from "@/components/chat/message/assistant/resource-card";
 import { ClientToolWidget } from "@/components/chat/message/client-tool-renderers";
-import { StepAnswersContext } from "@/components/chat/step-answers";
+import { StepAnswersContext } from "@/components/chat/message/step-answers";
 import type { AnswerPart } from "@/lib/ai/messages/turn-view";
 import { m } from "@/paraglide/messages";
 import { ImagePart } from "./parts/image-part";

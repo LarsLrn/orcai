@@ -18,8 +18,8 @@ import {
 import {
 	GENERATION_SETTINGS_FIELDS,
 	GenerationSettingsFieldGroup,
-} from "@/components/chat/form/generation-settings-field-group";
-import { ModelSelectorButton } from "@/components/chat/model-selector";
+} from "@/components/model/form/generation-settings-field-group";
+import { ModelSelectorButton } from "@/components/model/model-selector";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {

@@ -1,7 +1,7 @@
 import type { Model, Provider } from "@orcai/schema";
 import { LockIcon } from "lucide-react";
-import type { ModelPickerState } from "@/components/chat/model-picker-state";
-import { ModelSelectorButton } from "@/components/chat/model-selector";
+import type { ModelPickerState } from "@/components/chat/composer/model-picker-state";
+import { ModelSelectorButton } from "@/components/model/model-selector";
 import {
 	Tooltip,
 	TooltipContent,

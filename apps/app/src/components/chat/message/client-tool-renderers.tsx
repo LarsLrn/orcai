@@ -1,4 +1,4 @@
-import { UploadWidget } from "@/components/assistant/upload-widget";
+import { UploadWidget } from "@/components/chat/message/assistant/upload-widget";
 import { RequestUpload } from "@/components/chat/message/work-log/tools/request-upload";
 import { SummaryEntry } from "@/components/chat/message/work-log/tools/summary-entry";
 import { QuestionsWidget } from "@/components/chat/questions/questions-widget";

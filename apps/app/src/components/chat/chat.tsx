@@ -19,12 +19,12 @@ import { AssistantComposerGate } from "@/components/assistant/assistant-composer
 import { AssistantModelLabel } from "@/components/assistant/assistant-model-label";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { PlanPanel } from "@/components/assistant/plan-panel";
+import { WebSearchNotice } from "@/components/chat/web-search-notice";
+import { ChatEmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
 import {
 	chatLinkSafety,
 	LinkSafetyContext,
-} from "@/components/chat/link-confirm";
-import { WebSearchNotice } from "@/components/chat/web-search-notice";
-import { ChatEmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
+} from "@/components/ui/composed/link-confirm";
 import {
 	MessageScrollerButton,
 	MessageScrollerItem,
@@ -36,20 +36,20 @@ import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { BranchedFrom } from "./branch-links";
-import { type ChatDraft, outgoingMessageOf } from "./chat-draft";
-import { ChatModelPicker } from "./chat-model-picker";
 import { ChatPlaceholder } from "./chat-placeholder";
 import { ChatReadOnlyNotice } from "./chat-read-only-notice";
-import { Composer } from "./composer";
+import { type ChatDraft, outgoingMessageOf } from "./composer/chat-draft";
+import { ChatModelPicker } from "./composer/chat-model-picker";
+import { Composer } from "./composer/composer";
+import { SendMessageContext } from "./composer/send-message";
+import { useComposerSendState } from "./composer/use-composer-send-state";
+import { useOpeningMessage } from "./composer/use-opening-message";
 import { EarlierMessages } from "./earlier-messages";
+import { BranchedFrom } from "./message/branch-links";
 import { MessageBlock } from "./message/message-block";
+import { StepAnswersContext } from "./message/step-answers";
 import { useBranchChat } from "./message/use-branch-chat";
-import { SendMessageContext } from "./send-message";
-import { StepAnswersContext } from "./step-answers";
 import { useChatSession } from "./use-chat-session";
-import { useComposerSendState } from "./use-composer-send-state";
-import { useOpeningMessage } from "./use-opening-message";
 
 const HIGHLIGHT_MS = 2000;
 

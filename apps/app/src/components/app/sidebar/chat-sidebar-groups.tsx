@@ -2,8 +2,8 @@ import type { ChatListRow } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";
-import { BranchMark } from "@/components/chat/branch-links";
-import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
+import { ChatActionsDropdown } from "@/components/chat/list/chat-actions-dropdown";
+import { BranchMark } from "@/components/chat/message/branch-links";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import {
 	SidebarGroup,

@@ -1,7 +1,7 @@
 import { use, useId } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
+import { SendMessageContext } from "@/components/chat/composer/send-message";
 import { StatusIcon, statusTone } from "@/components/chat/gen-ui/status-icon";
-import { SendMessageContext } from "@/components/chat/send-message";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { QuizResultView } from "@/lib/ai/tools/gen-ui/quiz-result/read";
