@@ -1,12 +1,6 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { ChevronRightIcon, SearchXIcon } from "lucide-react";
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "@/components/ui/empty";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -91,15 +85,12 @@ const ShelfItem = ({ className, ...props }: React.ComponentProps<"li">) => (
 
 /** A search or filter that matches nothing. */
 const NoResults = () => (
-	<Empty className="border border-dashed">
-		<EmptyHeader>
-			<EmptyMedia variant="icon">
-				<SearchXIcon />
-			</EmptyMedia>
-			<EmptyTitle>{m.browse_no_results_title()}</EmptyTitle>
-			<EmptyDescription>{m.browse_no_results_description()}</EmptyDescription>
-		</EmptyHeader>
-	</Empty>
+	<Placeholder
+		className="border"
+		Icon={SearchXIcon}
+		title={m.browse_no_results_title()}
+		description={m.browse_no_results_description()}
+	/>
 );
 
 export { BrowseResultsHeader, NoResults, Shelf, ShelfItem, TileGrid };

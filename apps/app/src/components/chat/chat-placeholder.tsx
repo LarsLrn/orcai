@@ -1,13 +1,7 @@
 import type { BotId } from "@orcai/core";
 import { useQuery } from "@tanstack/react-query";
 import { BotIcon, MessageSquareIcon } from "lucide-react";
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "@/components/ui/empty";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -24,32 +18,24 @@ const ChatPlaceholder = ({ botId }: { botId?: BotId }) => {
 
 	if (botId && bot) {
 		return (
-			<Empty className="h-full">
-				<EmptyHeader>
-					<EmptyMedia variant="icon">
-						<BotIcon />
-					</EmptyMedia>
-					<EmptyTitle>{bot.name}</EmptyTitle>
-					<EmptyDescription>
-						{bot.description
-							? bot.description
-							: m.chat_placeholder_bot_description_fallback()}
-					</EmptyDescription>
-				</EmptyHeader>
-			</Empty>
+			<Placeholder
+				className="h-full"
+				Icon={BotIcon}
+				title={bot.name}
+				description={
+					bot.description || m.chat_placeholder_bot_description_fallback()
+				}
+			/>
 		);
 	}
 
 	return (
-		<Empty className="h-full">
-			<EmptyHeader>
-				<EmptyMedia variant="icon">
-					<MessageSquareIcon />
-				</EmptyMedia>
-				<EmptyTitle>{m.chat_placeholder_title()}</EmptyTitle>
-				<EmptyDescription>{m.chat_placeholder_description()}</EmptyDescription>
-			</EmptyHeader>
-		</Empty>
+		<Placeholder
+			className="h-full"
+			Icon={MessageSquareIcon}
+			title={m.chat_placeholder_title()}
+			description={m.chat_placeholder_description()}
+		/>
 	);
 };
 

@@ -1,11 +1,5 @@
 import { CompassIcon } from "lucide-react";
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "@/components/ui/empty";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { m } from "@/paraglide/messages";
 
 /** Nothing listed yet: in the whole catalogue, or of one kind. */
@@ -14,13 +8,10 @@ export const CatalogueEmpty = ({
 }: {
 	title?: string;
 }) => (
-	<Empty className="border border-dashed">
-		<EmptyHeader>
-			<EmptyMedia variant="icon">
-				<CompassIcon />
-			</EmptyMedia>
-			<EmptyTitle>{title}</EmptyTitle>
-			<EmptyDescription>{m.catalogue_empty_description()}</EmptyDescription>
-		</EmptyHeader>
-	</Empty>
+	<Placeholder
+		className="border"
+		Icon={CompassIcon}
+		title={title}
+		description={m.catalogue_empty_description()}
+	/>
 );
