@@ -1,16 +1,7 @@
 import type { LibraryScope } from "@orcai/schema";
-import { Link } from "@tanstack/react-router";
 import { CompassIcon, LibraryIcon, UserIcon } from "lucide-react";
 import { LibraryNewMenu } from "@/components/library/library-new-menu";
-import { buttonVariants } from "@/components/ui/button";
-import {
-	Empty,
-	EmptyContent,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "@/components/ui/empty";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { m } from "@/paraglide/messages";
@@ -39,36 +30,32 @@ export const LibraryEmpty = ({
 	const mine = scope === "edit";
 
 	return (
-		<Empty className="border border-dashed">
-			<EmptyHeader>
-				<EmptyMedia variant="icon">
-					{mine ? <UserIcon /> : <LibraryIcon />}
-				</EmptyMedia>
-				<EmptyTitle>
-					{mine
-						? m.library_mine_empty_title()
-						: (title ?? m.library_empty_title())}
-				</EmptyTitle>
-				<EmptyDescription>
-					{mine
-						? m.library_mine_empty_description()
-						: canCreate
-							? m.library_empty_create_description()
-							: m.library_empty_read_description()}
-				</EmptyDescription>
-			</EmptyHeader>
-			<EmptyContent className="flex-row flex-wrap justify-center">
-				{canCreate ? <LibraryNewMenu /> : null}
-				<Link
-					to="/app/catalogue"
-					className={buttonVariants({
-						variant: "outline",
-					})}
-				>
-					<CompassIcon data-icon="inline-start" aria-hidden="true" />
-					{m.library_browse_catalogue_action()}
-				</Link>
-			</EmptyContent>
-		</Empty>
+		<Placeholder
+			className="border"
+			Icon={mine ? UserIcon : LibraryIcon}
+			title={
+				mine ? m.library_mine_empty_title() : (title ?? m.library_empty_title())
+			}
+			description={
+				mine
+					? m.library_mine_empty_description()
+					: canCreate
+						? m.library_empty_create_description()
+						: m.library_empty_read_description()
+			}
+			actions={[
+				{
+					key: "catalogue",
+					label: m.library_browse_catalogue_action(),
+					icon: CompassIcon,
+					size: "default",
+					linkProps: {
+						to: "/app/catalogue",
+					},
+				},
+			]}
+		>
+			{canCreate ? <LibraryNewMenu /> : null}
+		</Placeholder>
 	);
 };

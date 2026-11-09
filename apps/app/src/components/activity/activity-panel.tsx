@@ -2,14 +2,8 @@ import type { ActivityRun } from "@orcai/schema";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { ActivityIcon } from "lucide-react";
 import { useRef } from "react";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { Button } from "@/components/ui/button";
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
@@ -107,17 +101,12 @@ export const ActivityPanel = ({
 			)}
 		>
 			{entries.length === 0 && attentionCount === 0 ? (
-				<Empty className="p-8">
-					<EmptyHeader>
-						<EmptyMedia variant="icon">
-							<ActivityIcon aria-hidden="true" />
-						</EmptyMedia>
-						<EmptyTitle>{m.activity_empty_title()}</EmptyTitle>
-						<EmptyDescription>
-							{m.activity_empty_description()}
-						</EmptyDescription>
-					</EmptyHeader>
-				</Empty>
+				<Placeholder
+					className="p-8"
+					Icon={ActivityIcon}
+					title={m.activity_empty_title()}
+					description={m.activity_empty_description()}
+				/>
 			) : null}
 			{attentionCount > 0 ? (
 				<Section title={m.activity_attention_section()} count={attentionCount}>

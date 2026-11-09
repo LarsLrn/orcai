@@ -1,14 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { CircleAlertIcon, SparklesIcon } from "lucide-react";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
-import {
-	Empty,
-	EmptyContent,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "@/components/ui/empty";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { cn } from "@/lib/utils";
@@ -66,16 +59,15 @@ const AssistantUnavailable = ({
 	}
 
 	return (
-		<Empty role="status" className={className}>
-			<EmptyHeader>
-				<EmptyMedia variant="icon">
-					<SparklesIcon />
-				</EmptyMedia>
-				<EmptyTitle>{m.assistant_unavailable_title()}</EmptyTitle>
-				<EmptyDescription>{description}</EmptyDescription>
-			</EmptyHeader>
-			{action && <EmptyContent>{action}</EmptyContent>}
-		</Empty>
+		<Placeholder
+			role="status"
+			className={className}
+			Icon={SparklesIcon}
+			title={m.assistant_unavailable_title()}
+			description={description}
+		>
+			{action}
+		</Placeholder>
 	);
 };
 

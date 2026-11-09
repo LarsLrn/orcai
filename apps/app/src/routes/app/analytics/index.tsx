@@ -18,13 +18,7 @@ import {
 } from "@/components/analytics/usage-breakdown";
 import { UsageOverTime } from "@/components/analytics/usage-over-time";
 import { UsageTotals } from "@/components/analytics/usage-totals";
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "@/components/ui/empty";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import {
 	Page,
 	PageAction,
@@ -93,17 +87,12 @@ function RouteComponent() {
 				<PageContent>
 					<AnalyticsRangePanel days={days}>
 						{unused ? (
-							<Empty className="border">
-								<EmptyHeader>
-									<EmptyMedia variant="icon">
-										<ChartColumnIcon />
-									</EmptyMedia>
-									<EmptyTitle>{m.analytics_empty_title()}</EmptyTitle>
-									<EmptyDescription>
-										{m.analytics_empty_description()}
-									</EmptyDescription>
-								</EmptyHeader>
-							</Empty>
+							<Placeholder
+								className="border"
+								Icon={ChartColumnIcon}
+								title={m.analytics_empty_title()}
+								description={m.analytics_empty_description()}
+							/>
 						) : (
 							<>
 								<UsageTotals totals={analytics.totals} />
