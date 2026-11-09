@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, onTestFinished, test } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
 import { EncryptionKeyLive } from "@orcai/ai";
 import type { ActivityRunId, AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
@@ -12,7 +11,7 @@ import {
 	runWorkers,
 	TestClock,
 } from "@orcai/pg-boss";
-import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
+import { clockSteps, IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
 	AssetPipelineError,
 	admit,
@@ -50,6 +49,7 @@ import * as Scope from "effect/Scope";
 const TIMEOUT = 30_000;
 
 const clock = new TestClock();
+const steps = clockSteps(clock);
 
 const runtime = integrationRuntime(
 	Layer.mergeAll(
@@ -223,19 +223,13 @@ const hasLiveJob = async (assetId: AssetId) =>
 		)
 	).some((job) => job.data.assetRef.id === assetId);
 
-/**
- * Moves pg-boss's time on in steps of `stepMs` until no job for the asset is
- * live. A step shorter than the queues' expiry never expires a running job.
- */
-const exhaust = async (assetId: AssetId, stepMs: number) => {
-	const deadline = Date.now() + 25_000;
-	while (await hasLiveJob(assetId)) {
-		if (Date.now() > deadline) throw new Error("The jobs never ran out");
-		await clock.setTime(clock.now() + stepMs);
-		await clock.tick(1);
-		await sleep(10);
-	}
-};
+/** Moves pg-boss's time on in steps of `stepMs` until no job for the asset is live. */
+const exhaust = (assetId: AssetId, stepMs: number) =>
+	steps.until(
+		async () => !(await hasLiveJob(assetId)),
+		"the jobs to run out",
+		stepMs,
+	);
 
 /** Works processing with `attempt` and its dead letter queue with `exhausted` until the test ends. */
 const work = async (
@@ -247,20 +241,22 @@ const work = async (
 	const scope = await run(Scope.make());
 	onTestFinished(() => run(Scope.close(scope, Exit.void)));
 	await run(
-		runWorkers([
-			defineWorker({
-				queue: PROCESS_ASSET_JOB_NAME,
-				concurrency: 1,
-				pollingIntervalSeconds: 60,
-				handler: attempt,
-			}),
-			defineWorker({
-				queue: PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
-				concurrency: 1,
-				pollingIntervalSeconds: 60,
-				handler: () => exhausted,
-			}),
-		]).pipe(Scope.provide(scope)),
+		runWorkers(
+			steps.track([
+				defineWorker({
+					queue: PROCESS_ASSET_JOB_NAME,
+					concurrency: 1,
+					pollingIntervalSeconds: 60,
+					handler: attempt,
+				}),
+				defineWorker({
+					queue: PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
+					concurrency: 1,
+					pollingIntervalSeconds: 60,
+					handler: () => exhausted,
+				}),
+			]),
+		).pipe(Scope.provide(scope)),
 	);
 };
 

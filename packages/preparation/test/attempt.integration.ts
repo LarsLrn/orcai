@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, onTestFinished, test } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
 import { EncryptionKeyLive } from "@orcai/ai";
 import type { ActivityRunId, AssetId, BlockId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
@@ -11,7 +10,7 @@ import {
 	runWorkers,
 	TestClock,
 } from "@orcai/pg-boss";
-import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
+import { clockSteps, IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
 	AssetPipelineError,
 	admitStage,
@@ -49,6 +48,7 @@ const TIMEOUT = 30_000;
 
 // pg-boss's time, so the queue table's retry delays and expiry pass at once.
 const clock = new TestClock();
+const steps = clockSteps(clock);
 
 // Indexing never gets as far as Qdrant here, so the index stays without embeddings.
 const runtime = integrationRuntime(
@@ -71,23 +71,12 @@ beforeAll(async () => {
 	boss = await run(PgBossService.useSync(({ boss }) => boss));
 });
 
-/**
- * Moves pg-boss's time on in steps of `stepMs` until `condition` holds. A
- * step shorter than the queue's expiry never expires a running attempt.
- */
-const until = async (
+/** Moves pg-boss's time on in steps of `stepMs` until `condition` holds. */
+const until = (
 	condition: () => Promise<boolean>,
 	what: string,
 	stepMs = 120_000,
-) => {
-	const deadline = Date.now() + 20_000;
-	while (!(await condition())) {
-		if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}`);
-		await clock.setTime(clock.now() + stepMs);
-		await clock.tick(1);
-		await sleep(10);
-	}
-};
+) => steps.until(condition, what, stepMs);
 
 const seedLink = () =>
 	run(
@@ -184,24 +173,26 @@ const pipelineQueue = async <T extends object>(params: {
 	const scope = await run(Scope.make());
 	onTestFinished(() => run(Scope.close(scope, Exit.void)));
 	await run(
-		runWorkers([
-			defineWorker({
-				queue: params.queue,
-				concurrency: 1,
-				pollingIntervalSeconds: 60,
-				handler: (job: JobWithMetadata<T>) =>
-					Effect.suspend(() => {
-						if (sent.has(job.id)) attempts += 1;
-						return params.attempt(job.data);
-					}),
-			}),
-			defineWorker({
-				queue: params.deadLetter,
-				concurrency: 1,
-				pollingIntervalSeconds: 60,
-				handler: params.exhausted,
-			}),
-		]).pipe(Scope.provide(scope)),
+		runWorkers(
+			steps.track([
+				defineWorker({
+					queue: params.queue,
+					concurrency: 1,
+					pollingIntervalSeconds: 60,
+					handler: (job: JobWithMetadata<T>) =>
+						Effect.suspend(() => {
+							if (sent.has(job.id)) attempts += 1;
+							return params.attempt(job.data);
+						}),
+				}),
+				defineWorker({
+					queue: params.deadLetter,
+					concurrency: 1,
+					pollingIntervalSeconds: 60,
+					handler: params.exhausted,
+				}),
+			]),
+		).pipe(Scope.provide(scope)),
 	);
 	return {
 		send: async (data: T) => {
