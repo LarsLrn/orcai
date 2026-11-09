@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/_pathlessLayout/verify-email")({
+export const Route = createFileRoute("/_standalone/(sign-in)/verify-email")({
 	head: () => ({
 		meta: [
 			{

@@ -12,31 +12,33 @@ import {
 import { useSignOut } from "@/hooks/actions/use-sign-out";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/_pathlessLayout/setup-two-factor")({
-	beforeLoad: ({ context }) => {
-		if (!context.auth.isAuthenticated) {
-			throw redirect({
-				to: "/login",
-				statusCode: 302,
-			});
-		}
+export const Route = createFileRoute("/_standalone/(sign-in)/setup-two-factor")(
+	{
+		beforeLoad: ({ context }) => {
+			if (!context.auth.isAuthenticated) {
+				throw redirect({
+					to: "/login",
+					statusCode: 302,
+				});
+			}
 
-		if (!context.auth.twoFactor.setupRequired) {
-			throw redirect({
-				to: "/app",
-				statusCode: 302,
-			});
-		}
+			if (!context.auth.twoFactor.setupRequired) {
+				throw redirect({
+					to: "/app",
+					statusCode: 302,
+				});
+			}
+		},
+		head: () => ({
+			meta: [
+				{
+					title: m.two_factor_setup_page_title(),
+				},
+			],
+		}),
+		component: RouteComponent,
 	},
-	head: () => ({
-		meta: [
-			{
-				title: m.two_factor_setup_page_title(),
-			},
-		],
-	}),
-	component: RouteComponent,
-});
+);
 
 function RouteComponent() {
 	const navigate = useNavigate();

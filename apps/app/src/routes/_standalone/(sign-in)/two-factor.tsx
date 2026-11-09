@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/_pathlessLayout/two-factor")({
+export const Route = createFileRoute("/_standalone/(sign-in)/two-factor")({
 	// An invitation link's sign-in returns to the invitation.
 	validateSearch: z.object({
 		inv: z.string().optional(),

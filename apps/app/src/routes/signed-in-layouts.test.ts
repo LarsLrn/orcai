@@ -16,10 +16,9 @@ mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 const layouts = {
 	"/app": (await import("./app/route")).Route,
 	"/instance": (await import("./instance/route")).Route,
-	"/history": (await import("./_pathlessLayout/history/route")).Route,
-	"/select-organization": (
-		await import("./_pathlessLayout/select-organization")
-	).Route,
+	"/history": (await import("./_standalone/history/route")).Route,
+	"/select-organization": (await import("./_standalone/select-organization"))
+		.Route,
 };
 
 type BeforeLoad = (context: {
