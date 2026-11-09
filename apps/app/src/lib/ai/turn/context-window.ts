@@ -18,7 +18,7 @@ import {
 import * as Effect from "effect/Effect";
 
 /** What a model without a recorded context window is assumed to hold. */
-export const DEFAULT_CONTEXT_WINDOW = 128_000;
+const DEFAULT_CONTEXT_WINDOW = 128_000;
 
 /** A prompt this share of the budget is compacted, natively or by our own summary. */
 const COMPACTION_TRIGGER = 0.8;

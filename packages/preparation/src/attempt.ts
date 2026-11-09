@@ -22,9 +22,7 @@ export class AssetPipelineError extends Data.TaggedError("AssetPipelineError")<{
 }> {}
 
 /** The attempt was replaced, or its asset deleted, before it could write. */
-export class AttemptReplacedError extends Data.TaggedError(
-	"AttemptReplacedError",
-) {}
+class AttemptReplacedError extends Data.TaggedError("AttemptReplacedError") {}
 
 /** A processing delivery's attempt: the asset's generation it was queued for. */
 export type ProcessingAttempt = {

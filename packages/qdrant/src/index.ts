@@ -3,6 +3,7 @@ export {
 	QdrantConfigLive,
 	QdrantConfigService,
 } from "./config";
+/** @public Named in the inferred error types of preparation layers. */
 export {
 	EmbeddingsNotConfiguredError,
 	QdrantError,
