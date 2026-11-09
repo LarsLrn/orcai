@@ -177,6 +177,7 @@ export const searchRepositories = (searches: readonly RepositorySearch[]) =>
 												pageFrom,
 												pageTo,
 												passageIndices,
+												source,
 												...policy
 											},
 										},
@@ -194,6 +195,7 @@ export const searchRepositories = (searches: readonly RepositorySearch[]) =>
 											pageFrom,
 											pageTo,
 											passageIndices,
+											source,
 										},
 										policy,
 									}),

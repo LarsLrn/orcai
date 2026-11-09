@@ -38,6 +38,8 @@ type VectorPointSource = "text" | "image";
 
 type VectorizableChunk = {
 	content: string;
+	/** The heading path of the chunk, or of its page for an image. */
+	section?: string;
 	lexicalContent: string;
 	embeddingContent: string;
 	tokens: number;
@@ -161,15 +163,16 @@ const buildTextChunks = ({
 		const chunkPageEnd = toValidPageNumber(
 			chunk.metadata.lastPage ?? chunkPageStart ?? undefined,
 		);
-		const headingContext = formatHeadingContext(
+		const section = formatHeadingContext(
 			chunk.metadata.headingContext ?? undefined,
 		);
-		const embeddingContent = headingContext
-			? `${headingContext}\n\n${chunk.content}`
+		const embeddingContent = section
+			? `${section}\n\n${chunk.content}`
 			: chunk.content;
 
 		return {
 			content: chunk.content,
+			section,
 			lexicalContent: embeddingContent,
 			embeddingContent,
 			tokens: chunk.metadata.tokenCount ?? countTokens(embeddingContent),
@@ -184,10 +187,14 @@ const buildTextChunks = ({
 	});
 };
 
-/** A chunk for every image the utility model described. */
-const buildImageChunks = (
-	extraction: StoredExtractionArtifact,
-): VectorizableChunk[] => {
+/** A chunk for every image the utility model described, in the section of its page's first text chunk. */
+const buildImageChunks = ({
+	extraction,
+	textChunks,
+}: {
+	extraction: StoredExtractionArtifact;
+	textChunks: readonly VectorizableChunk[];
+}): VectorizableChunk[] => {
 	const textChunkCount = extraction.chunks.length;
 	const documentTotalPages = extractDocumentTotalPages(extraction);
 
@@ -197,10 +204,20 @@ const buildImageChunks = (
 			return [];
 		}
 		const page = toValidPageNumber(image.pageNumber ?? undefined);
+		const section =
+			page === undefined
+				? undefined
+				: textChunks.find(
+						({ chunkPageStart, chunkPageEnd }) =>
+							chunkPageStart !== undefined &&
+							chunkPageStart <= page &&
+							page <= (chunkPageEnd ?? chunkPageStart),
+					)?.section;
 
 		return [
 			{
 				content: text,
+				section,
 				lexicalContent: text,
 				embeddingContent: text,
 				tokens: countTokens(text),
@@ -262,6 +279,7 @@ const runAttempt = (params: { jobId: string; attempt: IndexingAttempt }) =>
 		const [asset] = yield* db
 			.select({
 				processingStatus: dbSchema.asset.processingStatus,
+				title: dbSchema.asset.title,
 			})
 			.from(dbSchema.asset)
 			.where(eq(dbSchema.asset.id, attempt.assetId));
@@ -306,6 +324,7 @@ const runAttempt = (params: { jobId: string; attempt: IndexingAttempt }) =>
 					indexAsset({
 						jobId,
 						attempt,
+						title: asset.title,
 					}),
 				);
 			}),
@@ -331,9 +350,12 @@ const runAttempt = (params: { jobId: string; attempt: IndexingAttempt }) =>
 const indexAsset = ({
 	jobId,
 	attempt,
+	title,
 }: {
 	jobId: string;
 	attempt: IndexingAttempt;
+	/** The asset's title now, which its passages are stored with. */
+	title: string;
 }) =>
 	Effect.gen(function* () {
 		const { assetId, blockId } = attempt;
@@ -344,7 +366,10 @@ const indexAsset = ({
 			extraction,
 		});
 
-		const imageChunks = buildImageChunks(extraction);
+		const imageChunks = buildImageChunks({
+			extraction,
+			textChunks,
+		});
 
 		const mergedChunks: VectorizableChunk[] = [
 			...textChunks,
@@ -379,6 +404,7 @@ const indexAsset = ({
 		yield* embedChunks({
 			chunks: mergedChunks,
 			attempt,
+			title,
 		});
 
 		const completed = yield* completeIndexing(attempt);
@@ -396,9 +422,11 @@ const indexAsset = ({
 const embedChunks = ({
 	chunks,
 	attempt,
+	title,
 }: {
 	chunks: VectorizableChunk[];
 	attempt: IndexingAttempt;
+	title: string;
 }) =>
 	Effect.gen(function* () {
 		const { assetId, blockId } = attempt;
@@ -412,6 +440,8 @@ const embedChunks = ({
 				asset_id: assetId,
 				block_id: blockId,
 				text: chunk.content,
+				section: chunk.section,
+				document_title: title,
 				lexical_text:
 					chunk.lexicalContent !== chunk.content
 						? chunk.lexicalContent

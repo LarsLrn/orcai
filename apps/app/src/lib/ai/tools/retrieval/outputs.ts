@@ -67,7 +67,9 @@ const passageText = (passage: Passage) =>
 		{
 			ref: passage.ref,
 			asset: passage.title,
+			section: passage.section,
 			pages: pagesOf(passage),
+			kind: passage.kind,
 		},
 		passage.text,
 	);

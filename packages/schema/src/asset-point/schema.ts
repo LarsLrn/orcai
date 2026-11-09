@@ -7,6 +7,10 @@ const baseChunkPayloadSchema = z.object({
 	asset_id: assetIdSchema,
 	block_id: blockIdSchema,
 	text: z.string(),
+	/** The heading path of the passage, or of its page for an image. */
+	section: z.string().optional(),
+	/** The asset's title when the passage was indexed. */
+	document_title: z.string().optional(),
 	lexical_text: z.string().optional(),
 	documentTotalPages: z.number().int().positive().optional(),
 	chunkPageStart: z.number().int().positive().optional(),
@@ -103,6 +107,13 @@ export const assetPointsFiltersSchema = z.object({
 	pageFrom: z.number().int().min(1).optional(),
 	pageTo: z.number().int().min(1).optional(),
 	passageIndices: z.array(z.number().int().min(0)).optional(),
+	/** Only text passages or only image descriptions. */
+	source: z
+		.enum([
+			"text",
+			"image",
+		])
+		.optional(),
 });
 
 /**

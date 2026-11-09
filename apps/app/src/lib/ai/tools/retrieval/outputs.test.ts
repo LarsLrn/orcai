@@ -66,6 +66,38 @@ describe("repository model output", () => {
 		);
 	});
 
+	test("a passage names its section, and an image description says it is one", () => {
+		expect(
+			text(
+				searchModelOutput({
+					output: {
+						results: [
+							passage({
+								section: "Refunds > Late refunds",
+							}),
+							passage({
+								ref: "k000002",
+								id: "c2",
+								kind: "figure",
+								text: "Bar chart of refunds per month.",
+							}),
+						],
+					},
+				}),
+			),
+		).toBe(
+			[
+				'<passage ref=k000001 asset="Refund policy" section="Refunds &gt; Late refunds" pages="4">',
+				"Refunds are paid within 14 days.",
+				"</passage>",
+				"",
+				'<passage ref=k000002 asset="Refund policy" pages="4" kind="figure">',
+				"Bar chart of refunds per month.",
+				"</passage>",
+			].join("\n"),
+		);
+	});
+
 	test("a search without results says so", () => {
 		expect(
 			text(

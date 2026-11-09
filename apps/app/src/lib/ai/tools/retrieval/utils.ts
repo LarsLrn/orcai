@@ -122,6 +122,10 @@ export const toPassage = (
 		assetId: first.payload.asset_id,
 		title: first.title,
 		blockName: first.repository.name,
+		section: first.payload.section,
+		...(first.payload.source === "image" && {
+			kind: "figure" as const,
+		}),
 		pageStart: starts.length > 0 ? Math.min(...starts) : undefined,
 		pageEnd: ends.length > 0 ? Math.max(...ends) : undefined,
 		totalPages: first.payload.documentTotalPages,

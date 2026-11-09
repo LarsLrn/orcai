@@ -4,6 +4,7 @@ import type { ChatSources } from "@/lib/ai/citations/chat-sources";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import { getPassagesInputSchema } from "./get-passages.declaration";
 import { passagesModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
@@ -44,7 +45,7 @@ export const getPassagesTool = ({
 
 	return effectTool({
 		description:
-			"Read the text around passages from earlier results, such as the rest of a list or an argument that breaks off. Passages next to each other in one asset come back joined as one passage. Use it only when you need that context, since searchRepositories already returns each passage in full.",
+			"Read the text around passages from earlier results, such as the rest of a list or an argument that breaks off. Passages next to each other in one asset come back joined as one passage. For an image description, it returns the text on the image's page instead. Use it only when you need that context, since searchRepositories already returns each passage in full.",
 		inputSchema: getPassagesInputSchema,
 		run: ({ passages: refs, neighbours }) =>
 			Effect.gen(function* () {
@@ -92,8 +93,19 @@ export const getPassagesTool = ({
 						indexes: Set<number>;
 					}
 				>();
+				// A figure's neighbours are the text on its page, not the figures indexed next to it.
+				const figurePages = new Map<string, PointWithBlock>();
 				for (const point of requested) {
-					const key = `${point.repository.id}:${point.payload.asset_id}:${point.payload.source}`;
+					if (point.payload.source === "image") {
+						if (neighbours > 0 && point.payload.chunkPageStart !== undefined) {
+							figurePages.set(
+								`${point.repository.id}:${point.payload.asset_id}:${point.payload.chunkPageStart}`,
+								point,
+							);
+						}
+						continue;
+					}
+					const key = `${point.repository.id}:${point.payload.asset_id}`;
 					const asset = assets.get(key) ?? {
 						point,
 						indexes: new Set<number>(),
@@ -120,8 +132,8 @@ export const getPassagesTool = ({
 										passageIndices: [
 											...indexes,
 										],
-										// Text and image passages of one asset share indexes.
-										limit: indexes.size * 2,
+										source: "text",
+										limit: indexes.size,
 									},
 								},
 								{
@@ -133,10 +145,43 @@ export const getPassagesTool = ({
 									withRepository({
 										repositoryId: point.repository.id,
 										repositoryName: point.repository.name,
-										points: response.data.filter(
-											(neighbour) =>
-												neighbour.payload.source === point.payload.source,
-										),
+										points: response.data,
+									}),
+								),
+							),
+					{
+						concurrency: "unbounded",
+					},
+				);
+
+				const pageText = yield* Effect.forEach(
+					[
+						...figurePages.values(),
+					],
+					(figure) =>
+						procedures.assetPoint
+							.searchRepository(
+								{
+									repositoryId: figure.repository.id,
+									filters: {
+										assetIds: [
+											figure.payload.asset_id,
+										],
+										page: figure.payload.chunkPageStart,
+										source: "text",
+										limit: RETRIEVAL_LIMITS.maxFullPassageFetches,
+									},
+								},
+								{
+									context,
+								},
+							)
+							.pipe(
+								Effect.map((response) =>
+									withRepository({
+										repositoryId: figure.repository.id,
+										repositoryName: figure.repository.name,
+										points: response.data,
 									}),
 								),
 							),
@@ -148,6 +193,7 @@ export const getPassagesTool = ({
 				const passages = neighbouringRuns([
 					...requested,
 					...around.flat(),
+					...pageText.flat(),
 				]).map((run) =>
 					toPassage(
 						run,
