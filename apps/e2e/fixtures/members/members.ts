@@ -23,7 +23,7 @@ export const adoptZedToken = async (
 		(entry) => entry.name === ZED_TOKEN_COOKIE,
 	);
 
-	if (cookie) zedTokens.write(cookie.value);
+	if (cookie) await zedTokens.observe(cookie.value);
 };
 
 /** Open a page behind the `manage_members` guard. */

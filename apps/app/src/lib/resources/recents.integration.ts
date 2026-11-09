@@ -62,7 +62,7 @@ describe("recent resources", () => {
 					],
 				}),
 			);
-			observe(zedToken);
+			await observe(zedToken);
 			const away = await signIn(elsewhere.id, member.user.id);
 			const { data: foreign } = await call(away, (options) =>
 				procedures.block.create(

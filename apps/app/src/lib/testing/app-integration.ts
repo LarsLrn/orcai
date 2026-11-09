@@ -11,7 +11,8 @@ import { DB, dbSchema } from "@orcai/db";
 import type { TestClock } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import { EmbeddingIndex, type EmbeddingIndexScope } from "@orcai/qdrant";
-import { SpiceDbService } from "@orcai/spice-db";
+import { SpiceDbLive, SpiceDbService } from "@orcai/spice-db";
+import { headZedToken, zedTokenKeeper } from "@orcai/spice-db/testing";
 import {
 	awaitLockWaiters,
 	createOrganization,
@@ -24,7 +25,7 @@ import { and, asc, eq, inArray, lte, max, ne, sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import type * as ManagedRuntime from "effect/ManagedRuntime";
+import * as ManagedRuntime from "effect/ManagedRuntime";
 import { insertAllMembersGroup } from "@/lib/authz/organization-lifecycle";
 import {
 	lockOrganization,
@@ -532,54 +533,19 @@ export const appIntegration = (
 
 	type ProcedureOptions = Awaited<ReturnType<typeof procedureOptions>>;
 
-	/** A token at SpiceDB's head revision, newer than every write that has returned. */
-	const headZedToken = () =>
-		run(
-			Effect.gen(function* () {
-				const { spice } = yield* SpiceDbService;
-				const { checkedAt } = yield* Effect.promise(() =>
-					spice.checkPermission(
-						v1.CheckPermissionRequest.create({
-							consistency: v1.Consistency.create({
-								requirement: {
-									oneofKind: "fullyConsistent",
-									fullyConsistent: true,
-								},
-							}),
-							resource: v1.ObjectReference.create({
-								objectType: "organization",
-								objectId: "head-revision",
-							}),
-							permission: "read",
-							subject: v1.SubjectReference.create({
-								object: v1.ObjectReference.create({
-									objectType: "user",
-									objectId: "head-revision",
-								}),
-							}),
-						}),
-					),
-				);
-				if (!checkedAt) throw new Error("SpiceDB answered without a zedToken");
-				return checkedAt.token;
-			}),
-		);
+	// Head reads use their own SpiceDB client, apart from the calls under test.
+	const headReads = ManagedRuntime.make(SpiceDbLive);
 
 	/**
 	 * Runs procedures as actors at the newest zed token, starting from
 	 * `zedToken`: each call keeps the token its procedure returns, and
-	 * `observe` keeps one a fixture returns. Tokens cannot be compared, so a
-	 * call that returns after another recorded a token since it started keeps
-	 * a head-revision token instead, which covers both.
+	 * `observe` keeps one a fixture returns.
 	 */
 	const caller = (zedToken?: string) => {
-		let token = zedToken;
-		let recorded = 0;
-		const observe = (zedToken?: string) => {
-			if (!zedToken) return;
-			recorded += 1;
-			token = zedToken;
-		};
+		const tokens = zedTokenKeeper(
+			() => headReads.runPromise(headZedToken),
+			zedToken,
+		);
 		const call = async <A>(
 			actor: Actor,
 			operation: (options: ProcedureOptions) => Effect.Effect<
@@ -590,25 +556,16 @@ export const appIntegration = (
 				},
 				unknown
 			>,
-		) => {
-			const before = recorded;
-			const result = await run(operation(await procedureOptions(actor, token)));
-			const returned = result.meta?.zedToken;
-			if (!returned) return result;
-			if (recorded === before) {
-				observe(returned);
-				return result;
-			}
-			recorded += 1;
-			const mine = recorded;
-			const head = await headZedToken();
-			if (recorded === mine) token = head;
-			return result;
-		};
+		) =>
+			tokens.track(
+				async () =>
+					run(operation(await procedureOptions(actor, tokens.read()))),
+				(result) => result.meta?.zedToken,
+			);
 		return {
 			call,
-			observe,
-			token: () => token,
+			observe: tokens.observe,
+			token: tokens.read,
 		};
 	};
 

@@ -196,7 +196,7 @@ describe("organisation gate", () => {
 			} = await organizationWith([
 				"admin",
 			]);
-			observe(zedToken);
+			await observe(zedToken);
 			const capabilities = () =>
 				call(admin, (options) =>
 					procedures.authorization.organizationCapabilities(
@@ -255,7 +255,7 @@ describe("organisation gate", () => {
 			} = await organizationWith([
 				"member",
 			]);
-			observe(zedToken);
+			await observe(zedToken);
 			await quietly.remove(organizationId, member.user.id);
 
 			const reasons = await Promise.all([
@@ -314,8 +314,8 @@ describe("organisation gate", () => {
 				"admin",
 				"viewer",
 			]);
-			observe(activeToken);
-			observe(targetToken);
+			await observe(activeToken);
+			await observe(targetToken);
 			const withoutActive = (actor: typeof admin) => ({
 				...actor,
 				session: {

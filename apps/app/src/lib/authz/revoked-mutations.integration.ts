@@ -44,7 +44,7 @@ for (const action of [
 				owner,
 				organizationId,
 			);
-			observe(created);
+			await observe(created);
 			await call(owner, (o) =>
 				p.resource.grant(
 					{
@@ -218,7 +218,7 @@ const editedThroughGroup = async () => {
 	const p = await run(Procedures);
 	const { call, observe } = caller(zedToken);
 	const { asset, zedToken: created } = await createAsset(owner, organizationId);
-	observe(created);
+	await observe(created);
 	const { data: team } = await call(owner, (o) =>
 		p.group.create(
 			{

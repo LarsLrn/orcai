@@ -35,7 +35,7 @@ const sharedRepository = async () => {
 		asset: { id: assetId },
 		zedToken: assetToken,
 	} = await createAsset(author, organizationId);
-	observe(assetToken);
+	await observe(assetToken);
 	const { data: repository } = await call(author, (options) =>
 		procedures.block.create(
 			{

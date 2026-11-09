@@ -115,7 +115,7 @@ const createdBotExists = async (
 		})
 		.toBeDefined();
 	if (!reply?.zedToken) throw new Error("The reply settled no zedToken");
-	zedTokens.write(reply.zedToken);
+	await zedTokens.observe(reply.zedToken);
 
 	return await botExists(client, createdBotId(reply));
 };

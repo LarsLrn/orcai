@@ -120,6 +120,21 @@
 	},
 	"overrides": [
 		{
+			// Test helpers that keep zedTokens are async; an unawaited call reads stale.
+			"includes": [
+				"**/*.integration.ts",
+				"apps/e2e/**",
+				"packages/*/test/**"
+			],
+			"linter": {
+				"rules": {
+					"nursery": {
+						"noFloatingPromises": "error"
+					}
+				}
+			}
+		},
+		{
 			// Imports point from routes to components, hooks and lib, never back.
 			"includes": [
 				"apps/app/src/lib/**"

@@ -511,7 +511,7 @@ describe("bot setup", () => {
 					],
 				}),
 			);
-			observe(joined);
+			await observe(joined);
 			const elsewhere = await signIn(other.id, admin.user.id);
 
 			const { data } = await call(elsewhere, (options) =>

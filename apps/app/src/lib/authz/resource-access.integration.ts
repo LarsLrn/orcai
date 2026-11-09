@@ -91,8 +91,8 @@ const grant = (
 			role,
 			actor: actorOf(owner),
 		}),
-	).then((granted) => {
-		observe(granted.zedToken);
+	).then(async (granted) => {
+		await observe(granted.zedToken);
 		return granted;
 	});
 
@@ -164,7 +164,7 @@ const ownedBlock = async (roles: readonly ("admin" | "member")[]) => {
 	]);
 	const [owner, ...others] = actors;
 	const { blockId, zedToken: created } = await createBlock(owner, zedToken);
-	observe(created);
+	await observe(created);
 	return {
 		organizationId,
 		owner,
@@ -581,7 +581,7 @@ const blockInTwoOrganizations = async () => {
 	} = await organizationWith([
 		"admin",
 	]);
-	observe(zedToken);
+	await observe(zedToken);
 	const [sharer] = actors;
 	await run(
 		Effect.gen(function* () {
@@ -903,7 +903,7 @@ const sharingFixture = async () => {
 	const foreign = await organizationWith([
 		"admin",
 	]);
-	observe(foreign.zedToken);
+	await observe(foreign.zedToken);
 	const [foreignAdmin] = foreign.actors;
 	return {
 		...home,
@@ -934,8 +934,8 @@ const shareWith = (
 			role,
 			actor: actorOf(actor),
 		}),
-	).then((granted) => {
-		observe(granted.zedToken);
+	).then(async (granted) => {
+		await observe(granted.zedToken);
 		return granted;
 	});
 

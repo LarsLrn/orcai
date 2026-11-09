@@ -227,7 +227,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 			return zedToken;
 		})
 		.toBeDefined();
-	zedTokens.write(zedToken as string);
+	await zedTokens.observe(zedToken as string);
 	const { data: bot } = await member.bot.findEditor({
 		id: botId,
 	});

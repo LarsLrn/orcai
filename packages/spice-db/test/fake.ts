@@ -16,3 +16,9 @@ export const spiceClient = (calls: Partial<SpiceDbClient>): SpiceDbClient => ({
 	diffSchema: unscripted("diffSchema"),
 	...calls,
 });
+
+export {
+	headZedToken,
+	type ZedTokenKeeper,
+	zedTokenKeeper,
+} from "./zed-tokens";

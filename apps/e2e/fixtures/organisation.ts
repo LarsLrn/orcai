@@ -127,7 +127,7 @@ export const createWorkerOrganisation = async (params: {
 
 		// The sign-up response carries the membership revision, so every later
 		// read of this worker is at least as fresh as the grant.
-		if (session.zedToken) workerZedTokens.write(session.zedToken);
+		if (session.zedToken) await workerZedTokens.observe(session.zedToken);
 
 		members.push({
 			role,
@@ -204,7 +204,7 @@ export const signUpUnaffiliated = async (params: {
 		password: params.password,
 	});
 
-	if (session.zedToken) workerZedTokens.write(session.zedToken);
+	if (session.zedToken) await workerZedTokens.observe(session.zedToken);
 
 	await adminApi.organizationMember.delete({
 		refs: [

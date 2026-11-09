@@ -125,7 +125,7 @@ const organizations = async () => {
 
 	const behaviour = await createBlock("behaviour");
 	const { asset, zedToken: assetToken } = await createAsset(author, home);
-	observe(assetToken);
+	await observe(assetToken);
 	const repository = await createBlock("repository", "ready", undefined, [
 		asset.id,
 	]);

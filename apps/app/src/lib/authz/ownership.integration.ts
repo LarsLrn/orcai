@@ -230,7 +230,7 @@ describe("adding a chat upload to the Library", () => {
 
 const organization = async (roles: Parameters<typeof organizationWith>[0]) => {
 	const created = await organizationWith(roles);
-	observe(created.zedToken);
+	await observe(created.zedToken);
 	return created;
 };
 
@@ -251,7 +251,7 @@ const joining = async (actor: Actor, role: OrganizationRole) => {
 			],
 		}),
 	);
-	observe(created.zedToken);
+	await observe(created.zedToken);
 	return {
 		organizationId: created.organization.id,
 		admin: await signIn(created.organization.id, adminUser.id),
@@ -271,7 +271,7 @@ const contentOf = async (
 	organizationId: OrganizationId,
 ): Promise<Content> => {
 	const block = await createBlock(owner, token());
-	observe(block.zedToken);
+	await observe(block.zedToken);
 	const { data: bot } = await call(owner, (options) =>
 		procedures.bot.save(
 			{
@@ -285,8 +285,8 @@ const contentOf = async (
 	);
 	const library = await createAsset(owner, organizationId);
 	const upload = await createAsset(owner, organizationId);
-	observe(library.zedToken);
-	observe(upload.zedToken);
+	await observe(library.zedToken);
+	await observe(upload.zedToken);
 	await quietly.makeChatUpload(upload.asset.id);
 	return {
 		botId: bot.id,
@@ -846,7 +846,7 @@ describe("deleting accounts", () => {
 				"member",
 			]);
 			const { blockId, zedToken } = await createBlock(owner, token());
-			observe(zedToken);
+			await observe(zedToken);
 			const { data: grants } = await call(owner, (options) =>
 				procedures.resource.grant(
 					{

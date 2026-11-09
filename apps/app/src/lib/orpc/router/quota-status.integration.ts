@@ -58,7 +58,7 @@ const quotaOrganization = async () => {
 		}),
 	);
 	const organizationId = organization.id;
-	observe(zedToken);
+	await observe(zedToken);
 	const [admin, member, otherMember] = await Promise.all(
 		users.map((user) => signIn(organizationId, user.id)),
 	);
