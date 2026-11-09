@@ -460,6 +460,163 @@ describe("invalidateStaleQueries", () => {
 		}
 	});
 
+	test("makes what the user may read and use stale whenever group or organisation membership changes, the actor's own included", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const edits = [
+			() => mutateUnread(queryClient, orpc.group.addMembers.mutationOptions()),
+			() =>
+				mutateUnread(queryClient, orpc.group.removeMembers.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.group.delete.mutationOptions()),
+			() =>
+				mutateUnread(
+					queryClient,
+					orpc.organizationMember.delete.mutationOptions(),
+				),
+			() =>
+				mutateUnread(queryClient, orpc.instance.addMember.mutationOptions()),
+			() =>
+				mutateUnread(queryClient, orpc.instance.removeMember.mutationOptions()),
+		];
+		const resource = {
+			resourceType: "block",
+			resourceId: crypto.randomUUID() as BlockId,
+		} as const;
+
+		for (const edit of edits) {
+			const reads = [
+				cached(
+					orpc.bot.find.queryKey({
+						input: {
+							id: crypto.randomUUID() as BotId,
+						},
+					}),
+				),
+				cached(
+					orpc.block.find.queryKey({
+						input: {
+							id: resource.resourceId,
+						},
+					}),
+				),
+				cached(
+					orpc.asset.find.queryKey({
+						input: {
+							id: crypto.randomUUID() as AssetId,
+						},
+					}),
+				),
+				cached(
+					orpc.bot.list.queryKey({
+						input: {},
+					}),
+				),
+				cached(
+					orpc.library.overview.queryKey({
+						input: {},
+					}),
+				),
+				cached(
+					orpc.catalogue.list.queryKey({
+						input: {},
+					}),
+				),
+				cached(
+					orpc.resource.listGrants.queryKey({
+						input: resource,
+					}),
+				),
+				cached(
+					orpc.chatBlock.list.queryKey({
+						input: {
+							chatId: crypto.randomUUID() as ChatId,
+						},
+					}),
+				),
+				cached(
+					orpc.quota.status.queryKey({
+						input: {
+							providerId: "provider-1",
+							modelId: "model-1",
+						},
+					}),
+				),
+			];
+			const models = cached(
+				orpc.model.list.queryKey({
+					input: {},
+				}),
+			);
+			await edit();
+			expect(reads.map((read) => read())).toEqual(reads.map(() => true));
+			expect(models()).toBe(false);
+		}
+	});
+
+	test("access and listing changes make what items inside the resource inherit stale", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const bot = {
+			resourceType: "bot",
+			resourceId: "bot-1" as BotId,
+		} as const;
+		const group = {
+			principalType: "group",
+			principalId: groupA,
+		} as const;
+		const edits = [
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.resource.grant.mutationOptions(),
+				).mutate({
+					...bot,
+					principals: [
+						group,
+					],
+					role: "viewer",
+				}),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.resource.revoke.mutationOptions(),
+				).mutate({
+					...bot,
+					...group,
+				}),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.resource.setVisibility.mutationOptions(),
+				).mutate({
+					...bot,
+					visibility: "public",
+				}),
+		];
+
+		for (const edit of edits) {
+			const inherited = cached(
+				orpc.resource.inheritedAccess.queryKey({
+					input: {
+						resourceType: "block",
+						resourceId: crypto.randomUUID() as BlockId,
+					},
+				}),
+			);
+			const models = cached(
+				orpc.model.list.queryKey({
+					input: {},
+				}),
+			);
+			await edit();
+			expect([
+				inherited(),
+				models(),
+			]).toEqual([
+				true,
+				false,
+			]);
+		}
+	});
+
 	test("makes bot setups and their chats stale whenever a model can change", async () => {
 		const { orpc, queryClient, cached } = setup();
 		const edits = [
@@ -756,7 +913,7 @@ describe("staleQueriesOfWrites", () => {
 		expect(models()).toBe(false);
 	});
 
-	test("a member removal makes owners stale only when it handed something over", async () => {
+	test("a role change makes owners stale only when it handed something over", async () => {
 		const { orpc, queryClient, cached } = setup();
 		const botPage = cached(
 			orpc.bot.find.queryKey({
@@ -769,7 +926,7 @@ describe("staleQueriesOfWrites", () => {
 			Promise.all(
 				staleQueriesOfWrites(orpc, [
 					{
-						path: "organizationMember.delete",
+						path: "organizationMember.update",
 						handedOver,
 					},
 				]).map((queryKey) =>

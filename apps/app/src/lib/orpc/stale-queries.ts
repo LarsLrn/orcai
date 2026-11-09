@@ -65,6 +65,8 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			orpc.resource.listPrincipals.key({
 				input,
 			}),
+			// Items inside it show the access they inherit.
+			orpc.resource.inheritedAccess.key(),
 			orpc.organizationMember.listAccess.key(),
 			readOnlyChats,
 			orpc.botSetup.coverage.key(),
@@ -76,6 +78,26 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 	const readiness = orpc.readiness.key();
 	// So does the model a new chat starts on, with the organisation's default.
 	const defaultChatModel = orpc.chat.defaultModel.key();
+
+	// The user's activity lists the work they start and the failures and suggestions it leaves.
+	const activity = orpc.activity.key();
+
+	// What the user may read and use follows the grants reaching them, directly or through a group.
+	// Sharing lists those grants and the organisation's members.
+	const access = () => [
+		orpc.bot.key(),
+		orpc.block.key(),
+		orpc.asset.key(),
+		orpc.library.key(),
+		orpc.catalogue.key(),
+		orpc.resource.key(),
+		orpc.chatBlock.key(),
+		orpc.botSetup.key(),
+		orpc.quota.key(),
+		orpc.organizationMember.listAccess.key(),
+		readOnlyChats,
+		activity,
+	];
 
 	// Group lists and quota pools show each group's member count.
 	const groupSummaries = () => [
@@ -94,11 +116,9 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				groupId,
 			},
 		}),
-		orpc.organizationMember.listAccess.key(),
 		readiness,
 		defaultChatModel,
-		readOnlyChats,
-		orpc.botSetup.coverage.key(),
+		...access(),
 	];
 
 	const instanceMembership = () => [
@@ -168,9 +188,6 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.bot.list.key(),
 		orpc.library.key(),
 	];
-
-	// The user's activity lists the work they start and the failures and suggestions it leaves.
-	const activity = orpc.activity.key();
 
 	// Readiness lists each asset's title and state; repository tiles count them.
 	const assetsAndReadiness = () => [
@@ -360,8 +377,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.quotaPool.find.key(),
 				readiness,
 				defaultChatModel,
-				readOnlyChats,
-				orpc.botSetup.coverage.key(),
+				...access(),
 			],
 			addMembers: groupMembership,
 			removeMembers: groupMembership,
@@ -417,15 +433,19 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 					: []),
 			],
 		},
-		// Instance admins change memberships of any organisation.
+		// Instance admins change memberships of any organisation, their own included.
 		instance: {
-			addMember: instanceMembership,
+			addMember: () => [
+				...instanceMembership(),
+				...access(),
+			],
 			changeMemberRole: (_input, output) => [
 				...instanceMembership(),
 				...handedOver(output),
 			],
 			removeMember: (_input, output) => [
 				...instanceMembership(),
+				...access(),
 				...handedOver(output),
 			],
 			// Readiness counts pending invitations.
@@ -444,15 +464,14 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				readiness,
 				...handedOver(output),
 			],
-			// A member who leaves loses the organisation's activity.
+			// The actor may be the member who leaves, losing what reached them there.
 			delete: (_input, output) => [
 				orpc.user.listAll.key(),
 				orpc.organizationMember.key(),
 				orpc.organization.find.key(),
 				...groupSummaries(),
 				readiness,
-				readOnlyChats,
-				activity,
+				...access(),
 				...handedOver(output),
 			],
 		},
@@ -532,6 +551,8 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 					}),
 				),
 				orpc.resource.listingImpact.key(),
+				// Items inside it show a public ancestor.
+				orpc.resource.inheritedAccess.key(),
 				orpc.organization.deletionImpact.key(),
 				orpc.organizationMember.listAccess.key(),
 				orpc.catalogue.key(),
