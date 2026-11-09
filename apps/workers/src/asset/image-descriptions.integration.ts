@@ -11,7 +11,7 @@ import { like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { describeImages } from "@/asset/image-descriptions";
-import { requests, seedImageAsset, suggestion } from "@/asset/test-vision";
+import { requests, seedVisionAsset, suggestion } from "@/asset/test-vision";
 
 const { runPromise: run } = integrationRuntime(
 	Layer.mergeAll(S3Live, QuotaReservationsLive, EncryptionKeyLive),
@@ -21,8 +21,8 @@ beforeEach(() => {
 	requests.length = 0;
 });
 
-const seed = (params: Parameters<typeof seedImageAsset>[0]) =>
-	run(seedImageAsset(params));
+const seed = (params: Parameters<typeof seedVisionAsset>[0]) =>
+	run(seedVisionAsset(params));
 
 /** The same stored image as `count` figures of a document. */
 const asFigures = (

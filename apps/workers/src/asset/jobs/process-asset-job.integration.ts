@@ -52,7 +52,7 @@ import { processAsset } from "@/asset/jobs/process-asset-job";
 import {
 	held,
 	requests,
-	seedImageAsset,
+	seedVisionAsset,
 	suggestion,
 } from "@/asset/test-vision";
 
@@ -184,7 +184,7 @@ test(
 	"a replayed or superseded delivery describes nothing; each generation is described once",
 	async () => {
 		const asset = await run(
-			seedImageAsset({
+			seedVisionAsset({
 				capabilities: [
 					"text",
 					"image",
@@ -219,7 +219,7 @@ test(
 	"a crash while queuing indexing leaves the asset to the retry, which completes it and queues indexing",
 	async () => {
 		const asset = await run(
-			seedImageAsset({
+			seedVisionAsset({
 				capabilities: [
 					"text",
 					"image",
@@ -272,7 +272,7 @@ test(
 /** An image asset linked to a fresh repository, with what its completion queued. */
 const seedLinked = async () => {
 	const asset = await run(
-		seedImageAsset({
+		seedVisionAsset({
 			capabilities: [
 				"text",
 				"image",
@@ -555,7 +555,7 @@ test(
 	"a delivery whose asset is deleted while it describes the image stores nothing",
 	async () => {
 		const asset = await run(
-			seedImageAsset({
+			seedVisionAsset({
 				capabilities: [
 					"text",
 					"image",
@@ -590,7 +590,7 @@ test(
 	"a write interrupted in flight keeps its asset until it lands, so the deletion's cleanup removes it",
 	async () => {
 		const asset = await run(
-			seedImageAsset({
+			seedVisionAsset({
 				capabilities: [
 					"text",
 					"image",

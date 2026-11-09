@@ -42,7 +42,7 @@ import { generateMetadata } from "@/asset/jobs/generate-metadata-job";
 import {
 	jsonAnswer,
 	requests,
-	seedImageAsset,
+	seedVisionAsset,
 	suggestion,
 } from "@/asset/test-vision";
 
@@ -123,7 +123,7 @@ const seedAsset = async (
 	} = {},
 ) => {
 	const seeded = await run(
-		seedImageAsset({
+		seedVisionAsset({
 			capabilities: params.capabilities ?? [
 				"text",
 			],
@@ -526,7 +526,7 @@ test(
 /** A processed image asset whose stored extraction is described, with processing's suggestion unless `suggested` is false. */
 const seedDescribedImage = async (suggested: boolean) => {
 	const seeded = await run(
-		seedImageAsset({
+		seedVisionAsset({
 			capabilities: [
 				"text",
 				"image",

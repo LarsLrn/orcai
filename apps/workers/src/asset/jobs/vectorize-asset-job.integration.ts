@@ -28,14 +28,17 @@ import {
 	writeGeneration,
 } from "@orcai/qdrant";
 import { IsolatedEmbeddingIndexLive } from "@orcai/qdrant/testing";
-import { assetObjectKey } from "@orcai/s3";
+import { QuotaReservationsLive } from "@orcai/quota";
+import { assetObjectKey, processedAssetPrefix } from "@orcai/s3";
 import {
+	listObjects,
 	S3Live,
 	sendDeleteObjectCommand,
 	sendPutObjectCommand,
 } from "@orcai/s3/server";
 import {
 	defaultRepositoryConfig,
+	type ProcessAssetPayload,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
 import {
@@ -50,7 +53,13 @@ import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
+import { processAsset } from "@/asset/jobs/process-asset-job";
 import { vectorizeAsset } from "@/asset/jobs/vectorize-asset-job";
+import { pdfWithImages, solidImage } from "@/asset/test-document";
+import {
+	seedVisionAsset,
+	requests as visionRequests,
+} from "@/asset/test-vision";
 
 const TIMEOUT = 30_000;
 
@@ -160,6 +169,7 @@ const runtime = integrationRuntime(
 				S3Live,
 				InterceptedQdrantLive,
 				EncryptionKeyLive,
+				QuotaReservationsLive,
 				IsolatedPgBossLive(),
 			),
 		),
@@ -1105,6 +1115,117 @@ test(
 			attempt: job.data.attempt,
 		});
 		expect(await pointsOf(link)).toEqual([]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a document's repeated image is stored, described and indexed once, at its first page",
+	async () => {
+		const logo = solidImage(
+			240,
+			[
+				200,
+				30,
+				30,
+			],
+		);
+		const chart = solidImage(
+			240,
+			[
+				30,
+				30,
+				200,
+			],
+		);
+		const asset = await run(
+			seedVisionAsset({
+				capabilities: [
+					"text",
+					"image",
+				],
+				pdf: pdfWithImages([
+					logo,
+					logo,
+					chart,
+					logo,
+				]),
+			}),
+		);
+		const described = visionRequests.length;
+		await run(
+			processAsset({
+				id: crypto.randomUUID(),
+				name: "process-asset",
+				data: {
+					assetRef: {
+						bucket: buckets.processed.name,
+						prefix: asset.prefix,
+						id: asset.assetId,
+						type: asset.fileType,
+					},
+					generation: 0,
+				},
+			} as Job<ProcessAssetPayload>),
+		);
+		expect(visionRequests.length - described).toBe(2);
+		const stored = await run(
+			listObjects({
+				bucket: buckets.processed.name,
+				prefix: `${processedAssetPrefix(asset.assetId)}images/`,
+			}),
+		);
+		expect(stored).toHaveLength(2);
+
+		const blockId = await run(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				const [block] = yield* db
+					.insert(dbSchema.block)
+					.values({
+						type: "repository",
+						name: "Slides repository",
+						config: defaultRepositoryConfig,
+						userId: asset.uploaderId,
+					})
+					.returning();
+				yield* db.insert(dbSchema.blockAsset).values({
+					blockId: block.id,
+					assetId: asset.assetId,
+				});
+				return block.id as BlockId;
+			}),
+		);
+		const link = {
+			assetId: asset.assetId,
+			blockId,
+		};
+		await vectorize(await admit(link));
+
+		const points = [
+			...(await payloadsOf(link)),
+		].sort((a, b) => Number(a?.chunk_index) - Number(b?.chunk_index));
+		const textCount = points.filter((point) => point?.source === "text").length;
+		expect(
+			points
+				.filter((point) => point?.source === "image")
+				.map((point) => ({
+					page: point?.chunkPageStart,
+					chunkIndex: point?.chunk_index,
+					chunkCount: point?.chunkCount,
+				})),
+		).toEqual([
+			{
+				page: 1,
+				chunkIndex: textCount,
+				chunkCount: points.length,
+			},
+			{
+				page: 3,
+				chunkIndex: textCount + 1,
+				chunkCount: points.length,
+			},
+		]);
 	},
 	TIMEOUT,
 );

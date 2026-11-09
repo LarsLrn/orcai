@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { buckets } from "@orcai/core";
 import type { Job } from "@orcai/pg-boss";
 import {
@@ -43,39 +44,76 @@ const getRequiredMimeType = (
 		),
 	);
 
+/** Stores each distinct image of the document once, skipping those 200 px or smaller. */
 const createDocumentArtifact = (params: {
 	result: Parameters<typeof createExtractionArtifact>[0]["result"];
 	jobId: string;
 	attempt: ProcessingAttempt;
 }) =>
 	Effect.gen(function* () {
-		const storedImagePaths = new Map<number, string>();
+		const log = {
+			jobId: params.jobId,
+			assetId: params.attempt.assetId,
+		};
+		const firstIndexByDigest = new Map<string, number>();
+		const kept: NonNullable<typeof params.result.images> = [];
+		let repeatCount = 0;
 
+		for (const image of params.result.images ?? []) {
+			const width = typeof image.width === "number" ? image.width : undefined;
+			const height =
+				typeof image.height === "number" ? image.height : undefined;
+			if (
+				width !== undefined &&
+				height !== undefined &&
+				(width <= 200 || height <= 200)
+			) {
+				yield* Effect.logWarning(
+					{
+						...log,
+						imageIndex: image.imageIndex,
+						width,
+						height,
+					},
+					"Skipping extracted image due to resolution/validation",
+				);
+				continue;
+			}
+
+			const digest = createHash("sha256").update(image.data).digest("hex");
+			const firstIndex = firstIndexByDigest.get(digest);
+			if (firstIndex !== undefined) {
+				repeatCount += 1;
+				yield* Effect.logDebug(
+					{
+						...log,
+						imageIndex: image.imageIndex,
+						repeatOf: firstIndex,
+					},
+					"Skipping extracted image that repeats an earlier one",
+				);
+				continue;
+			}
+			firstIndexByDigest.set(digest, image.imageIndex);
+			kept.push(image);
+		}
+
+		if (repeatCount > 0) {
+			yield* Effect.logInfo(
+				{
+					...log,
+					repeatCount,
+					keptCount: kept.length,
+				},
+				"Skipped repeated images in the document",
+			);
+		}
+
+		const storedImagePaths = new Map<number, string>();
 		yield* Effect.forEach(
-			params.result.images ?? [],
+			kept,
 			(image) =>
 				Effect.gen(function* () {
-					const width =
-						typeof image.width === "number" ? image.width : undefined;
-					const height =
-						typeof image.height === "number" ? image.height : undefined;
-					const hasDimensions = width !== undefined && height !== undefined;
-
-					if (hasDimensions) {
-						if (width <= 200 || height <= 200) {
-							return yield* Effect.logWarning(
-								{
-									jobId: params.jobId,
-									assetId: params.attempt.assetId,
-									imageIndex: image.imageIndex,
-									width,
-									height,
-								},
-								"Skipping extracted image due to resolution/validation",
-							);
-						}
-					}
-
 					const key = buildStoredExtractionImageKey({
 						assetId: params.attempt.assetId,
 						imageIndex: image.imageIndex,

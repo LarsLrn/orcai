@@ -156,7 +156,7 @@ The OrcAI Assistant's tools call OrcAI's procedures as the signed-in user throug
 
 How loading reaches the model depends on the provider's tool-loading strategy. With `references` (Anthropic models with tool search), every tool is declared up front, the group tools deferred. A loaded group and the create tools unlocked by the approved plan surface through `tool-reference` parts in the tool result, and create tools check for an approved plan when they run. With `active-tools` (other provider kinds and older Claude models), a loaded group's tools and the unlocked create tools join the request's tool list.
 
-Asset preparation describes images, both image files and figures inside files, once with the organisation's utility model and stores the descriptions with the extraction, and indexing reads them from there. The calls are metered against the organisation's quota pools and attributed to the uploader.
+Asset preparation describes images, both image files and figures inside files, once with the organisation's utility model and stores the descriptions with the extraction, and indexing reads them from there. A figure whose bytes repeat an earlier figure of the same file, such as a logo on every slide, is dropped, so it is stored, described and indexed once. The calls are metered against the organisation's quota pools and attributed to the uploader.
 
 Organisation admins configure providers and models under [Providers](/docs/using-orcai/administration#providers) and [Models](/docs/using-orcai/administration#models).
 
