@@ -65,7 +65,7 @@ type TurnStreamOptions = {
 export type ToolExecutions = <TOOLS extends ToolSet>(tools: TOOLS) => TOOLS;
 
 /** What one request did, read from its steps. */
-export type TurnRun = {
+type TurnRun = {
 	steps: StepResult<ToolSet>[];
 	/** The last step's text. */
 	text: string;

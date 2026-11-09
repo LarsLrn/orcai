@@ -45,7 +45,7 @@ const logOnlySend = (params: SendEmailParams) =>
 		}),
 	);
 
-export const EmailServiceLive = Layer.effect(
+const EmailServiceLive = Layer.effect(
 	EmailService,
 	Effect.gen(function* () {
 		const { config } = yield* EmailConfigService;

@@ -30,7 +30,7 @@ import { currentMetadata, failStrandedProcessing } from "./attempt";
 const nextIndexAttempt = sql<number>`nextval('block_asset_index_attempt_seq')`;
 
 /** An asset as the caller saw it: its processing generation then. */
-export type ObservedAsset = {
+type ObservedAsset = {
 	readonly id: AssetId;
 	readonly generation: number;
 };

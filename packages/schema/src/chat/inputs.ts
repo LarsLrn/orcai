@@ -60,5 +60,4 @@ export const branchChatInputSchema = z.object({
 	...zedTokenSchema.shape,
 });
 
-export type ListChatsInput = z.infer<typeof listChatsInputSchema>;
 export type ChatSortKey = z.infer<typeof chatSortKeySchema>;
