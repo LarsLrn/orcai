@@ -41,6 +41,20 @@ const DEFAULT_SEARCH_RESULT_LIMIT = Math.min(
 	RETRIEVAL_LIMITS.maxSnippetResultsPerCall,
 );
 
+/** How the tool ranks a repository's points for `limit` passages. */
+export const repositorySearchPolicy = (
+	config: Pick<
+		Repository["config"],
+		"retrievalMode" | "candidateLimit" | "maxPerAsset"
+	>,
+	limit: number,
+) => ({
+	limit,
+	retrievalMode: config.retrievalMode ?? "hybrid",
+	candidateLimit: config.candidateLimit ?? Math.max(limit * 8, 32),
+	maxPerAsset: config.maxPerAsset,
+});
+
 export const searchRepositoriesTool = ({
 	blocks,
 	context,
@@ -89,12 +103,8 @@ export const searchRepositoriesTool = ({
 										repositoryId: block.id,
 										filters: {
 											queries: normalizedQueries,
-											limit,
 											assetIds,
-											retrievalMode: block.config.retrievalMode ?? "hybrid",
-											candidateLimit:
-												block.config.candidateLimit ?? Math.max(limit * 8, 32),
-											maxPerAsset: block.config.maxPerAsset,
+											...repositorySearchPolicy(block.config, limit),
 										},
 									})),
 								},

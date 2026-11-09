@@ -311,6 +311,7 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run lint`: run Biome, TypeScript checks, the migration check, and Knip. Biome also fails a module in `apps/app/src/lib` that imports from `components`, `hooks` or `routes`
 - `bun run ci`: run the same lint, ESLint, test, docs type-check, and build suite used by GitHub Actions
 - `bun run prompt-evals`: run the prompt evals against real models through OpenRouter, on demand for prompt changes (see `.agents/skills/prompting/EVALS.md`)
+- `bun run stack exec -- bun run retrieval-evals`: run the retrieval evals against the stack's Qdrant and real models, on demand for extraction, indexing and search changes (see the contributing docs)
 - `bun run stack migrate`: apply SQL migrations and the SpiceDB schema
 - `bun run stack exec -- bun run --filter @orcai/db generate`: generate a new Drizzle migration
 - `bun run --filter @orcai/db check`: fail when two migrations branch from the same parent and change the same entity; after a rebase onto `main`, regenerate the branch's migration

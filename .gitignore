@@ -8,6 +8,7 @@ node_modules/
 /coverage
 /apps/e2e/test-results
 /apps/app/scripts/prompt-evals/results
+/apps/app/scripts/retrieval-evals/results
 /apps/e2e/playwright-report
 /reports
 

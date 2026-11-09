@@ -66,41 +66,6 @@ import { DOCS, localDocsFetch } from "./docs";
 
 export const OPENROUTER = "https://openrouter.ai/api/v1";
 
-/** Statuses a provider sends while it is limited or the model is briefly unavailable. */
-const RETRYABLE = new Set([
-	429,
-	502,
-	503,
-	504,
-]);
-const MAX_RETRIES = 4;
-const BACKOFF_MS = 2_000;
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/** Holds requests back so no more than `perMinute` start in any minute. */
-const rateLimiter = (perMinute: number) => {
-	const starts: number[] = [];
-	let queue: Promise<void> = Promise.resolve();
-	return () => {
-		const turn = queue.then(async () => {
-			for (;;) {
-				const now = Date.now();
-				while (starts.length > 0 && now - starts[0] >= 60_000) {
-					starts.shift();
-				}
-				if (starts.length < perMinute) {
-					starts.push(now);
-					return;
-				}
-				await sleep(60_000 - (now - starts[0]));
-			}
-		});
-		queue = turn;
-		return turn;
-	};
-};
-
 interface ToolCallRecord {
 	toolName: string;
 	input: unknown;
@@ -170,30 +135,6 @@ export interface Endpoint {
 	/** Shared by every model on the endpoint, so one limit covers them all. */
 	fetch: typeof globalThis.fetch;
 }
-
-/**
- * Wraps `fetch` to wait for the endpoint's rate limit and to retry limited or
- * unavailable responses with backoff, so a run counts a request as failed only
- * after it was tried several times.
- */
-export const limitedFetch = (perMinute?: number): typeof globalThis.fetch => {
-	const turn = perMinute ? rateLimiter(perMinute) : undefined;
-	return (async (input: RequestInfo | URL, init?: RequestInit) => {
-		for (let attempt = 0; ; attempt++) {
-			await turn?.();
-			const response = await fetch(input, init);
-			if (!RETRYABLE.has(response.status) || attempt === MAX_RETRIES) {
-				return response;
-			}
-			const after = Number(response.headers.get("retry-after"));
-			await sleep(
-				Number.isFinite(after) && after > 0
-					? after * 1_000
-					: BACKOFF_MS * 2 ** attempt,
-			);
-		}
-	}) as typeof globalThis.fetch;
-};
 
 /** The message and any model text of a failed run, without the endpoint's key. */
 export const describeError = (error: unknown, secret: string) => {

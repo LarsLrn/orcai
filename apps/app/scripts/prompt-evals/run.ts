@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
+import { limitedFetch } from "../limited-fetch";
 import { assistantCases } from "./cases/assistant";
 import { backgroundCases } from "./cases/background";
 import { behaviourCases } from "./cases/behaviour";
@@ -13,7 +14,6 @@ import {
 	describeError,
 	evalModel,
 	judge,
-	limitedFetch,
 	OPENROUTER,
 	type Transcript,
 } from "./harness";

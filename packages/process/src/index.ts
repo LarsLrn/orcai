@@ -17,3 +17,4 @@ export type {
 } from "./artifact/types";
 export { ProcessError } from "./errors";
 export { extract } from "./extract/extract";
+export { getExtractionProfileConfig } from "./extract/profiles";
