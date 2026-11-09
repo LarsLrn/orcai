@@ -1081,6 +1081,7 @@ test(
 		await on(index, link, reconcileEmbeddings);
 		await settle(link, "failed", "missing_extraction");
 		const before = await processingOf(link);
+		const collections = await collectionsOf(index);
 		await on(index, link, startPreparingMissingExtractionsAgain(await admin()));
 		const job = await takePreparation();
 
@@ -1098,6 +1099,8 @@ test(
 		await switching;
 
 		expect(await preparing).toBe(0);
+		// Prepare again writes no points, so it leaves the new generation's collection to its first use.
+		expect(await collectionsOf(index)).toEqual(collections);
 		await boss.complete(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, job.id);
 		expect(await processingOf(link)).toEqual(before);
 		expect(await linkOf(link)).toMatchObject({

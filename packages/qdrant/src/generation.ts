@@ -217,11 +217,11 @@ const ensureActiveCollection = (generation: {
 
 /**
  * Runs `body` in a transaction holding the generation lock shared, so no
- * switch lands while it writes points. The generation `body` runs on must
- * still be active, else it fails `StaleEmbeddingGenerationError`; outside one
- * it runs on the active generation. Point writes need it.
+ * switch lands while it runs. The generation `body` runs on must still be
+ * active, else it fails `StaleEmbeddingGenerationError`; outside one it runs
+ * on the active generation.
  */
-export const writeGeneration = <A, E, R>(body: Effect.Effect<A, E, R>) =>
+export const holdGeneration = <A, E, R>(body: Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const ambient = yield* Effect.serviceOption(EmbeddingGeneration);
@@ -243,16 +243,26 @@ export const writeGeneration = <A, E, R>(body: Effect.Effect<A, E, R>) =>
 									}),
 								),
 				});
-				yield* ensureActiveCollection(generation);
 				return yield* body.pipe(
-					Effect.provideService(GenerationWrite, {
-						collection: generation.collection,
-					}),
 					Effect.provideService(EmbeddingGeneration, generation),
 				);
 			}),
 		);
 	});
+
+/** `holdGeneration` on the generation's collection, set up first. Point writes need it. */
+export const writeGeneration = <A, E, R>(body: Effect.Effect<A, E, R>) =>
+	holdGeneration(
+		Effect.gen(function* () {
+			const generation = yield* EmbeddingGeneration;
+			yield* ensureActiveCollection(generation);
+			return yield* body.pipe(
+				Effect.provideService(GenerationWrite, {
+					collection: generation.collection,
+				}),
+			);
+		}),
+	);
 
 const runOn = <A, E, R>(
 	stored: StoredGeneration,

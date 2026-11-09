@@ -3,8 +3,8 @@ import { advisoryXactLock, DB, dbSchema, homeScopeOf } from "@orcai/db";
 import { liveJobs, sendJobBatchInTransaction } from "@orcai/pg-boss";
 import {
 	EmbeddingIndex,
+	holdGeneration,
 	maintainCollections,
-	writeGeneration,
 } from "@orcai/qdrant";
 import {
 	isRetryableFailure,
@@ -303,7 +303,7 @@ export const prepareMissingExtractionsAgain = (
 			selected: Effect.Success<ReturnType<typeof assetsMissing>>[number],
 			run: AdmissionRun | undefined,
 		) =>
-			writeGeneration(
+			holdGeneration(
 				Effect.gen(function* () {
 					const [still] = yield* assetsMissing(eq(asset.id, selected.id));
 					return still
