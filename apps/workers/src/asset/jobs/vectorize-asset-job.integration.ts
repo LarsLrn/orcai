@@ -195,11 +195,23 @@ afterAll(async () => {
 	await embeddings.stop(true);
 });
 
-/** A processed document linked to a fresh repository, with its stored extraction of `chunks`. */
+type SeedChunk =
+	| string
+	| {
+			content: string;
+			headings?: string[];
+			page?: number;
+	  };
+
+/** A processed document linked to a fresh repository, with its stored extraction of `chunks` and described `images`. */
 const seed = (
-	chunks: string[] = [
+	chunks: SeedChunk[] = [
 		"Refunds rose in February.",
 	],
+	images: {
+		text: string;
+		page: number;
+	}[] = [],
 ) =>
 	run(
 		Effect.gen(function* () {
@@ -241,18 +253,45 @@ const seed = (
 							sourceBucket: buckets.main.name,
 							sourcePath: assetObjectKey(asset),
 						}),
-						content: chunks.join("\n"),
-						chunks: chunks.map((content, chunkIndex) => ({
-							content,
-							chunkType: "text",
-							metadata: {
-								byteStart: 0,
-								byteEnd: content.length,
-								chunkIndex,
-								totalChunks: chunks.length,
-							},
+						content: chunks
+							.map((chunk) =>
+								typeof chunk === "string" ? chunk : chunk.content,
+							)
+							.join("\n"),
+						chunks: chunks.map((chunk, chunkIndex) => {
+							const { content, headings, page } =
+								typeof chunk === "string"
+									? {
+											content: chunk,
+										}
+									: chunk;
+							return {
+								content,
+								chunkType: "text",
+								metadata: {
+									byteStart: 0,
+									byteEnd: content.length,
+									chunkIndex,
+									totalChunks: chunks.length,
+									firstPage: page,
+									lastPage: page,
+									headingContext: headings && {
+										headings: headings.map((text, level) => ({
+											level: level + 1,
+											text,
+										})),
+									},
+								},
+							};
+						}),
+						images: images.map(({ text, page }, index) => ({
+							imageIndex: index,
+							isMask: false,
+							format: "png",
+							pageNumber: page,
+							sourcePath: `figures/${index}.png`,
+							text,
 						})),
-						images: [],
 					}),
 				),
 				contentType: "application/json",
@@ -568,6 +607,75 @@ test(
 		const [payload] = await payloadsOf(link);
 		expect(payload?.text).toBe("Refunds rose in February.");
 		expect(payload?.lexical_text).toBeUndefined();
+	},
+	TIMEOUT,
+);
+
+test(
+	"passages carry their section and the asset's title, a text passage is embedded below its section, and an image takes its page's section",
+	async () => {
+		const link = await seed(
+			[
+				{
+					content: "Late refunds earn interest.",
+					headings: [
+						"Refunds",
+						"Late refunds",
+					],
+					page: 2,
+				},
+				{
+					content: "The desk opens at nine.",
+					page: 3,
+				},
+			],
+			[
+				{
+					text: "Bar chart of late refunds per month.",
+					page: 2,
+				},
+			],
+		);
+		const job = await admit(link);
+		const before = embedding.inputs.length;
+
+		await vectorize(job);
+
+		expect(embedding.inputs.slice(before)).toEqual([
+			"passage:\nRefunds > Late refunds\n\nLate refunds earn interest.",
+			"passage:\nThe desk opens at nine.",
+			"passage:\nBar chart of late refunds per month.",
+		]);
+		const payloads = await payloadsOf(link);
+		expect(
+			payloads
+				.map((payload) => ({
+					text: payload?.text,
+					section: payload?.section,
+					document_title: payload?.document_title,
+					lexical_text: payload?.lexical_text,
+				}))
+				.sort((a, b) => String(a.text).localeCompare(String(b.text))),
+		).toEqual([
+			{
+				text: "Bar chart of late refunds per month.",
+				section: "Refunds > Late refunds",
+				document_title: "refunds.pdf",
+				lexical_text: undefined,
+			},
+			{
+				text: "Late refunds earn interest.",
+				section: "Refunds > Late refunds",
+				document_title: "refunds.pdf",
+				lexical_text: "Refunds > Late refunds\n\nLate refunds earn interest.",
+			},
+			{
+				text: "The desk opens at nine.",
+				section: undefined,
+				document_title: "refunds.pdf",
+				lexical_text: undefined,
+			},
+		]);
 	},
 	TIMEOUT,
 );

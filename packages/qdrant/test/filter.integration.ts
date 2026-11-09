@@ -65,6 +65,15 @@ const points = {
 			1,
 		],
 	},
+	c1: {
+		assetId: c,
+		chunk: 1,
+		pages: [
+			1,
+			1,
+		],
+		source: "image",
+	},
 	otherBlock: {
 		assetId: a,
 		chunk: 0,
@@ -94,6 +103,7 @@ const points = {
 		];
 		blockId?: BlockId;
 		published?: boolean;
+		source?: "image";
 	}
 >;
 type Name = keyof typeof points;
@@ -118,7 +128,7 @@ beforeAll(
 						0,
 					],
 					payload: {
-						source: "text" as const,
+						source: "source" in point ? point.source : ("text" as const),
 						asset_id: point.assetId,
 						block_id: "blockId" in point ? point.blockId : blockId,
 						text: name,
@@ -164,6 +174,7 @@ describe("buildQdrantFilter", () => {
 			"b0",
 			"b1",
 			"c0",
+			"c1",
 		]);
 	});
 
@@ -210,6 +221,26 @@ describe("buildQdrantFilter", () => {
 		).toEqual([
 			"a1",
 			"a2",
+		]);
+	});
+
+	test("keeps only text passages or only image descriptions", async () => {
+		expect(
+			await served({
+				assetIds: [
+					c,
+				],
+				source: "text",
+			}),
+		).toEqual([
+			"c0",
+		]);
+		expect(
+			await served({
+				source: "image",
+			}),
+		).toEqual([
+			"c1",
 		]);
 	});
 

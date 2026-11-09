@@ -15,6 +15,10 @@ export const passageSchema = z.object({
 	assetId: z.string(),
 	title: z.string(),
 	blockName: z.string(),
+	/** The heading path the passage starts in. */
+	section: z.string().optional(),
+	/** A model's description of an image in the asset, not the asset's own words. */
+	kind: z.literal("figure").optional(),
 	pageStart: z.number().optional(),
 	pageEnd: z.number().optional(),
 	totalPages: z.number().optional(),

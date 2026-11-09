@@ -13,6 +13,7 @@ export const payloadKey = {
 	chunkPageEnd: "chunkPageEnd",
 	indexAttempt: "index_attempt",
 	published: "published",
+	source: "source",
 } as const satisfies Record<string, keyof AssetPointPayload>;
 
 type PayloadKey = (typeof payloadKey)[keyof typeof payloadKey];
@@ -79,7 +80,7 @@ const unique = <T>(values: readonly T[] | undefined) => [
 /**
  * The points matching every given restriction: one of `pointIds`, one of
  * `assetIds`, `blockId`, overlapping `page` or `pageFrom`..`pageTo`, one of
- * `chunkIndices`. Undefined when nothing is restricted.
+ * `chunkIndices`, from `source`. Undefined when nothing is restricted.
  */
 export const buildQdrantFilter = (params: {
 	pointIds?: readonly string[];
@@ -89,6 +90,7 @@ export const buildQdrantFilter = (params: {
 	pageFrom?: number;
 	pageTo?: number;
 	chunkIndices?: readonly number[];
+	source?: AssetPointPayload["source"];
 }): Filter | undefined => {
 	const pointIds = unique(params.pointIds);
 	const assetIds = unique(params.assetIds);
@@ -130,6 +132,11 @@ export const buildQdrantFilter = (params: {
 		...(chunkIndices.length > 0
 			? [
 					matchAny(payloadKey.chunkIndex, chunkIndices),
+				]
+			: []),
+		...(params.source !== undefined
+			? [
+					matchValue(payloadKey.source, params.source),
 				]
 			: []),
 	];

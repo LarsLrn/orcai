@@ -1,5 +1,9 @@
 import { RAG_SETTINGS } from "@orcai/core";
-import type { AssetPoint, RetrievalMode } from "@orcai/schema";
+import type {
+	AssetPoint,
+	AssetPointPayload,
+	RetrievalMode,
+} from "@orcai/schema";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { buildQdrantFilter } from "./filter";
@@ -16,6 +20,7 @@ type RetrievalScope = {
 	readonly pageFrom?: number;
 	readonly pageTo?: number;
 	readonly passageIndices?: readonly number[];
+	readonly source?: AssetPointPayload["source"];
 };
 
 type RetrievalPolicy = {
@@ -104,6 +109,7 @@ export const retrievePassages = ({
 			pageFrom: scope.pageFrom,
 			pageTo: scope.pageTo,
 			chunkIndices: scope.passageIndices,
+			source: scope.source,
 		});
 
 		if (queries.length === 0) {

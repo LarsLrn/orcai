@@ -155,6 +155,8 @@ Dense ranks passages by meaning, Sparse by the words of the query (BM25), and Hy
 
 **Passages per asset** keeps one long asset from crowding out the others, because a search takes at most that many passages from each asset first. When that leaves the results short, the best remaining passages fill the free places.
 
+The bot reads each passage with its asset, its section headings and its pages. An image description is marked as one, so the bot does not quote it as the asset's words, and reading around it returns the text on its page.
+
 When a bot searches several repositories, each is ranked on its own and their results take turns: the best passage of every repository first, then the second best of every repository, and so on.
 
 Above the assets of a published repository, **Explore** opens its passages at `/app/library/repositories/<block id>/explore`.

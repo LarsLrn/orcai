@@ -76,22 +76,75 @@ const points = [
 		text: "Interest is paid with the refund.",
 		pageStart: 5,
 	}),
+	...[
+		{
+			id: "201",
+			index: 4,
+			text: "Bar chart of refunds per month.",
+			pageStart: 4,
+		},
+		{
+			id: "202",
+			index: 5,
+			text: "Photo of the refund desk.",
+			pageStart: 9,
+		},
+		// More images on page 7 than one page lookup returns, ahead of its text.
+		...Array.from(
+			{
+				length: 8,
+			},
+			(_, offset) => ({
+				id: `${401 + offset}`,
+				index: 6 + offset,
+				text: `Photo ${offset + 1} of the branch.`,
+				pageStart: 7,
+			}),
+		),
+	].map((fields) => {
+		const point = assetPoint(fields);
+		return {
+			...point,
+			payload: {
+				...point.payload,
+				source: "image" as const,
+			},
+		};
+	}),
+	assetPoint({
+		id: "301",
+		index: 14,
+		text: "The branch opened in 2019.",
+		pageStart: 7,
+	}),
 ];
 
 type SearchInput = {
 	filters: {
 		pointIds?: string[];
 		passageIndices?: number[];
+		page?: number;
+		source?: "text" | "image";
+		limit?: number;
 	};
 };
 
+const onPage = (point: AssetPoint, page: number) =>
+	(point.payload.chunkPageStart ?? Number.POSITIVE_INFINITY) <= page &&
+	page <= (point.payload.chunkPageEnd ?? Number.NEGATIVE_INFINITY);
+
 const searchPoints = ({ filters }: SearchInput) =>
 	Effect.succeed({
-		data: points.filter(
-			(point) =>
-				filters.pointIds?.includes(point.id) ??
-				filters.passageIndices?.includes(point.payload.chunk_index),
-		),
+		data: points
+			.filter(
+				(point) =>
+					(filters.pointIds?.includes(point.id) ??
+						filters.passageIndices?.includes(point.payload.chunk_index) ??
+						(filters.page !== undefined && onPage(point, filters.page))) &&
+					(filters.source === undefined ||
+						point.payload.source === filters.source),
+			)
+			.slice(0, filters.limit),
 	});
 
 beforeEach(() => {
@@ -387,6 +440,62 @@ describe("getPassages", () => {
 				},
 			],
 		});
+	});
+
+	test("reads the text on an image description's page, not the images indexed next to it", async () => {
+		answers["assetPoint.searchRepository"] = searchPoints;
+
+		const output = (await getPassagesTool(deps).execute?.(
+			{
+				passages: [
+					"201",
+				],
+				neighbours: 1,
+			},
+			options,
+		)) as {
+			passages: Passage[];
+		};
+
+		expect(
+			output.passages.map(({ id, kind, text }) => ({
+				id,
+				kind,
+				text,
+			})),
+		).toEqual([
+			{
+				id: "201",
+				kind: "figure",
+				text: "Bar chart of refunds per month.",
+			},
+			{
+				id: "101",
+				kind: undefined,
+				text: "Chapter 3. Refunds. Refunds are paid within 14 days of the request being approved. Late refunds earn interest at 2%.",
+			},
+		]);
+	});
+
+	test("finds the page's text around an image description however many images share the page", async () => {
+		answers["assetPoint.searchRepository"] = searchPoints;
+
+		const output = (await getPassagesTool(deps).execute?.(
+			{
+				passages: [
+					"401",
+				],
+				neighbours: 1,
+			},
+			options,
+		)) as {
+			passages: Passage[];
+		};
+
+		expect(output.passages.map(({ id }) => id)).toEqual([
+			"401",
+			"301",
+		]);
 	});
 
 	test("names the passages it could not find, without asking for unknown refs", async () => {

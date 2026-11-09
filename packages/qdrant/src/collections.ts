@@ -83,6 +83,12 @@ const payloadIndexes = [
 			type: "bool",
 		},
 	],
+	[
+		payloadKey.source,
+		{
+			type: "keyword",
+		},
+	],
 	// Only deleting and publishing an attempt's points filter on it, by range.
 	[
 		payloadKey.indexAttempt,
