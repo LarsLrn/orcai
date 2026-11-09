@@ -15,7 +15,7 @@ export {
 	QuotaUnavailableError,
 	QuotaWriteFailedError,
 } from "./errors";
-export { charTokens, promptTokens } from "./estimator";
+export { charTokens, partTokens, promptTokens } from "./estimator";
 export { createQuotaPoolWithInitialPeriod } from "./ledger";
 export {
 	type MeteredCall,
