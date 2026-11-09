@@ -10,7 +10,7 @@ import {
 } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Toaster, toast } from "sonner";
-import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
+import { ConfirmDialogProvider } from "@/components/ui/composed/confirm-dialog";
 import { ReasonError } from "@/lib/errors/reason-error";
 import { reasonMessage } from "@/lib/errors/reason-messages";
 import { createQueryClient } from "@/lib/orpc/query-client";

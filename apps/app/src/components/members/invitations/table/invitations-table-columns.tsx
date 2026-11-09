@@ -2,7 +2,7 @@ import type { OrganizationInvitation } from "@orcai/schema";
 import { useRouter } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { toast } from "sonner";
-import { DisplayTimestamp } from "@/components/app/display-time";
+import { DisplayTimestamp } from "@/components/ui/composed/display-time";
 import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";

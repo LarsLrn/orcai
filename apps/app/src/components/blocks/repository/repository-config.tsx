@@ -9,8 +9,8 @@ import {
 import { ChevronDownIcon, RotateCwIcon, TelescopeIcon } from "lucide-react";
 import { useState } from "react";
 import { CompactAssetTile } from "@/components/assets/asset-tile";
-import { useRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
 import { ContentRenderer } from "@/components/editor/content-renderer";
+import { useRepositoryReadiness } from "@/components/preparation/use-repository-readiness";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {

@@ -1,7 +1,7 @@
 // biome-ignore lint/suspicious/noDeprecatedImports: only its legacy overloads are deprecated.
 import { useBlocker, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
+import { useConfirm } from "@/components/ui/composed/confirm-dialog";
 import { useCallbackRef } from "@/hooks/use-callback-ref";
 import { m } from "@/paraglide/messages";
 

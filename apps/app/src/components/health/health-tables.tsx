@@ -5,7 +5,6 @@ import type {
 	InstanceVersions,
 } from "@orcai/schema";
 import type { ReactNode } from "react";
-import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -14,6 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { DisplayTimestamp } from "@/components/ui/composed/display-time";
 import {
 	Table,
 	TableBody,

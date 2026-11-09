@@ -13,14 +13,14 @@ import {
 	ConversationContent,
 } from "@/components/ai-elements/conversation";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { AssetsPanel } from "@/components/assets/readiness/assets-panel";
-import { useChatRepositoryIds } from "@/components/assets/readiness/use-repository-readiness";
 import { AssistantComposerGate } from "@/components/assistant/assistant-composer-gate";
 import { AssistantModelLabel } from "@/components/assistant/assistant-model-label";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { PlanPanel } from "@/components/assistant/plan-panel";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
-import { ChatEmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
+import { AssetsPanel } from "@/components/preparation/assets-panel";
+import { ChatEmbeddingsRebuildNotice } from "@/components/preparation/embeddings-rebuild-notice";
+import { useChatRepositoryIds } from "@/components/preparation/use-repository-readiness";
 import {
 	chatLinkSafety,
 	LinkSafetyContext,

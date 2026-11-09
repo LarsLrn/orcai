@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import {
 	type ConfirmOptions,
 	useConfirm,
-} from "@/components/ui/dialog/confirm-dialog";
+} from "@/components/ui/composed/confirm-dialog";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 
 export type MutationActionResult<TData, TError> =

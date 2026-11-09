@@ -6,8 +6,8 @@ import type {
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { DisplayDate } from "@/components/app/display-time";
 import { buttonVariants } from "@/components/ui/button";
+import { DisplayDate } from "@/components/ui/composed/display-time";
 import {
 	Panel,
 	PanelHeader,

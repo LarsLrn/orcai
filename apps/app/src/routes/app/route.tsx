@@ -4,7 +4,7 @@ import { Header } from "@/components/app/header";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { AppSidebar } from "@/components/app/sidebar/app-sidebar";
 import { loadAssistantModel } from "@/components/assistant/use-assistant-model";
-import { EmbeddingsSetupBanner } from "@/components/instance/settings/embeddings-setup-banner";
+import { EmbeddingsSetupBanner } from "@/components/preparation/embeddings-setup-banner";
 import {
 	TourProvider,
 	tourPreferencesQuery,

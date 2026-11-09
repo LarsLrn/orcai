@@ -7,9 +7,9 @@ import {
 } from "@orcai/schema";
 import { ChevronDownIcon, DatabaseIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { AssetIntakeFlow } from "@/components/assets/shared/asset-intake-flow";
 import { AssetLibraryPicker } from "@/components/assets/shared/asset-library-picker";
 import { SelectedAssetList } from "@/components/assets/shared/selected-asset-list";
+import { AssetIntakeFlow } from "@/components/assets/upload/asset-intake-flow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

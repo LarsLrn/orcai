@@ -1,6 +1,6 @@
 import type { OrganizationInvitationListItem } from "@orcai/schema";
 import { Button } from "@/components/ui/button";
-import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
+import { useConfirm } from "@/components/ui/composed/confirm-dialog";
 import { useRespondOrganizationInvitationMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { m } from "@/paraglide/messages";
 

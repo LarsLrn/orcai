@@ -9,7 +9,7 @@ import { z } from "zod/v4";
 import { FormSection } from "@/components/forms/form-layout";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
+import { useConfirm } from "@/components/ui/composed/confirm-dialog";
 import { useAppForm } from "@/hooks/form";
 import { describeError, errorReasonOf } from "@/lib/errors/describe-error";
 import { formatCount } from "@/lib/locale/format-number";

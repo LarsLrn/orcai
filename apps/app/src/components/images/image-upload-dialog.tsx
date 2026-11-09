@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
-import { FileUploader } from "@/components/assets/file-uploader";
+import { FileUploader } from "@/components/assets/upload/file-uploader";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,

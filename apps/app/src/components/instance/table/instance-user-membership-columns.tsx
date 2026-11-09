@@ -1,8 +1,8 @@
 import type { InstanceUserMembership } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { DisplayDate } from "@/components/app/display-time";
 import { OrganizationLogo } from "@/components/organizations/organization-logo";
+import { DisplayDate } from "@/components/ui/composed/display-time";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { getOrganizationRoleLabel } from "@/lib/labels/organization-role";

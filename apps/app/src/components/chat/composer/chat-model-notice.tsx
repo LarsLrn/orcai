@@ -2,10 +2,10 @@ import type { BotId } from "@orcai/core";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { CircleAlertIcon } from "lucide-react";
-import { DisplayTimestamp } from "@/components/app/display-time";
 import { MODEL_STEP_INDEX } from "@/components/authoring/bot-editor-steps";
 import type { ComposerBlocker } from "@/components/chat/composer/composer-blocker";
 import { buttonVariants } from "@/components/ui/button";
+import { DisplayTimestamp } from "@/components/ui/composed/display-time";
 import {
 	Tooltip,
 	TooltipContent,

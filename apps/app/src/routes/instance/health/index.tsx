@@ -7,9 +7,9 @@ import {
 	ProcessesCard,
 	QueuesCard,
 	VersionsCard,
-} from "@/components/instance/health/health-tables";
-import { instanceCheckTitle } from "@/components/instance/health/instance-check-titles";
-import { MailCard } from "@/components/instance/health/mail-card";
+} from "@/components/health/health-tables";
+import { instanceCheckTitle } from "@/components/health/instance-check-titles";
+import { MailCard } from "@/components/health/mail-card";
 import { Button } from "@/components/ui/button";
 import {
 	Page,

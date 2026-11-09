@@ -1,11 +1,11 @@
 import type { ChatListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { DisplayTimestamp } from "@/components/app/display-time";
 import { ChatActionsDropdown } from "@/components/chat/list/chat-actions-dropdown";
 import { PinMark } from "@/components/chat/list/pin-mark";
 import { SearchSnippet } from "@/components/chat/list/search-snippet";
 import { BranchMark } from "@/components/chat/message/branch-links";
+import { DisplayTimestamp } from "@/components/ui/composed/display-time";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";

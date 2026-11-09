@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import {
 	type ConfirmOptions,
 	useConfirm,
-} from "@/components/ui/dialog/confirm-dialog";
+} from "@/components/ui/composed/confirm-dialog";
 import {
 	callProcedure,
 	useMutationAction,

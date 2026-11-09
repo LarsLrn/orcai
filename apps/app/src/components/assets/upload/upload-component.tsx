@@ -1,13 +1,13 @@
 import { ASSET_UPLOAD_ACCEPT, UPLOAD_ROUTES } from "@orcai/s3";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { describeUploadFailures } from "@/components/assets/describe-upload-failures";
-import { FileUploader } from "@/components/assets/file-uploader";
-import { UploadProgress } from "@/components/assets/upload-progress";
+import { describeUploadFailures } from "@/components/assets/upload/describe-upload-failures";
+import { FileUploader } from "@/components/assets/upload/file-uploader";
+import { UploadProgress } from "@/components/assets/upload/upload-progress";
 import {
 	type AssetIntakeOutcome,
 	useAssetIntake,
-} from "@/components/assets/use-asset-intake";
+} from "@/components/assets/upload/use-asset-intake";
 import { Button } from "@/components/ui/button";
 import {
 	Card,

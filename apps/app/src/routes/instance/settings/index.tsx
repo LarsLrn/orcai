@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { EmbeddingsRebuildAlert } from "@/components/instance/settings/embeddings-rebuild-notice";
 import { EmbeddingsSection } from "@/components/instance/settings/embeddings-section";
 import { SearchIndexSection } from "@/components/instance/settings/search-index-section";
+import { EmbeddingsRebuildAlert } from "@/components/preparation/embeddings-rebuild-notice";
 import {
 	Page,
 	PageContent,
