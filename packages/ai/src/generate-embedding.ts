@@ -10,6 +10,8 @@ export interface EmbeddingConnection {
 	readonly baseUrl: string;
 	readonly apiKey: string;
 	readonly model: string;
+	/** Replaces the global fetch, such as to keep under a rate limit. */
+	readonly fetch?: typeof globalThis.fetch;
 }
 
 // Small calls, two at a time: a slow endpoint answers each well inside fetch's idle timeout.
@@ -23,6 +25,7 @@ const embeddingModel = (connection: EmbeddingConnection) =>
 		model: createOpenAI({
 			baseURL: connection.baseUrl,
 			apiKey: connection.apiKey,
+			fetch: connection.fetch,
 			name: "globalProvider",
 		}).embedding(connection.model),
 		middleware: {

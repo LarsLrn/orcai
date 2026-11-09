@@ -1,4 +1,4 @@
-import { QdrantClient } from "@qdrant/qdrant-js";
+import { QdrantClient, type Schemas } from "@qdrant/qdrant-js";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -15,7 +15,7 @@ export class QdrantService extends Context.Service<
 	QdrantService,
 	{
 		readonly client: QdrantClient;
-		readonly bm25Config: typeof defaultBm25Config;
+		readonly bm25Config: Schemas["Bm25Config"];
 	}
 >()("QdrantService") {}
 

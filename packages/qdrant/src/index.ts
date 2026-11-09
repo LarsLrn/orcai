@@ -1,5 +1,7 @@
 export * from "./browse";
+export { ensureCollection } from "./collections";
 export {
+	defaultBm25Config,
 	QdrantConfigLive,
 	QdrantConfigService,
 } from "./config";
