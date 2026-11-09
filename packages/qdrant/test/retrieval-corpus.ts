@@ -99,7 +99,7 @@ type Seed = {
 		number,
 	];
 };
-export const seeds: Record<string, Seed> = {
+const seeds: Record<string, Seed> = {
 	a1: {
 		asset: "a",
 		text: "Our refund policy: a refund is paid within 14 days.",

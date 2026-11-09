@@ -298,7 +298,7 @@ See [.env.example](.env.example) for a current baseline.
 
 - `bun run stack up`: start this checkout's infrastructure and apply migrations
 - `bun run dev`: start the development server (alias for `bun run stack dev`)
-- `bun run verify`: run lint, the migration check, and unit tests
+- `bun run verify`: run lint and unit tests
 - `bun run test:integration`: run the integration tier against the stack
 - `bun run e2e`: reset the stack and run the end-to-end suite and the integration tier
 - `bun run build`: build the app, documentation site, and workers
@@ -308,8 +308,8 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run start`: run the production server from `apps/app/.output`
 - `bun run workers:dev`: start worker process directly on the host
 - `bun run workers:start`: run the worker bundle from `apps/workers/dist`
-- `bun run lint`: run Biome, TypeScript checks, and the migration check. Biome also fails a module in `apps/app/src/lib` that imports from `components`, `hooks` or `routes`
-- `bun run ci`: run the same lint, migration check, ESLint, test, docs type-check, and build suite used by GitHub Actions
+- `bun run lint`: run Biome, TypeScript checks, the migration check, and Knip. Biome also fails a module in `apps/app/src/lib` that imports from `components`, `hooks` or `routes`
+- `bun run ci`: run the same lint, ESLint, test, docs type-check, and build suite used by GitHub Actions
 - `bun run prompt-evals`: run the prompt evals against real models through OpenRouter, on demand for prompt changes (see `.agents/skills/prompting/EVALS.md`)
 - `bun run stack migrate`: apply SQL migrations and the SpiceDB schema
 - `bun run stack exec -- bun run --filter @orcai/db generate`: generate a new Drizzle migration

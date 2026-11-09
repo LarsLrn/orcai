@@ -1,26 +1,6 @@
 {
 	"workspaces": {
 		".": {
-			"ignoreDependencies": [
-				"@effect/language-service"
-			],
-			"biome": {
-				"config": [
-					"biome.json",
-					"biome.jsonc"
-				]
-			},
-			"commitlint": {
-				"config": [
-					"package.json",
-					"package.yaml",
-					".commitlintrc",
-					".config/commitlintrc",
-					".commitlintrc.{json,yaml,yml,js,ts,cjs,mjs,cts}",
-					"commitlint.config.{js,ts,cjs,mjs,cts}",
-					".config/commitlintrc.{json,yaml,yml,js,ts,cjs,mjs,cts}"
-				]
-			},
 			"entry": [
 				"scripts/*.ts"
 			]
@@ -28,35 +8,13 @@
 		"apps/app": {
 			"entry": [
 				"src/routes/**/*.{ts,tsx}",
-				"src/router.tsx",
-				"src/client.tsx",
-				"src/server.ts",
 				"src/lib/server/nitro-content-security-policy.ts",
-				"src/**/*.test.{ts,tsx}",
 				"src/**/*.integration.ts",
-				"scripts/**/*.test.ts"
-			],
-			"project": [
-				"src/**/*.{ts,tsx}",
-				"scripts/**/*.ts"
-			],
-			"ignore": [
-				"src/paraglide/**"
+				"project.inlang/paraglide.config.ts"
 			],
 			"ignoreDependencies": [
-				"@effect/language-service",
-				"@fontsource-variable/geist",
-				"@tailwindcss/typography",
-				"postcss",
-				"tailwindcss",
-				"tw-animate-css",
-				"shadcn"
+				"postcss"
 			],
-			"vite": {
-				"config": [
-					"vite.config.{js,mjs,ts,cjs,mts,cts}"
-				]
-			},
 			"ignoreIssues": {
 				"src/components/ui/**": [
 					"exports",
@@ -70,92 +28,62 @@
 				"playwright.config.ts",
 				"tests/**/*.ts",
 				"fixtures/**/*.ts"
-			],
-			"project": [
-				"**/*.ts"
 			]
 		},
 		"apps/workers": {
 			"entry": [
 				"src/start-workers.ts",
-				"src/**/*.test.ts",
 				"src/**/*.integration.ts"
-			],
-			"project": [
-				"src/**/*.ts"
 			],
 			"ignoreDependencies": [
 				"@kreuzberg/node"
 			]
 		},
-		"packages/db": {
-			"entry": [
-				"src/index.ts",
-				"src/schema/*.ts"
-			],
-			"project": [
-				"src/**/*.ts"
-			],
-			"drizzle": {
-				"config": [
-					"drizzle.config.{ts,js,json}"
-				]
-			}
-		},
-		"packages/spice-db": {
-			"entry": [
-				"src/index.ts",
-				"src/cli.ts"
-			],
-			"project": [
-				"src/**/*.ts"
-			]
-		},
-		"packages/contracts": {
-			"entry": [
-				"src/index.ts",
-				"src/**/*.test.ts",
-				"test/**/*.{test,integration}.ts"
-			],
-			"project": [
-				"src/**/*.{ts,tsx}"
-			]
-		},
-		"packages/core": {
-			"entry": [
-				"src/index.ts",
-				"src/**/*.test.ts",
-				"test/**/*.{test,integration}.ts"
-			],
-			"project": [
-				"src/**/*.{ts,tsx}"
-			]
-		},
-		"packages/pg-boss": {
-			"entry": [
-				"src/index.ts",
-				"src/**/*.test.ts",
-				"test/**/*.{test,integration}.ts"
-			],
-			"project": [
-				"src/**/*.{ts,tsx}"
-			]
-		},
-		"packages/*": {
-			"entry": [
-				"src/index.ts",
-				"src/**/*.test.ts",
-				"test/**/*.{test,integration}.ts"
-			],
-			"project": [
-				"src/**/*.{ts,tsx}"
-			],
-			"includeEntryExports": true
-		},
 		"apps/web": {
 			"entry": [
 				"scripts/*.ts"
 			]
+		},
+		"packages/contracts": {},
+		"packages/core": {
+			"entry": [
+				"test/**/*.{test,integration}.ts"
+			]
+		},
+		"packages/db": {
+			"entry": [
+				"src/schema/*.ts",
+				"test/**/*.integration.ts"
+			]
+		},
+		"packages/pg-boss": {
+			"entry": [
+				"test/**/*.{test,integration}.ts"
+			]
+		},
+		"packages/spice-db": {
+			"entry": [
+				"test/**/*.{test,integration}.ts"
+			]
+		},
+		"packages/notifications": {
+			"entry": [
+				"test/**/*.{test,integration}.ts"
+			],
+			"project": [
+				"src/**/*.{ts,tsx}",
+				"test/**/*.ts"
+			],
+			"includeEntryExports": true
+		},
+		"packages/testing": {
+			"includeEntryExports": true
+		},
+		"packages/*": {
+			"entry": [
+				"test/**/*.{test,integration}.ts"
+			],
+			"includeEntryExports": true
 		}
 	}
 }
