@@ -18,12 +18,12 @@ const isFilePart = (part: unknown) =>
 	"type" in part &&
 	(part.type === "file" || part.type === "image");
 
+/** The estimate of one message part, a file at the cost of a large image. */
+export const partTokens = (part: unknown) =>
+	isFilePart(part) ? FILE_PART_TOKENS : charTokens(part);
+
 const partsTokens = (parts: readonly unknown[]) =>
-	parts.reduce<number>(
-		(sum, part) =>
-			sum + (isFilePart(part) ? FILE_PART_TOKENS : charTokens(part)),
-		0,
-	);
+	parts.reduce<number>((sum, part) => sum + partTokens(part), 0);
 
 const messageTokens = (message: unknown) => {
 	if (typeof message === "object" && message !== null) {

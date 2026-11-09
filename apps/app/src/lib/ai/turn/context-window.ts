@@ -5,7 +5,7 @@ import {
 	compactionSource,
 	type ModelProviderKind,
 } from "@orcai/core";
-import { charTokens, promptTokens } from "@orcai/quota";
+import { charTokens, partTokens, promptTokens } from "@orcai/quota";
 import type { ChatMessageMetadata, ModelTokenLimits } from "@orcai/schema";
 import {
 	asSchema,
@@ -29,17 +29,28 @@ const TRIM_TARGET = 0.75;
 /** How the summary of the earlier conversation reaches the model, ahead of the latest turn. */
 export const SUMMARY_PREFIX = "Summary of the earlier conversation:\n\n";
 
-const messageTokens = (message: UIMessage) =>
-	promptTokens([
-		message,
-	]);
+type MessageTokens = (message: UIMessage) => number;
+
+/** Message estimates that count each part once, however often a fit asks. */
+const messageTokens = (): MessageTokens => {
+	const sizes = new WeakMap<object, number>();
+	return (message) =>
+		message.parts.reduce((sum, part) => {
+			const size = sizes.get(part) ?? partTokens(part);
+			sizes.set(part, size);
+			return sum + size;
+		}, 0);
+};
 
 /** How the provider's count of a reply's context compares to the estimate it was sent with. */
-const scaleOf = (message: UIMessage<ChatMessageMetadata> | undefined) => {
+const scaleOf = (
+	message: UIMessage<ChatMessageMetadata> | undefined,
+	tokens: MessageTokens,
+) => {
 	const recorded = message?.role === "assistant" ? message.metadata : undefined;
 	return recorded?.contextTokens && recorded.contextEstimate
 		? recorded.contextTokens /
-				(recorded.contextEstimate + messageTokens(message as UIMessage))
+				(recorded.contextEstimate + tokens(message as UIMessage))
 		: undefined;
 };
 
@@ -237,25 +248,26 @@ const promptTurns = <M extends UIMessage<ChatMessageMetadata>>(
 	compaction: {
 		reads: (source: CompactionSource) => boolean;
 	},
+	tokens: MessageTokens,
 ) => {
 	const { prompt, anchorsFrom, summarized, before } = fromCompaction(
 		messages,
 		compaction.reads,
 	);
-	const sizes = prompt.map(messageTokens);
+	const sizes = prompt.map((message) => tokens(message));
 	const anchor = prompt
 		.map(
 			(message, index) =>
-				index >= anchorsFrom && scaleOf(message) !== undefined,
+				index >= anchorsFrom && scaleOf(message, tokens) !== undefined,
 		)
 		.lastIndexOf(true);
-	const scale = scaleOf(prompt[anchor]) ?? 1;
+	const scale = scaleOf(prompt[anchor], tokens) ?? 1;
 	// The request is the same as before the compaction, so a reply from then still calibrates it.
 	const requestScale =
 		anchor >= 0
 			? scale
 			: (before
-					.map(scaleOf)
+					.map((message) => scaleOf(message, tokens))
 					.filter((found) => found !== undefined)
 					.at(-1) ?? 1);
 	const cost = (index: number) =>
@@ -310,6 +322,7 @@ const fitReadsFrom = <
 	readFrom,
 	budget,
 	compaction,
+	tokens,
 }: {
 	messages: M[];
 	/** Where the messages whose files were read start. */
@@ -319,6 +332,7 @@ const fitReadsFrom = <
 	compaction: {
 		reads: (source: CompactionSource) => boolean;
 	};
+	tokens: MessageTokens;
 }) => {
 	// A read file adds at least one part, so an unread one counts as an empty part.
 	const sized = messages.map((message, index) =>
@@ -337,7 +351,7 @@ const fitReadsFrom = <
 					],
 				},
 	);
-	const { prompt, turns } = promptTurns(sized, compaction);
+	const { prompt, turns } = promptTurns(sized, compaction, tokens);
 	const positions = new Map(
 		messages.map(({ id }, position) => [
 			id,
@@ -390,6 +404,8 @@ export const readForFit = <
 	read: (messages: M[]) => Effect.Effect<M[], E, R>;
 }) =>
 	Effect.gen(function* () {
+		// Reading keeps the parts it had, so each round sizes only the new ones.
+		const tokens = messageTokens();
 		let prompt = messages;
 		let from = messages.length;
 		let batch = FIRST_READ_BATCH;
@@ -399,6 +415,7 @@ export const readForFit = <
 				readFrom: from,
 				budget,
 				compaction,
+				tokens,
 			});
 			if (needed >= from) {
 				return prompt;
@@ -447,6 +464,7 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 	const { prompt, summarized, sizes, cost, requestScale, turns } = promptTurns(
 		messages,
 		compaction,
+		messageTokens(),
 	);
 
 	const full =

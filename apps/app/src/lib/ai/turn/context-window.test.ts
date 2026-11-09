@@ -636,14 +636,20 @@ describe("readForFit", () => {
 			],
 		).flat();
 
-	/** Reading a message's files adds each file's text as a part. */
+	/** Reading a message's files adds each file's text as a part, the same text every time. */
+	const fileTexts = new Map<number, ReturnType<typeof text>>();
+	const fileText = (tokens: number) => {
+		const part = fileTexts.get(tokens) ?? text(tokens);
+		fileTexts.set(tokens, part);
+		return part;
+	};
 	const readFiles = (message: Filed): Filed =>
 		message.role === "user" && message.attachments?.length
 			? {
 					...message,
 					parts: [
 						...message.parts,
-						...message.attachments.map(({ tokens }) => text(tokens)),
+						...message.attachments.map(({ tokens }) => fileText(tokens)),
 					],
 				}
 			: message;
@@ -740,6 +746,7 @@ describe("readForFit", () => {
 			],
 		])("fits as if every file were read, with %s", (_, compaction) => {
 			const unread: number[] = [];
+			const everyFileRead = messages.map(readFiles);
 			// From a budget that refuses the latest turn to one that holds the whole chat.
 			for (let budget = 200; budget <= 160_000; budget += 397) {
 				const batches: Filed[][] = [];
@@ -770,7 +777,7 @@ describe("readForFit", () => {
 				).toEqual(
 					fitContextWindow({
 						...options,
-						messages: messages.map(readFiles),
+						messages: everyFileRead,
 					}),
 				);
 				// Each batch is older than the one before.
