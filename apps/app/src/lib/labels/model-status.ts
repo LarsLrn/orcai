@@ -1,4 +1,4 @@
-import type { BadgeItem } from "@/lib/presentation/badge-item";
+import type { BadgeItem } from "@/lib/labels/badge-item";
 import { m } from "@/paraglide/messages";
 
 export const modelStatusBadge = (isDeprecated: boolean): BadgeItem =>

@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { describeError } from "@/lib/errors/describe-error";
-import { formatList } from "@/lib/presentation/format-list";
+import { formatList } from "@/lib/locale/format-list";
 import { m } from "@/paraglide/messages";
 
 type ChosenReceiver = {

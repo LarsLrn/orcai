@@ -20,8 +20,8 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { formatCount } from "@/lib/locale/format-number";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/instance/analytics/")({

@@ -7,11 +7,8 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-	formatCompactNumber,
-	formatPercent,
-} from "@/lib/presentation/format-number";
-import { formatRelativeTime } from "@/lib/presentation/format-timestamp";
+import { formatCompactNumber, formatPercent } from "@/lib/locale/format-number";
+import { formatRelativeTime } from "@/lib/locale/format-timestamp";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import type { UsageView } from "./usage-view";

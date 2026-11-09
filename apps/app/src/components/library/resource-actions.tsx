@@ -38,7 +38,7 @@ import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
 import { useCatalogueRemoveMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
-import type { ResourceKind } from "@/lib/presentation/resource-kind";
+import type { ResourceKind } from "@/lib/labels/resource-kind";
 import { m } from "@/paraglide/messages";
 
 /** A bot, block or asset as its actions read it. */

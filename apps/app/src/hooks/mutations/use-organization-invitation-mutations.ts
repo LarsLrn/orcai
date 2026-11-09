@@ -2,8 +2,8 @@ import { useDeleteAction } from "@/hooks/actions/use-delete-action";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import type { DestructiveTarget } from "@/hooks/mutations/destructive-target";
 import { useUmami } from "@/hooks/use-umami";
+import { formatList } from "@/lib/locale/format-list";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 
 export const useCreateOrganizationInvitationMutation = () => {

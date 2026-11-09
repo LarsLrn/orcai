@@ -36,12 +36,12 @@ import {
 	useRevokeResourceAccess,
 	useSetResourceListing,
 } from "@/hooks/authz/use-resource-access";
-import { toggleSelection } from "@/lib/utils/array-utils";
-import { m } from "@/paraglide/messages";
 import {
 	getResourceAccessHint,
 	getResourceRoleOptions,
-} from "@/settings/display-config";
+} from "@/lib/labels/access";
+import { toggleSelection } from "@/lib/utils/array-utils";
+import { m } from "@/paraglide/messages";
 
 const toPrincipalIdentity = (
 	principal: ResourcePrincipal,

@@ -1,6 +1,6 @@
 import type { AssetState, PipelineStatus } from "@orcai/schema";
-import { assetStateBadge } from "@/lib/presentation/asset-state";
-import type { BadgeItem } from "@/lib/presentation/badge-item";
+import { assetStateBadge } from "@/lib/labels/asset-state";
+import type { BadgeItem } from "@/lib/labels/badge-item";
 import { m } from "@/paraglide/messages";
 
 const processingStatusDescriptions: Record<PipelineStatus, () => string> = {

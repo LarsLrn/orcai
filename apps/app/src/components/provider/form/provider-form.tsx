@@ -20,9 +20,9 @@ import {
 	useCreateProviderMutation,
 	useUpdateProviderMutation,
 } from "@/hooks/mutations/use-provider-mutations";
-import { currencyOptions } from "@/lib/presentation/currency";
-import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
-import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
+import { getMeteringModeLabel } from "@/lib/labels/metering-mode";
+import { getProviderKindLabel } from "@/lib/labels/provider-kind";
+import { currencyOptions } from "@/lib/locale/currency";
 import { m } from "@/paraglide/messages";
 import { providerFormOptions } from "./provider-form-options";
 

@@ -17,8 +17,8 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useDisplayTime } from "@/hooks/use-display-time";
-import { getFileTypeLabel } from "@/lib/presentation/file-type";
-import { formatFileSize } from "@/lib/presentation/format-file-size";
+import { getFileTypeLabel } from "@/lib/labels/file-type";
+import { formatFileSize } from "@/lib/locale/format-file-size";
 import { m } from "@/paraglide/messages";
 
 const AssetMeta = ({ asset }: { asset: Asset }) => {

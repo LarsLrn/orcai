@@ -17,10 +17,10 @@ import {
 	panelRowVariants,
 } from "@/components/ui/composed/panel";
 import { StateBadge } from "@/components/ui/composed/state-badge";
+import { processingStatusBadge } from "@/lib/labels/processing-status";
+import { publicationStatusBadge } from "@/lib/labels/publication-status";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { orpc } from "@/lib/orpc/orpc";
-import { processingStatusBadge } from "@/lib/presentation/processing-status";
-import { publicationStatusBadge } from "@/lib/presentation/publication-status";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
 const RECENT_LIMIT = 6;

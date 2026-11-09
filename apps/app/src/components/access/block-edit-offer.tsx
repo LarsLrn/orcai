@@ -8,7 +8,7 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { hasCapability } from "@/lib/authz/capabilities";
-import { formatList } from "@/lib/presentation/format-list";
+import { formatList } from "@/lib/locale/format-list";
 import { m } from "@/paraglide/messages";
 
 export type LinkedBlock = {

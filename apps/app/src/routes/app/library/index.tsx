@@ -19,6 +19,7 @@ import {
 	libraryEntryId,
 } from "@/components/library/library-entry-tile";
 import { LibraryResults } from "@/components/library/library-results";
+import { isAssetWorking, METADATA_POLL_MS } from "@/lib/labels/metadata-status";
 import {
 	type LibrarySearch,
 	libraryFilters,
@@ -30,10 +31,6 @@ import {
 	libraryListQuery,
 	libraryOverviewQuery,
 } from "@/lib/library/library-queries";
-import {
-	isAssetWorking,
-	METADATA_POLL_MS,
-} from "@/lib/presentation/metadata-status";
 import { m } from "@/paraglide/messages";
 
 /** Below this many items, the overview is one grid instead of shelves. */

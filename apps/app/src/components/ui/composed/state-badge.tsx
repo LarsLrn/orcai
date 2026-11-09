@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { BadgeItem } from "@/lib/presentation/badge-item";
+import type { BadgeItem } from "@/lib/labels/badge-item";
 import { cn } from "@/lib/utils";
 
 /** A `BadgeItem` rendered as a badge. */

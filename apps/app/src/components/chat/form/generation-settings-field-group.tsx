@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/collapsible";
 import { withFieldGroup } from "@/hooks/form";
 import { reasonMessage } from "@/lib/errors/reason-messages";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 /** Maps the group onto a form whose generation settings sit at its top level. */

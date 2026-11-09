@@ -21,7 +21,7 @@ import {
 	runSummary,
 	runTitle,
 	runToast,
-} from "./activity";
+} from "./activity-text";
 
 const originalGetLocale = getLocale;
 

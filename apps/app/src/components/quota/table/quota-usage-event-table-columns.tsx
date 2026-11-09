@@ -8,7 +8,7 @@ import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
-import { formatNumber } from "@/lib/presentation/format-number";
+import { formatNumber } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 const eventTypeLabel = (eventType: QuotaUsageEventType) => {

@@ -14,8 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDeleteOrganizationsMutation } from "@/hooks/mutations/use-organization-mutations";
+import { formatList } from "@/lib/locale/format-list";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 
 const IMPACT_ROWS = [

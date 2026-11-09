@@ -1,6 +1,6 @@
 import type { Asset } from "@orcai/schema";
 import { LoaderCircleIcon } from "lucide-react";
-import type { BadgeItem } from "@/lib/presentation/badge-item";
+import type { BadgeItem } from "@/lib/labels/badge-item";
 import { m } from "@/paraglide/messages";
 
 /** How often an asset is read again while its metadata is being generated. */

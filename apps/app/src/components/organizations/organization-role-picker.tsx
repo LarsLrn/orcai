@@ -10,7 +10,7 @@ import {
 import {
 	getOrganizationRoleDescription,
 	getOrganizationRoleLabel,
-} from "@/lib/authz/organization-role-metadata";
+} from "@/lib/labels/organization-role";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

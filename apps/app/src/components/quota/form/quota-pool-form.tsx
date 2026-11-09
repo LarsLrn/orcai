@@ -14,8 +14,8 @@ import {
 	useCreateQuotaPoolMutation,
 	useUpdateQuotaPoolMutation,
 } from "@/hooks/mutations/use-quota-pool-mutations";
+import { getMeteringModeLabel } from "@/lib/labels/metering-mode";
 import { orpc } from "@/lib/orpc/orpc";
-import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
 import { m } from "@/paraglide/messages";
 import {
 	PROVIDER_WIDE_MODEL_VALUE,

@@ -15,7 +15,7 @@ import {
 	CodeBlockLine,
 } from "@/components/ui/code-block";
 import { useHighlightedCode } from "@/hooks/use-highlighted-code";
-import { appOrigin, markdownImage } from "@/lib/presentation/markdown-image";
+import { appOrigin, markdownImage } from "@/lib/markdown/markdown-image";
 import { cn } from "@/lib/utils";
 
 const reactMarkdownPlugins = {

@@ -10,8 +10,8 @@ import type { DataTableFeatures } from "@/components/ui/data-table/data-table-fe
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
-import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
-import { providerStatusBadge } from "@/lib/presentation/provider-status";
+import { getMeteringModeLabel } from "@/lib/labels/metering-mode";
+import { providerStatusBadge } from "@/lib/labels/provider-status";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Provider>();

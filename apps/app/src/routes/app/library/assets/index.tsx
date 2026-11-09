@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useGenerateMissingMetadataMutation } from "@/hooks/mutations/use-asset-mutations";
 import { activeOrganizationQuery } from "@/hooks/use-active-organization";
 import { useUtilityModel } from "@/hooks/use-utility-model";
+import { isAssetWorking, METADATA_POLL_MS } from "@/lib/labels/metadata-status";
 import {
 	assetLibrarySearchSchema,
 	libraryFilters,
@@ -24,10 +25,6 @@ import {
 	libraryListQuery,
 } from "@/lib/library/library-queries";
 import { orpc } from "@/lib/orpc/orpc";
-import {
-	isAssetWorking,
-	METADATA_POLL_MS,
-} from "@/lib/presentation/metadata-status";
 import { m } from "@/paraglide/messages";
 
 /** Generates metadata for the library assets that lack it; hidden without a utility model or anything to generate. */

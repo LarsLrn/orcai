@@ -12,11 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { UserAvatar } from "@/components/users/user-avatar";
-import { m } from "@/paraglide/messages";
 import {
 	getResourceRoleLabel,
 	getResourceRoleOptions,
-} from "@/settings/display-config";
+} from "@/lib/labels/access";
+import { m } from "@/paraglide/messages";
 
 const originLabel = (origin: DirectGrantOrigin) =>
 	({

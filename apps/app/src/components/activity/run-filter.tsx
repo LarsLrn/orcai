@@ -2,9 +2,9 @@ import type { ActivityRunId } from "@orcai/core";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ActivityIcon, XIcon } from "lucide-react";
+import { runTitle } from "@/components/activity/activity-text";
 import { buttonVariants } from "@/components/ui/button";
 import { orpc } from "@/lib/orpc/orpc";
-import { runTitle } from "@/lib/presentation/activity";
 import { m } from "@/paraglide/messages";
 
 /** The activity entry the Library opens on; the asset list loads it. */

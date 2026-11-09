@@ -1,6 +1,6 @@
 import { useRouteContext } from "@tanstack/react-router";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
-import { membershipControl } from "@/lib/authz/organization-role-metadata";
+import { membershipControl } from "@/lib/labels/organization-role";
 
 /** Which memberships and invitations of the active organisation the user may manage. */
 export const useMembershipControl = () => {

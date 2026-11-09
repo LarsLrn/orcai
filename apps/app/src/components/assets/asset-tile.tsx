@@ -26,15 +26,15 @@ import { useEmbeddingsConfigured } from "@/hooks/use-embeddings-configured";
 import {
 	assetStateBadge,
 	getPipelineFailureDescription,
-} from "@/lib/presentation/asset-state";
-import type { BadgeItem } from "@/lib/presentation/badge-item";
-import { getFileTypeLabel } from "@/lib/presentation/file-type";
+} from "@/lib/labels/asset-state";
+import type { BadgeItem } from "@/lib/labels/badge-item";
+import { getFileTypeLabel } from "@/lib/labels/file-type";
 import {
 	generatingMetadataBadge,
 	isGeneratingMetadata,
-} from "@/lib/presentation/metadata-status";
-import { processingStatusBadge } from "@/lib/presentation/processing-status";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
+} from "@/lib/labels/metadata-status";
+import { processingStatusBadge } from "@/lib/labels/processing-status";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

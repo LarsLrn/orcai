@@ -10,8 +10,8 @@ import { FileIcon, ShieldIcon, SquareStackIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
+import { getResourceRoleLabel } from "@/lib/labels/access";
 import { m } from "@/paraglide/messages";
-import { getResourceRoleLabel } from "@/settings/display-config";
 
 const roleVariant: Record<
 	MemberAccessEntry["role"],

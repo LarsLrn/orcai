@@ -10,7 +10,7 @@ import {
 	verdictStatus,
 } from "@/lib/ai/tools/gen-ui/quiz-result/verdict";
 import type { QuizResult as GradedQuiz } from "@/lib/ai/tools/questions/quiz-result";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatCount } from "@/lib/locale/format-number";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

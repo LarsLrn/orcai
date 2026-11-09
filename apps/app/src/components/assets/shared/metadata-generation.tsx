@@ -19,14 +19,14 @@ import {
 	useGenerateAssetMetadataMutation,
 } from "@/hooks/mutations/use-asset-mutations";
 import { useUtilityModel } from "@/hooks/use-utility-model";
-import { orpc } from "@/lib/orpc/orpc";
-import { getPipelineFailureDescription } from "@/lib/presentation/asset-state";
-import { metadataFieldLabels } from "@/lib/presentation/metadata-fields";
+import { getPipelineFailureDescription } from "@/lib/labels/asset-state";
+import { metadataFieldLabels } from "@/lib/labels/metadata-fields";
 import {
 	isAssetWorking,
 	isGeneratingMetadata,
 	METADATA_POLL_MS,
-} from "@/lib/presentation/metadata-status";
+} from "@/lib/labels/metadata-status";
+import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 const shown = (field: MetadataReviewField["field"], value: string) =>

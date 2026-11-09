@@ -15,7 +15,7 @@ import { and, asc, desc, eq, gt, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { withLocale } from "@/lib/presentation/with-locale";
+import { withLocale } from "@/lib/locale/with-locale";
 import { type Transcript, writeDataExportContents } from "./archive-contents";
 import { writeZipArchive } from "./zip-archive";
 

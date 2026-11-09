@@ -5,7 +5,7 @@ import {
 	FileTextIcon,
 	type LucideIcon,
 } from "lucide-react";
-import type { BadgeVariant } from "@/lib/presentation/badge-item";
+import type { BadgeVariant } from "@/lib/labels/badge-item";
 import { m } from "@/paraglide/messages";
 
 export type ResourceKind = "bot" | "behaviour" | "repository" | "asset";

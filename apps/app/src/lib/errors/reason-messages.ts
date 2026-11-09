@@ -5,8 +5,8 @@ import type {
 	GrantRejection,
 	GrantRejectionReason,
 } from "@orcai/schema";
-import { formatList } from "@/lib/presentation/format-list";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatList } from "@/lib/locale/format-list";
+import { formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 type ReasonMessages = {

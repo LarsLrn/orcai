@@ -5,7 +5,7 @@ import {
 	type DeferredToolGroup,
 	declareTool,
 } from "@/lib/ai/tools/declaration";
-import { formatList } from "@/lib/presentation/format-list";
+import { formatList } from "@/lib/locale/format-list";
 import { m } from "@/paraglide/messages";
 import type { loadToolsTool } from "./load-tools";
 

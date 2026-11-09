@@ -13,7 +13,7 @@ import {
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { libraryCountsQuery } from "@/lib/library/library-queries";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 const ManageLibraryPanel = () => {

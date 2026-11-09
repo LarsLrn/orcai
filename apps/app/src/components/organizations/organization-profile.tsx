@@ -10,7 +10,7 @@ import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mutations";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

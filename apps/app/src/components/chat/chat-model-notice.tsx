@@ -14,8 +14,8 @@ import {
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { formatRelativeTime } from "@/lib/locale/format-timestamp";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatRelativeTime } from "@/lib/presentation/format-timestamp";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

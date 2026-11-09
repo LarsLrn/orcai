@@ -35,9 +35,9 @@ import { Page, PageContent } from "@/components/ui/shell/page";
 import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { reasonMessage } from "@/lib/errors/reason-messages";
+import { publicationStatusBadge } from "@/lib/labels/publication-status";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { orpc } from "@/lib/orpc/orpc";
-import { publicationStatusBadge } from "@/lib/presentation/publication-status";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

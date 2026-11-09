@@ -19,13 +19,10 @@ import { Page, PageContent } from "@/components/ui/shell/page";
 import { ResourceOwner } from "@/components/users/resource-owner";
 import { openFreshUrl } from "@/lib/assets/open-fresh-url";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { getFileTypeLabel } from "@/lib/labels/file-type";
+import { isAssetWorking, METADATA_POLL_MS } from "@/lib/labels/metadata-status";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { orpc } from "@/lib/orpc/orpc";
-import { getFileTypeLabel } from "@/lib/presentation/file-type";
-import {
-	isAssetWorking,
-	METADATA_POLL_MS,
-} from "@/lib/presentation/metadata-status";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library/assets/$assetId/")({

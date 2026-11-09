@@ -5,8 +5,8 @@ import { BotIcon, MessagesSquareIcon } from "lucide-react";
 import { BranchMark } from "@/components/chat/branch-links";
 import { PinMark } from "@/components/chat/pin-mark";
 import { useDisplayTime } from "@/hooks/use-display-time";
+import { formatRelativeTime } from "@/lib/locale/format-timestamp";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatRelativeTime } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 import { HomeSection } from "./home-section";
 

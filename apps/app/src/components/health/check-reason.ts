@@ -1,5 +1,5 @@
 import type { Check, CheckReason } from "@orcai/schema";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 const count = (check: Check) => Number(check.params?.count ?? 0);

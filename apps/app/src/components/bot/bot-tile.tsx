@@ -17,9 +17,9 @@ import {
 	TileProvenance,
 	TileTitle,
 } from "@/components/ui/shell/tile";
-import type { BadgeItem } from "@/lib/presentation/badge-item";
-import { publicationStatusBadge } from "@/lib/presentation/publication-status";
-import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
+import type { BadgeItem } from "@/lib/labels/badge-item";
+import { publicationStatusBadge } from "@/lib/labels/publication-status";
+import { RESOURCE_KINDS } from "@/lib/labels/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

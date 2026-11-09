@@ -1,5 +1,5 @@
 import type { QuotaStatus } from "@orcai/schema";
-import { isExhaustedShare, isLowShare } from "@/lib/presentation/quota-share";
+import { isExhaustedShare, isLowShare } from "@/lib/quota/quota-share";
 
 interface ContextUsage {
 	tokens: number;

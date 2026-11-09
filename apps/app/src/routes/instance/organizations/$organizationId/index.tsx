@@ -48,8 +48,8 @@ import {
 	dataTableSearchDefaults,
 	paginationSearchShape,
 } from "@/lib/browse/data-table-search-params";
+import { formatCount } from "@/lib/locale/format-number";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = listInstanceOrganizationMembersInputSchema

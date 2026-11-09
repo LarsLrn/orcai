@@ -16,8 +16,8 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
-import { getFileTypeLabel } from "@/lib/presentation/file-type";
-import { formatFileSize } from "@/lib/presentation/format-file-size";
+import { getFileTypeLabel } from "@/lib/labels/file-type";
+import { formatFileSize } from "@/lib/locale/format-file-size";
 import { m } from "@/paraglide/messages";
 
 const AssetForm = ({ asset }: { asset: Asset }) => {

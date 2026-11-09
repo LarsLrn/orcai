@@ -10,7 +10,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { getDateLocale } from "@/lib/presentation/date-locale";
+import { getDateLocale } from "@/lib/locale/date-locale";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { FormField, formTriggerText, useFormField } from "./form-field";

@@ -1,5 +1,5 @@
 import { type PublicationStatus, publicationStatusSchema } from "@orcai/schema";
-import type { BadgeItem } from "@/lib/presentation/badge-item";
+import type { BadgeItem } from "@/lib/labels/badge-item";
 import { m } from "@/paraglide/messages";
 
 const publicationStatusLabels: Record<PublicationStatus, () => string> = {

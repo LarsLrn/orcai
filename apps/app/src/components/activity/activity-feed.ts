@@ -1,5 +1,5 @@
 import type { ActivityRun } from "@orcai/schema";
-import { runToast } from "@/lib/presentation/activity";
+import { runToast } from "@/components/activity/activity-text";
 import { claimToasts } from "./claim-toasts";
 
 type Summary = {

@@ -5,7 +5,7 @@ import { DisplayDate } from "@/components/app/display-time";
 import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
-import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
+import { getOrganizationRoleLabel } from "@/lib/labels/organization-role";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<

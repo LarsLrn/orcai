@@ -8,7 +8,7 @@ import {
 	type ClickAction,
 	type HeaderAction,
 } from "@/components/ui/shell/actions";
-import type { BadgeItem } from "@/lib/presentation/badge-item";
+import type { BadgeItem } from "@/lib/labels/badge-item";
 import { cn } from "@/lib/utils";
 
 /*

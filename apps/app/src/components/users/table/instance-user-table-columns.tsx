@@ -9,7 +9,7 @@ import type { DataTableFeatures } from "@/components/ui/data-table/data-table-fe
 import { useInstanceUserActions } from "@/components/users/instance-user-actions";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatCount } from "@/lib/locale/format-number";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, InstanceUser>();

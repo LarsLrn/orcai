@@ -1,9 +1,9 @@
 import type { ProviderMeteringMode } from "@orcai/schema";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { formatNumber } from "@/lib/presentation/format-number";
-import { getMeteringUnit } from "@/lib/presentation/metering-mode";
-import { isLowShare, usedShareOf } from "@/lib/presentation/quota-share";
+import { getMeteringUnit } from "@/lib/labels/metering-mode";
+import { formatNumber } from "@/lib/locale/format-number";
+import { isLowShare, usedShareOf } from "@/lib/quota/quota-share";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

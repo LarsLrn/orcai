@@ -12,7 +12,7 @@ import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { hasCapability } from "@/lib/authz/capabilities";
-import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
+import { getPublicationStatusOptions } from "@/lib/labels/publication-status";
 import { m } from "@/paraglide/messages";
 
 const ReviewStep = ({
