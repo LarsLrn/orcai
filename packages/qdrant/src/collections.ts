@@ -95,13 +95,19 @@ const payloadIndexes = [
 	],
 ] as const;
 
+type PayloadIndex = (typeof payloadIndexes)[number];
+
+const missingFrom = (schema: Record<string, unknown>) =>
+	payloadIndexes.filter(([fieldName]) => !(fieldName in schema));
+
 /**
  * Creates the collection unless it exists, and any payload index it lacks;
  * concurrent callers are fine. An empty collection has its indexes before
- * this returns, as ordered browsing needs them and they build at once. On
- * one holding points, a missing index builds in the background: filters stay
- * correct meanwhile, only slower, and no caller waits on a full collection's
- * index.
+ * this returns, as ordered browsing needs them and they build at once. Its
+ * creator queues them, and every other caller waits for those builds and
+ * queues only what is still missing then. On one holding points, a missing
+ * index builds in the background: filters stay correct meanwhile, only
+ * slower, and no caller waits on a full collection's index.
  */
 export const ensureCollection = (
 	client: QdrantClient,
@@ -109,11 +115,45 @@ export const ensureCollection = (
 	dimensions: number,
 ) =>
 	Effect.gen(function* () {
+		const queue = (indexes: readonly PayloadIndex[]) =>
+			Effect.forEach(
+				indexes,
+				([fieldName, fieldSchema]) =>
+					qdrantCall("createPayloadIndex", () =>
+						client.createPayloadIndex(name, {
+							wait: false,
+							field_name: fieldName,
+							field_schema: fieldSchema,
+						}),
+					),
+				{
+					discard: true,
+				},
+			);
+		// Deletes nothing: Qdrant applies a collection's updates in order, so it answers once every update queued before it is applied.
+		const awaitQueued = qdrantCall("awaitPayloadIndexes", () =>
+			client.delete(name, {
+				wait: true,
+				filter: {
+					must: [
+						{
+							has_id: [],
+						},
+					],
+				},
+			}),
+		);
+		// The schema lists only applied indexes, so one another caller queued counts as missing.
+		const readInfo = qdrantCall("getCollection", () =>
+			client.getCollection(name),
+		);
+
 		const { exists } = yield* qdrantCall("collectionExists", () =>
 			client.collectionExists(name),
 		);
-		if (!exists) {
-			yield* qdrantCall("createCollection", () =>
+		const created =
+			!exists &&
+			(yield* qdrantCall("createCollection", () =>
 				client.createCollection(name, {
 					vectors: {
 						dense: {
@@ -136,16 +176,17 @@ export const ensureCollection = (
 					},
 				}),
 			).pipe(
+				Effect.as(true),
 				Effect.catchIf(
 					(error) => statusOf(error) === 409,
-					() => Effect.void,
+					() => Effect.succeed(false),
 				),
-			);
+			));
+		if (created) {
+			yield* queue(payloadIndexes);
+			return yield* awaitQueued;
 		}
-		// The schema lists only applied indexes, so one another caller queued counts as missing.
-		const readInfo = qdrantCall("getCollection", () =>
-			client.getCollection(name),
-		);
+
 		const info = yield* readInfo.pipe(
 			Effect.catchIf(
 				(error) => statusOf(error) === 500,
@@ -159,38 +200,15 @@ export const ensureCollection = (
 					),
 			),
 		);
-		const missing = payloadIndexes.filter(
-			([fieldName]) => !(fieldName in info.payload_schema),
-		);
+		const missing = missingFrom(info.payload_schema);
 		if (missing.length === 0) return;
-		yield* Effect.forEach(
-			missing,
-			([fieldName, fieldSchema]) =>
-				qdrantCall("createPayloadIndex", () =>
-					client.createPayloadIndex(name, {
-						wait: false,
-						field_name: fieldName,
-						field_schema: fieldSchema,
-					}),
-				),
-			{
-				discard: true,
-			},
-		);
-		if (info.points_count) return;
-		// Deletes nothing: Qdrant applies a collection's updates in order, so it answers once every queued index is built.
-		yield* qdrantCall("awaitPayloadIndexes", () =>
-			client.delete(name, {
-				wait: true,
-				filter: {
-					must: [
-						{
-							has_id: [],
-						},
-					],
-				},
-			}),
-		);
+		if (info.points_count) return yield* queue(missing);
+		// Its creator's builds are likely queued already: wait for them before building what they left out.
+		yield* awaitQueued;
+		const unbuilt = missingFrom((yield* readInfo).payload_schema);
+		if (unbuilt.length === 0) return;
+		yield* queue(unbuilt);
+		yield* awaitQueued;
 	});
 
 /** Deletes every collection named with `prefix` but `keep`. */
