@@ -1,6 +1,6 @@
 import { ClientToolEntry } from "@/components/chat/message/client-tool-renderers";
+import type { ToolPart, ToolStatus } from "@/lib/ai/messages/turn-view";
 import { isToolOfKind } from "@/lib/ai/tools/registry";
-import type { ToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { GetAssetPage } from "./tools/get-asset-page";
 import { GetPassages } from "./tools/get-passages";
 import { ListRepositoryAssets } from "./tools/list-repository-assets";

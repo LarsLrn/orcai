@@ -2,7 +2,7 @@ import { safeExternalUrl } from "@orcai/core";
 import type { ToolResultPart } from "ai";
 import { z } from "zod/v4";
 import { type Source, sourceRef } from "@/lib/ai/citations/source-ref";
-import { dataTag } from "@/lib/ai/utils/data-tag";
+import { dataTag } from "@/lib/ai/tools/data-tag";
 
 /** What `searchWeb` answers with, as the browser reads it back. */
 export const searchWebOutputSchema = z.object({

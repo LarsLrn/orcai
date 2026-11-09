@@ -15,9 +15,9 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
+import type { TurnPlan } from "@/lib/ai/messages/turn-view";
 import type { PlanItemStatus } from "@/lib/ai/tools/assistant/plan/plan";
 import { planTally } from "@/lib/ai/tools/assistant/plan/plan-tally";
-import type { TurnPlan } from "@/lib/ai/turn-view/turn-view";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import {

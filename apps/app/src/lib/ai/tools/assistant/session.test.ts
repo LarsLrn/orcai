@@ -17,7 +17,7 @@ import {
 	DEFERRED_TOOL_GROUPS,
 	type DeferredToolGroup,
 } from "@/lib/ai/tools/declaration";
-import { createAssistantSession } from "./assistant-session";
+import { createAssistantSession } from "./session";
 
 const viewer: CapabilitySet = {
 	read: true,

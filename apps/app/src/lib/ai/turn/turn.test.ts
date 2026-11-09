@@ -13,14 +13,14 @@ import {
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { sourceRef } from "../citations/source-ref";
+import { toChatAgentParts } from "../messages/chat-agent-message";
+import { TOOL_CLOSE_SENTENCES } from "../messages/close-pending-tool-parts";
 import {
 	answers,
 	procedureCalls,
 	resetProcedures,
 } from "../tools/assistant/test-procedures";
 import { assetPoint } from "../tools/rag/test-points";
-import { toChatAgentParts } from "../types/chat-agent-message";
-import { TOOL_CLOSE_SENTENCES } from "../utils/close-pending-tool-parts";
 import {
 	answerSetup,
 	assistantRow,

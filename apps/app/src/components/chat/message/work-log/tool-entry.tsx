@@ -8,7 +8,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { ToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
+import type { ToolPart, ToolStatus } from "@/lib/ai/messages/turn-view";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import {

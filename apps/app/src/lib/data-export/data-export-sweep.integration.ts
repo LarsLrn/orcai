@@ -19,7 +19,7 @@ import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
 import * as Scope from "effect/Scope";
-import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
+import { transcriptMarkdown } from "@/lib/ai/messages/message-markdown";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,

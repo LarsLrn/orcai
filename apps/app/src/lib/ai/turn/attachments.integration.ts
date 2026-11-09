@@ -8,7 +8,7 @@ import { integrationRuntime } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { sourceRef } from "@/lib/ai/citations/source-ref";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import type { ChatAgentUIMessage } from "@/lib/ai/messages/chat-agent-message";
 import { CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH } from "@/settings/constants";
 import { attachAssets, attachmentReader } from "./attachments";
 import { assetFixtures, PIXEL } from "./test-assets";

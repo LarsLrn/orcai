@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId, BotId } from "@orcai/core";
+import type { ChatAgentUIMessage } from "@/lib/ai/messages/chat-agent-message";
+import { TOOL_CLOSE_SENTENCES } from "@/lib/ai/messages/close-pending-tool-parts";
 import {
 	reasoningPart,
 	stepStartPart,
@@ -8,8 +10,6 @@ import {
 	toolPart,
 	uiMessage,
 } from "@/lib/ai/test-parts";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
-import { TOOL_CLOSE_SENTENCES } from "@/lib/ai/utils/close-pending-tool-parts";
 import { pausedStep } from "./paused-step";
 import {
 	type ChatPhase,

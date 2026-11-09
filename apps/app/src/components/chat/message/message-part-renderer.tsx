@@ -5,7 +5,7 @@ import { ResourceCard } from "@/components/assistant/resource-card";
 import { DisplayPart } from "@/components/chat/gen-ui/display-part";
 import { ClientToolWidget } from "@/components/chat/message/client-tool-renderers";
 import { StepAnswersContext } from "@/components/chat/step-answers";
-import type { AnswerPart } from "@/lib/ai/turn-view/turn-view";
+import type { AnswerPart } from "@/lib/ai/messages/turn-view";
 import { m } from "@/paraglide/messages";
 import { ImagePart } from "./parts/image-part";
 

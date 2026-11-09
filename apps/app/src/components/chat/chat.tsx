@@ -31,7 +31,7 @@ import {
 	useMessageScroller,
 } from "@/components/ui/message-scroller";
 import { usePublicConfig } from "@/hooks/use-public-config";
-import { turnView } from "@/lib/ai/turn-view/turn-view";
+import { turnView } from "@/lib/ai/messages/turn-view";
 import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";

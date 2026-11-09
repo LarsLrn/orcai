@@ -2,11 +2,6 @@ import type { ProviderCompaction, ToolLoading } from "@orcai/ai";
 import { compactionPoint } from "@orcai/core";
 import type { JSONValue, ToolResultPart, ToolSet } from "ai";
 import {
-	type StoredMessage,
-	storedExecutions,
-	type ToolExecution,
-} from "@/lib/ai/agents/assistant-tool-lines";
-import {
 	type AssistantToolName,
 	type CapabilitySet,
 	CONFIRMED_TOOLS,
@@ -16,6 +11,11 @@ import {
 	offeredAssistantToolNames,
 	offeredGroupTools,
 } from "@/lib/ai/tools/assistant/groups";
+import {
+	type StoredMessage,
+	storedExecutions,
+	type ToolExecution,
+} from "@/lib/ai/tools/assistant/tool-lines";
 import {
 	DEFERRED_TOOL_GROUPS,
 	type DeferredToolGroup,

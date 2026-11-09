@@ -7,6 +7,7 @@ import type { Repository } from "@orcai/schema";
 import type { ToolSet, UIMessage } from "ai";
 import { pruneChatHistory } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
+import type { ChatCallSettings } from "@/lib/ai/agents/chat-call-settings";
 import {
 	createTurnAgent,
 	type ToolExecutions,
@@ -23,7 +24,6 @@ import {
 	storedWebSearchTools,
 	type TurnWebSearch,
 } from "@/lib/ai/tools/web/toolset";
-import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 
 /** Every tool a plain or bot chat's stored calls may name. */

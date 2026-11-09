@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import type { ReasoningPart } from "@/lib/ai/turn-view/turn-view";
+import type { ReasoningPart } from "@/lib/ai/messages/turn-view";
 import { m } from "@/paraglide/messages";
 import { ClampedText } from "./clamped-text";
 

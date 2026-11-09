@@ -1,5 +1,5 @@
 import type { Tool } from "ai";
-import type { AssistantSession } from "@/lib/ai/agents/assistant-session";
+import type { AssistantSession } from "@/lib/ai/tools/assistant/session";
 import { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
 import { buildGenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
 import { askUserTool } from "@/lib/ai/tools/questions/ask-user";

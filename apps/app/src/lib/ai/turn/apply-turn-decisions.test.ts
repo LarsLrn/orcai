@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { UIMessage } from "ai";
-import { TOOL_CLOSE_SENTENCES } from "@/lib/ai/utils/close-pending-tool-parts";
+import { TOOL_CLOSE_SENTENCES } from "@/lib/ai/messages/close-pending-tool-parts";
 import {
 	applyTurnDecisions,
 	CONTINUATION_LEASE_MS,

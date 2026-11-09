@@ -4,18 +4,18 @@ import {
 	type ChatMessagePart,
 	chatMessagePartSchema,
 } from "@orcai/schema";
-import type { ToolName } from "@/lib/ai/tools/registry";
+import {
+	type ChatAgentUIMessage,
+	toChatAgentParts,
+} from "@/lib/ai/messages/chat-agent-message";
 import type {
 	MessagePart,
 	ReasoningPart,
 	TextPart,
 	ToolPart,
 	ToolPartOf,
-} from "@/lib/ai/turn-view/turn-view";
-import {
-	type ChatAgentUIMessage,
-	toChatAgentParts,
-} from "@/lib/ai/types/chat-agent-message";
+} from "@/lib/ai/messages/turn-view";
+import type { ToolName } from "@/lib/ai/tools/registry";
 
 /** A part as the chat reads it from storage: it must pass the stored part schema. */
 const read = (part: unknown): MessagePart => {

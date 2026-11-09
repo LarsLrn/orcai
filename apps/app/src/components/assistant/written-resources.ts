@@ -2,8 +2,8 @@ import type { AssetId, BlockId, BotId } from "@orcai/core";
 import type { ResourceIdentity } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { createContext } from "react";
+import type { AnswerPart } from "@/lib/ai/messages/turn-view";
 import type { WrittenResource } from "@/lib/ai/tools/declaration";
-import type { AnswerPart } from "@/lib/ai/turn-view/turn-view";
 import { orpc } from "@/lib/orpc/orpc";
 
 /** Current names by id of the resources a message's cards show that the user can still read. */

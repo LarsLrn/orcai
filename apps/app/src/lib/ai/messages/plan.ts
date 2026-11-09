@@ -1,5 +1,5 @@
+import type { ChatAgentUIMessage } from "@/lib/ai/messages/chat-agent-message";
 import { isToolOfKind, type ToolNameOf } from "@/lib/ai/tools/registry";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import type { MessagePart, ToolPartOf } from "./turn-view";
 
 type PlanPart = ToolPartOf<ToolNameOf<"plan">>;

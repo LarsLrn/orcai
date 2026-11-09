@@ -11,6 +11,7 @@ import {
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { scriptedFetch } from "../../agents/test-provider";
+import { TOOL_CLOSE_SENTENCES } from "../../messages/close-pending-tool-parts";
 import {
 	answerSetup,
 	chatRow,
@@ -18,7 +19,6 @@ import {
 	requester,
 	runTurn,
 } from "../../turn/test-turn";
-import { TOOL_CLOSE_SENTENCES } from "../../utils/close-pending-tool-parts";
 import { answers, resetProcedures } from "../assistant/test-procedures";
 import { capitalsAnswers, capitalsQuiz } from "./fixtures";
 

@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
-import type { NativeWebSearchToolPart } from "@/lib/ai/types/tools";
+import type { NativeWebSearchToolPart } from "@/lib/ai/messages/tools";
+import type { ToolStatus } from "@/lib/ai/messages/turn-view";
 import { m } from "@/paraglide/messages";
 import { ToolEntry } from "../tool-entry";
 import { type WebSource, WebSources } from "../web-source";

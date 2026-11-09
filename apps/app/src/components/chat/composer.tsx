@@ -26,7 +26,7 @@ import {
 	InputGroupAddon,
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
-import type { ChatPhase } from "@/lib/ai/turn-view/turn-view";
+import type { ChatPhase } from "@/lib/ai/messages/turn-view";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";

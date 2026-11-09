@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { ChatMessageMetadata } from "@orcai/schema";
 import { cleanup, render, screen } from "@testing-library/react";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import type { ChatAgentUIMessage } from "@/lib/ai/messages/chat-agent-message";
 import { m } from "@/paraglide/messages";
 import { MessageContextNotice } from "./message-context-notice";
 

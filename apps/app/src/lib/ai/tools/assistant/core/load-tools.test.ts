@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { providerCompaction } from "@orcai/ai";
-import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
+import { createAssistantSession } from "@/lib/ai/tools/assistant/session";
 import type { CapabilitySet } from "../groups";
 import "../test-procedures";
 

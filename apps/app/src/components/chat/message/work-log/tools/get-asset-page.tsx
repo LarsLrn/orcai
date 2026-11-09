@@ -1,6 +1,6 @@
+import type { GetAssetPageToolPart } from "@/lib/ai/messages/tools";
+import type { ToolStatus } from "@/lib/ai/messages/turn-view";
 import { pageOutputSchema } from "@/lib/ai/tools/rag/outputs";
-import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
-import type { GetAssetPageToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
 import { SourcePassages } from "../source-passage";
 import { ToolEntry } from "../tool-entry";

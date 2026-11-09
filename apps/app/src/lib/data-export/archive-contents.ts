@@ -5,12 +5,12 @@ import { isS3NotFound, sendGetObjectCommand } from "@orcai/s3/server";
 import { readableChatMessageParts } from "@orcai/schema";
 import { asc, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { isEmptyMessage } from "@/lib/ai/turn/reply-store";
-import type { TranscriptChat } from "@/lib/ai/turn-view/message-markdown";
 import {
 	type ChatAgentUIMessage,
 	toChatAgentMessages,
-} from "@/lib/ai/types/chat-agent-message";
+} from "@/lib/ai/messages/chat-agent-message";
+import type { TranscriptChat } from "@/lib/ai/messages/message-markdown";
+import { isEmptyMessage } from "@/lib/ai/turn/reply-store";
 import { downloadName } from "@/lib/assets/download-name";
 import { readImage, referencedImage } from "@/lib/images/images";
 import type { ZipArchiveWriter } from "./zip-archive";

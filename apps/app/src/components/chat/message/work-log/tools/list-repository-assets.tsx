@@ -1,6 +1,6 @@
+import type { ListRepositoryAssetsToolPart } from "@/lib/ai/messages/tools";
+import type { ToolStatus } from "@/lib/ai/messages/turn-view";
 import { listOutputSchema } from "@/lib/ai/tools/rag/outputs";
-import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
-import type { ListRepositoryAssetsToolPart } from "@/lib/ai/types/tools";
 import { formatAssetTitle } from "@/lib/assets/asset-title";
 import { m } from "@/paraglide/messages";
 import { SourcePassageList } from "../source-passage";

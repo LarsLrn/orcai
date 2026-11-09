@@ -30,6 +30,7 @@ import { v4 as uuidv4 } from "uuid";
 import { createAssistantAgent } from "@/lib/ai/agents/assistant-agent";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { localDate } from "@/lib/ai/agents/chat-agent-system-prompt";
+import { streamErrorText } from "@/lib/ai/agents/stream-error-text";
 import type { StreamedMetadata, TurnAgent } from "@/lib/ai/agents/turn-agent";
 import {
 	chatSources,
@@ -37,7 +38,17 @@ import {
 	displayCallText,
 	type StreamedCitations,
 } from "@/lib/ai/citations/chat-sources";
-import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
+import {
+	type ChatAgentUIMessage,
+	toChatAgentMessages,
+	toChatAgentParts,
+} from "@/lib/ai/messages/chat-agent-message";
+import {
+	closeLastReply,
+	closeRunningToolParts,
+} from "@/lib/ai/messages/close-pending-tool-parts";
+import { pausedStep } from "@/lib/ai/messages/paused-step";
+import { latestPlanPart } from "@/lib/ai/messages/plan";
 import { RunningCallsWait } from "@/lib/ai/tools/assistant/running-calls";
 import {
 	type AssistantTurn,
@@ -45,28 +56,21 @@ import {
 } from "@/lib/ai/tools/assistant/turn-state";
 import { mergeTurnWrites } from "@/lib/ai/tools/assistant/turn-writes";
 import { toolKindOf } from "@/lib/ai/tools/registry";
-import { pausedStep } from "@/lib/ai/turn-view/paused-step";
-import { latestPlanPart } from "@/lib/ai/turn-view/plan";
-import {
-	type ChatAgentUIMessage,
-	toChatAgentMessages,
-	toChatAgentParts,
-} from "@/lib/ai/types/chat-agent-message";
-import {
-	closeLastReply,
-	closeRunningToolParts,
-} from "@/lib/ai/utils/close-pending-tool-parts";
-import { streamErrorText } from "@/lib/ai/utils/stream-error-text";
+import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/turn/fork-chat-title-generation";
 import { readRevision } from "@/lib/authz/zed-token";
 import { chatBotUsable, requireWritableChat } from "@/lib/chats/read-only";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import {
+	fitContextWindow,
+	readForFit,
+	requestTokens,
+} from "../agents/context-window";
 import {
 	applyTurnDecisions,
 	isContinuationClaimLive,
 	withoutContinuationClaim,
 } from "./apply-turn-decisions";
 import { attachAssets, attachmentReader } from "./attachments";
-import { fitContextWindow, readForFit, requestTokens } from "./context-window";
 import {
 	isEmptyMessage,
 	type ReplyContent,

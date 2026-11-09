@@ -8,14 +8,14 @@ import type {
 } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import type { UIMessageChunk } from "ai";
+import type { ChatAgentUIMessage } from "@/lib/ai/messages/chat-agent-message";
+import type { MessagePart } from "@/lib/ai/messages/turn-view";
 import {
 	stepStartPart,
 	textPart,
 	toolPart,
 	uiMessage,
 } from "@/lib/ai/test-parts";
-import type { MessagePart } from "@/lib/ai/turn-view/turn-view";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { type ChatPage, type ChatPort, ChatSession } from "./chat-session";
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));

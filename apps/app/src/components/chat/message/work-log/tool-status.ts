@@ -1,4 +1,4 @@
-import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
+import type { ToolStatus } from "@/lib/ai/messages/turn-view";
 import { isErrorReason } from "@/lib/errors/is-error-reason";
 import { paramlessReasonMessage } from "@/lib/errors/reason-messages";
 import { m } from "@/paraglide/messages";

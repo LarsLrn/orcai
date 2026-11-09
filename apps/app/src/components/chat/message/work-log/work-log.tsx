@@ -12,8 +12,8 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import type { Activity, WorkEntry } from "@/lib/ai/messages/turn-view";
 import { toolLabels } from "@/lib/ai/tools/registry";
-import type { Activity, WorkEntry } from "@/lib/ai/turn-view/turn-view";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { ReasoningEntry } from "./reasoning-entry";

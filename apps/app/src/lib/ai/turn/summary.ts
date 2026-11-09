@@ -1,8 +1,8 @@
 import { generateTextWithQuota, summaryCall } from "@orcai/ai";
 import { getToolName, isToolUIPart } from "ai";
 import * as Effect from "effect/Effect";
+import type { ChatAgentUIMessage } from "@/lib/ai/messages/chat-agent-message";
 import { toolCallMarkdown } from "@/lib/ai/tools/registry";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import type { TurnRequester, TurnSetup } from "./setup";
 
 const partLine = (part: ChatAgentUIMessage["parts"][number]) => {
