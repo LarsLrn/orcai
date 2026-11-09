@@ -1,5 +1,4 @@
 import { expect, onTestFinished, test } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
 import {
 	DATA_EXPORT_DEAD_LETTER_JOB_NAME,
 	DATA_EXPORT_EXPIRE_JOB_NAME,
@@ -23,9 +22,10 @@ import {
 	TestClock,
 	type WorkerDefinition,
 } from "../src";
-import { IsolatedPgBossLive } from "./isolated-pg-boss";
+import { clockSteps, IsolatedPgBossLive } from "./isolated-pg-boss";
 
 const clock = new TestClock();
+const steps = clockSteps(clock);
 const { runPromise: run } = integrationRuntime(
 	IsolatedPgBossLive({
 		clock,
@@ -34,15 +34,11 @@ const { runPromise: run } = integrationRuntime(
 const boss = () => run(PgBossService.useSync(({ boss }) => boss));
 
 /** Moves pg-boss's time on in steps of `stepMs` until `condition` holds. */
-const until = async (condition: () => Promise<boolean>, stepMs = 120_000) => {
-	const deadline = Date.now() + 20_000;
-	while (!(await condition())) {
-		if (Date.now() > deadline) throw new Error("Timed out");
-		await clock.setTime(clock.now() + stepMs);
-		await clock.tick(1);
-		await sleep(10);
-	}
-};
+const until = (
+	condition: () => Promise<boolean>,
+	what: string,
+	stepMs = 120_000,
+) => steps.until(condition, what, stepMs);
 
 const errors: string[] = [];
 const collectErrors = Logger.layer([
@@ -56,7 +52,7 @@ const work = async (definitions: readonly WorkerDefinition<never, never>[]) => {
 	const scope = await run(Scope.make());
 	onTestFinished(() => run(Scope.close(scope, Exit.void)));
 	await run(
-		runWorkers(definitions).pipe(
+		runWorkers(steps.track(definitions)).pipe(
 			Scope.provide(scope),
 			Effect.provide(collectErrors),
 		),
@@ -111,6 +107,7 @@ test("a failing job runs as often as the queue table says, logs each failure onc
 		async () =>
 			(await pgBoss.getJobById(DATA_EXPORT_JOB_NAME, id ?? ""))?.state ===
 			"failed",
+		"the job to fail",
 	);
 
 	const runs = QUEUES[DATA_EXPORT_JOB_NAME].retryLimit + 1;
@@ -168,7 +165,10 @@ test("a job whose payload the definition rejects fails without running the handl
 				},
 			})
 		)[0];
-	await until(async () => (await deadLetter())?.state === "failed");
+	await until(
+		async () => (await deadLetter())?.state === "failed",
+		"the dead letter to fail",
+	);
 
 	expect(handled).toEqual([]);
 	expect(await pgBoss.getJobById(PROCESS_ASSET_JOB_NAME, id)).toMatchObject({
@@ -220,6 +220,7 @@ test("closing the scope stops the workers and interrupts a running job, which pg
 		async () =>
 			(await pgBoss.getJobById(DATA_EXPORT_JOB_NAME, id ?? ""))?.state ===
 			"retry",
+		"the job to retry",
 		1,
 	);
 	expect(errors).toEqual([]);
