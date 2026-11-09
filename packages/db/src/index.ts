@@ -34,4 +34,4 @@ export {
 	PgClientLive,
 	PgClientServiceLive,
 } from "./service";
-export { uniqueViolationConstraint } from "./sql-failure";
+export { isLockTimeout, uniqueViolationConstraint } from "./sql-failure";

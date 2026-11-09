@@ -223,6 +223,32 @@ describe("checkInstance", () => {
 		});
 	});
 
+	test("warns, not fails, while the collection is being created or a save holds it up", async () => {
+		const embeddingsCheck = async (
+			embeddings: HealthSources<never>["embeddings"],
+		) =>
+			(
+				await run({
+					embeddings,
+				})
+			).checks.find((check) => check.id === "embeddings");
+
+		expect(
+			await embeddingsCheck(Effect.succeed("preparing" as const)),
+		).toMatchObject({
+			status: "warning",
+			severity: "required",
+			reason: "EMBEDDINGS_COLLECTION_PREPARING",
+		});
+		expect(
+			await embeddingsCheck(Effect.succeed("saving" as const)),
+		).toMatchObject({
+			status: "warning",
+			severity: "required",
+			reason: "EMBEDDINGS_SETTINGS_SAVING",
+		});
+	});
+
 	test("fails workers when no live workers process is registered", async () => {
 		expect(
 			await checkOf("workers", {

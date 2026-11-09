@@ -139,7 +139,7 @@ If OCR or extraction fails, check that:
 
 If indexing fails or retrieval quality is poor, check:
 
-- The **Embeddings** check on the Health page. It passes once embeddings are set up and the active Qdrant collection exists with the model's dimensions.
+- The **Embeddings** check on the Health page. It passes once embeddings are set up and the active Qdrant collection exists with the model's dimensions. The first check after a new model creates that collection and shows a warning while Qdrant is still building it, or while a save of the embedding settings holds it up.
 - The stored endpoint, model, dimensions and collection in the Health page's configuration table, which also shows whether a key is set.
 - Qdrant availability and API key.
 

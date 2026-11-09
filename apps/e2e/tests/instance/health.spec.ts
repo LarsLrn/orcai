@@ -11,7 +11,6 @@ const DEPENDENCIES = [
 	"instance_health_check_postgres_title",
 	"instance_health_check_spicedb_title",
 	"instance_health_check_qdrant_title",
-	"instance_health_check_embeddings_title",
 	"instance_health_check_s3_title",
 ];
 
@@ -34,6 +33,28 @@ test("instance: the instance area opens on health with every dependency reachabl
 			}),
 		).toHaveAttribute("data-status", "ok");
 	}
+
+	// The first look creates the collection of a generation nothing used yet, which can outlast the check.
+	const embeddings = page.getByRole("listitem", {
+		name: message("instance_health_check_embeddings_title"),
+	});
+	const refresh = page.getByRole("button", {
+		name: message("instance_health_refresh_button"),
+	});
+	await expect(async () => {
+		if ((await embeddings.getAttribute("data-status")) !== "ok") {
+			await expect(embeddings).toContainText(
+				message("check_reason_embeddings_collection_preparing"),
+				{
+					timeout: 0,
+				},
+			);
+			await refresh.click();
+		}
+		await expect(embeddings).toHaveAttribute("data-status", "ok", {
+			timeout: 2_000,
+		});
+	}).toPass();
 
 	// The app registers its pg-boss instance under its process name.
 	const processes = page.getByRole("table").filter({

@@ -38,6 +38,16 @@ import { version } from "../../../package.json" with { type: "json" };
 import { summarizeConfig } from "./config-summary";
 
 const PROBE_TIMEOUT = "3 seconds";
+/**
+ * How long a check waits for the collection setup, which outlasts it under
+ * load, and for the generation lock first. Only a settings save holds that
+ * lock exclusively, for milliseconds, but a save waits for point writes in
+ * flight, so a longer wait reads as a save in progress.
+ */
+const COLLECTION_SETUP = {
+	patience: "2 seconds",
+	lockWait: "1 second",
+} as const;
 
 const DEPENDENCIES = {
 	postgres: "required",
@@ -67,11 +77,7 @@ export interface HealthSources<R> {
 		readonly [K in DependencyId]: Effect.Effect<ProbeResult, unknown, R>;
 	};
 	/** The active embedding collection as Qdrant has it; undefined before setup. */
-	readonly embeddings: Effect.Effect<
-		EmbeddingsInspection | undefined,
-		unknown,
-		R
-	>;
+	readonly embeddings: Effect.Effect<EmbeddingsInspection, unknown, R>;
 	readonly pgBoss: Effect.Effect<PgBossProbeResult, unknown, R>;
 	readonly mail: Effect.Effect<InstanceMail, unknown, R>;
 	readonly migration: Effect.Effect<InstanceVersions["migration"], unknown, R>;
@@ -81,7 +87,9 @@ export interface HealthSources<R> {
 	readonly timeout: Duration.Input;
 }
 
-type EmbeddingsInspection = Effect.Success<typeof inspectActiveCollection>;
+type EmbeddingsInspection = Effect.Success<
+	ReturnType<typeof inspectActiveCollection>
+>;
 
 const describeFailure = (cause: Cause.Cause<unknown>) => {
 	const error = Cause.squash(cause);
@@ -176,7 +184,7 @@ const dependencyCheck = (
 };
 
 const embeddingsCheck = (
-	outcome: Outcome<EmbeddingsInspection | undefined>,
+	outcome: Outcome<EmbeddingsInspection>,
 	timeout: Duration.Input,
 ): InstanceCheck => {
 	const check = {
@@ -195,6 +203,20 @@ const embeddingsCheck = (
 			...check,
 			status: "failing",
 			reason: "EMBEDDINGS_NOT_CONFIGURED",
+		};
+	}
+	if (inspection === "preparing") {
+		return {
+			...check,
+			status: "warning",
+			reason: "EMBEDDINGS_COLLECTION_PREPARING",
+		};
+	}
+	if (inspection === "saving") {
+		return {
+			...check,
+			status: "warning",
+			reason: "EMBEDDINGS_SETTINGS_SAVING",
 		};
 	}
 	if (inspection.collectionDimensions === "missing") {
@@ -438,7 +460,7 @@ export const instanceHealth = (viewer: { readonly email: string }) =>
 			| Effect.Services<typeof probeSpiceDb>
 			| Effect.Services<typeof probeQdrant>
 			| Effect.Services<typeof probeS3>
-			| Effect.Services<typeof inspectActiveCollection>
+			| Effect.Services<ReturnType<typeof inspectActiveCollection>>
 			| Effect.Services<typeof probePgBoss>
 			| Effect.Services<typeof mail>
 			| Effect.Services<typeof appProcessConfig>
@@ -449,7 +471,7 @@ export const instanceHealth = (viewer: { readonly email: string }) =>
 				qdrant: probeQdrant,
 				s3: probeS3,
 			},
-			embeddings: inspectActiveCollection,
+			embeddings: inspectActiveCollection(COLLECTION_SETUP),
 			pgBoss: probePgBoss,
 			mail,
 			migration: findLatestMigration,

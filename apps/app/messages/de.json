@@ -3863,8 +3863,10 @@
 	"check_reason_embeddings_collection_incompatible": "Die Qdrant-Collection des Embedding-Modells hat keine Dense-Vektoren, die OrcAI nutzen kann. Löschen Sie die Collection, dann legen die Worker sie innerhalb einer Minute neu an.",
 	"check_reason_embeddings_collection_mismatch": "Die Qdrant-Collection passt nicht zu den Dimensionen des Embedding-Modells.",
 	"check_reason_embeddings_collection_missing": "Die Qdrant-Collection des Embedding-Modells fehlt. Die Worker legen sie innerhalb einer Minute neu an.",
+	"check_reason_embeddings_collection_preparing": "OrcAI legt die Qdrant-Collection des Embedding-Modells an. Prüfen Sie gleich erneut.",
 	"check_reason_embeddings_not_configured": "Die Suche ist nicht verfügbar, bis ein Instanz-Admin die Embeddings einrichtet.",
 	"check_reason_embeddings_ready": "Die Embeddings sind eingerichtet.",
+	"check_reason_embeddings_settings_saving": "OrcAI speichert die Embedding-Einstellungen. Prüfen Sie gleich erneut.",
 	"check_reason_mail_dead": [
 		{
 			"declarations": [
