@@ -36,7 +36,10 @@ import {
 	QdrantService,
 	servedFilter,
 } from "@orcai/qdrant";
-import { testEmbeddingIndex } from "@orcai/qdrant/testing";
+import {
+	testEmbeddingIndex,
+	testEmbeddingIndexOn,
+} from "@orcai/qdrant/testing";
 import { QuotaReservationsLive } from "@orcai/quota";
 import { assetObjectKey } from "@orcai/s3";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
@@ -400,20 +403,22 @@ const configuredIndex = () =>
 		dimensions: DIMENSIONS,
 	});
 
+const configured = await configuredIndex();
 const indexes = {
 	// Shared by the tests that keep its generation, each confined to its own links.
-	configured: await configuredIndex(),
+	configured,
 	waiting: await testEmbeddingIndex(),
 	racing: await testEmbeddingIndex(),
 	legacy: await testEmbeddingIndex(),
 	wiped: await configuredIndex(),
 	switched: await configuredIndex(),
-	retried: await configuredIndex(),
+	// Settings of their own on the shared collection, for tests that write no points and start no generation.
+	retried: await testEmbeddingIndexOn(configured),
 	failedBefore: await testEmbeddingIndex(),
-	racingFlag: await configuredIndex(),
+	racingFlag: await testEmbeddingIndexOn(configured),
 	preparedWhileSwitching: await configuredIndex(),
 	preparedInBackground: await configuredIndex(),
-	preparedBesidePersonal: await configuredIndex(),
+	preparedBesidePersonal: await testEmbeddingIndexOn(configured),
 };
 
 /** The rebuild flag as stored, before any derivation. */

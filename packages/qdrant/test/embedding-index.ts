@@ -88,6 +88,19 @@ const isolatedEmbeddingIndex = (blockIds: readonly BlockId[] = []) =>
 export const IsolatedEmbeddingIndexLive = (blockIds?: readonly BlockId[]) =>
 	Layer.effect(EmbeddingIndex, isolatedEmbeddingIndex(blockIds));
 
+/** A runtime over an isolated index, disposed after the file's last test. */
+const isolatedRuntime = () => {
+	const runtime = ManagedRuntime.make(
+		IsolatedEmbeddingIndexLive().pipe(
+			Layer.provideMerge(
+				Layer.mergeAll(DrizzleLive, QdrantLive, EncryptionKeyLive),
+			),
+		),
+	);
+	afterAll(() => runtime.dispose());
+	return runtime;
+};
+
 /**
  * An isolated embedding index for the test file, set up with `embeddings`
  * when given, its collection created as the reconciler pass a save wakes
@@ -100,14 +113,7 @@ export const testEmbeddingIndex = async (embeddings?: {
 	readonly queryPrefix?: string;
 	readonly passagePrefix?: string;
 }) => {
-	const runtime = ManagedRuntime.make(
-		IsolatedEmbeddingIndexLive().pipe(
-			Layer.provideMerge(
-				Layer.mergeAll(DrizzleLive, QdrantLive, EncryptionKeyLive),
-			),
-		),
-	);
-	afterAll(() => runtime.dispose());
+	const runtime = isolatedRuntime();
 	if (embeddings) {
 		await runtime.runPromise(
 			configureEmbeddings({
@@ -120,3 +126,23 @@ export const testEmbeddingIndex = async (embeddings?: {
 	}
 	return runtime.runPromise(EmbeddingIndex);
 };
+
+/**
+ * An isolated embedding index for the test file on `index`'s generation and
+ * collection: its settings start as a copy of `index`'s and then stay its
+ * own, and no collection is created for it. It must not start a generation.
+ */
+export const testEmbeddingIndexOn = (index: EmbeddingIndexScope) =>
+	isolatedRuntime().runPromise(
+		Effect.gen(function* () {
+			const own = yield* EmbeddingIndex;
+			const db = yield* DB;
+			yield* db
+				.insert(own.settings)
+				.values(yield* db.select().from(index.settings));
+			return {
+				...own,
+				collectionPrefix: index.collectionPrefix,
+			};
+		}),
+	);
