@@ -99,7 +99,6 @@ const embeddingThroughEndpoint = async (
 };
 
 const STRONG = 0.8;
-// Below the 0.5 threshold, above the relaxed pass's 0.28.
 const WEAK = 0.4;
 const UNRELATED = 0.1;
 
@@ -195,7 +194,6 @@ const repositoryOf = async (
 							"refund",
 						],
 						retrievalMode: "dense",
-						minScore: 0.5,
 						maxPerAsset: 2,
 						...filters,
 					},
@@ -222,7 +220,6 @@ const repositoryOf = async (
 									"refund",
 								],
 								retrievalMode: "dense" as const,
-								minScore: 0.5,
 								maxPerAsset: 2,
 								...filters,
 							},
@@ -375,7 +372,7 @@ describe("repository search", () => {
 	);
 
 	test(
-		"backfills only with passages a recall pass admits, and leaves the rest of the slots empty",
+		"ranks every passage by similarity, without a cut-off",
 		async () => {
 			const { search } = await repositoryOf([
 				[
@@ -385,15 +382,15 @@ describe("repository search", () => {
 				],
 			]);
 
-			const { data, metadata } = await search({
+			const { data } = await search({
 				limit: 10,
 			});
 
 			expect(similarities(data)).toEqual([
 				...passages(4, STRONG),
 				WEAK,
+				...passages(2, UNRELATED),
 			]);
-			expect(metadata?.scoreThreshold).toBeCloseTo(0.28);
 		},
 		TIMEOUT,
 	);
@@ -444,7 +441,7 @@ describe("repository search", () => {
 	);
 
 	test(
-		"a recall budget above the limit finds the assets a strong one would crowd out",
+		"a candidate budget above the limit finds the assets a strong one would crowd out",
 		async () => {
 			const {
 				search,
@@ -461,10 +458,11 @@ describe("repository search", () => {
 
 			const atLimit = await search({
 				limit: 6,
+				candidateLimit: 6,
 			});
 			const withBudget = await search({
 				limit: 6,
-				recallLimit: 36,
+				candidateLimit: 36,
 			});
 
 			expect(perAsset(atLimit.data)).toEqual({

@@ -146,15 +146,7 @@ const RepositoryConfigCard = ({
 							/>
 						</CollapsibleTrigger>
 						<CollapsibleContent className="pt-4">
-							<div className="grid grid-cols-3 gap-3">
-								<div className="bg-muted/30 rounded-xl border p-3 text-center">
-									<div className="text-xl font-semibold tabular-nums">
-										{config.scoreThreshold ?? 0.2}
-									</div>
-									<div className="text-muted-foreground mt-1 text-xs">
-										{m.blocks_repository_config_score_threshold_label()}
-									</div>
-								</div>
+							<div className="grid grid-cols-2 gap-3">
 								<div className="bg-muted/30 rounded-xl border p-3 text-center">
 									<div className="text-xl font-semibold tabular-nums">
 										{config.candidateLimit ?? 40}

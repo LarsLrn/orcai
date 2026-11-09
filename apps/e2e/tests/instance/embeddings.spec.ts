@@ -235,7 +235,6 @@ test("instance: Prepare assets again shows for an asset missing its stored text 
 			minPassages: 1,
 			maxPassages: 5,
 			defaultPassages: 3,
-			scoreThreshold: 0,
 		},
 	});
 	const restore = await failWithMissingExtraction({

@@ -10,7 +10,6 @@ export const listAssetPointsResponseSchema = z.object({
 	metadata: z
 		.object({
 			retrievalMode: retrievalModeSchema,
-			scoreThreshold: z.number().min(0).max(1),
 			candidateCount: z.number().int().min(0),
 			returnedCount: z.number().int().min(0),
 		})

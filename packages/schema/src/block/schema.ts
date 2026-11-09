@@ -64,7 +64,6 @@ export const repositorySchema = z.object({
 	type: z.literal("repository"),
 	config: z.object({
 		...passagesConfigSchema.shape,
-		scoreThreshold: z.number().min(0).max(1).optional(),
 		retrievalMode: retrievalModeSchema.optional(),
 		candidateLimit: z.number().int().min(1).max(200).optional(),
 		maxPerAsset: z.number().int().min(1).optional(),
@@ -77,7 +76,6 @@ export const defaultRepositoryConfig = {
 	maxPassages: 8,
 	defaultPassages: 4,
 	retrievalMode: "hybrid",
-	scoreThreshold: 0.2,
 	candidateLimit: 40,
 	maxPerAsset: 6,
 } as const satisfies z.infer<typeof repositorySchema.shape.config>;

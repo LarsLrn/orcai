@@ -65,7 +65,7 @@ const scope = (assetIds: readonly string[] = every) => ({
 });
 
 describe("retrievePassages", () => {
-	test("dense ranks by similarity above the short query's threshold", async () => {
+	test("dense ranks by similarity", async () => {
 		const { points, metadata } = await search({
 			queries: [
 				"refund policy",
@@ -85,109 +85,38 @@ describe("retrievePassages", () => {
 		expect(points[0][1]).toBeCloseTo(0.950666, 5);
 		expect(metadata).toEqual({
 			retrievalMode: "dense",
-			scoreThreshold: 0.35,
-			candidateCount: 9,
+			candidateCount: 16,
 			returnedCount: 4,
 		});
 	});
 
-	test("sparse keeps the lexical matches in the order Qdrant ranks them", async () => {
-		expect(
-			await search({
-				queries: [
-					"refund policy",
-				],
-				scope: scope(),
-				policy: {
-					retrievalMode: "sparse",
-					limit: 5,
-				},
-			}),
-		).toEqual({
-			points: [
-				[
-					"a1",
-					1,
-				],
-				[
-					"b4",
-					1,
-				],
-				[
-					"c4",
-					1,
-				],
-				[
-					"c1",
-					1,
-				],
-				[
-					"a2",
-					1,
-				],
-			],
-			metadata: {
-				retrievalMode: "sparse",
-				scoreThreshold: 0.15,
-				candidateCount: 7,
-				returnedCount: 5,
-			},
-		});
-	});
-
-	test("a point several wordings find ranks higher, 0.03 a wording", async () => {
-		const { points } = await search({
-			queries: [
-				"refund policy",
-				"money back",
-			],
-			scope: scope(),
-			policy: {
-				retrievalMode: "dense",
-				limit: 6,
-			},
-		});
-		expect(points.slice(2)).toEqual([
-			[
-				"c2",
-				expect.closeTo(0.980399, 5),
-			],
-			[
-				"a2",
-				expect.closeTo(0.938559, 5),
-			],
-			[
-				"c6",
-				expect.closeTo(0.928576, 5),
-			],
-			[
-				"b4",
-				expect.closeTo(0.89, 5),
-			],
-		]);
-	});
-
-	test("a second pass lowers the threshold when the first finds too few", async () => {
+	test("sparse keeps the keyword matches in the order Qdrant ranks them", async () => {
 		const { points, metadata } = await search({
 			queries: [
-				"opening hours",
+				"refund policy",
 			],
 			scope: scope(),
 			policy: {
-				retrievalMode: "dense",
-				limit: 6,
-				minScore: 0.95,
-				maxPerAsset: 1,
+				retrievalMode: "sparse",
+				limit: 5,
 			},
 		});
 		expect(points.map(([name]) => name)).toEqual([
-			"b1",
+			"a1",
+			"b4",
+			"c4",
+			"c1",
+			"a2",
 		]);
-		expect(metadata.scoreThreshold).toBeCloseTo(0.73, 10);
+		expect(metadata).toEqual({
+			retrievalMode: "sparse",
+			candidateCount: 7,
+			returnedCount: 5,
+		});
 	});
 
-	test("hybrid reranks the fused candidates", async () => {
-		const { points, metadata } = await search({
+	test("hybrid ranks a point both meaning and keywords find first", async () => {
+		const { points } = await search({
 			queries: [
 				"refund policy",
 			],
@@ -197,29 +126,72 @@ describe("retrievePassages", () => {
 				limit: 5,
 			},
 		});
-		expect(points).toEqual([
-			[
-				"a1",
-				1,
-			],
-			[
-				"b4",
-				expect.closeTo(0.755118, 5),
-			],
-			[
-				"c4",
-				expect.closeTo(0.646633, 5),
-			],
-			[
-				"a2",
-				expect.closeTo(0.5258, 5),
-			],
-			[
-				"c6",
-				expect.closeTo(0.423511, 5),
-			],
+		expect(points.map(([name]) => name)).toEqual([
+			"a1",
+			"b4",
+			"a2",
+			"c4",
+			"c6",
 		]);
-		expect(metadata.candidateCount).toBe(9);
+	});
+
+	test("a point several wordings rank high comes before the best match of one", async () => {
+		const ranked = async (queries: string[]) =>
+			(
+				await search({
+					queries,
+					scope: scope(),
+					policy: {
+						retrievalMode: "dense",
+						limit: 2,
+					},
+				})
+			).points.map(([name]) => name);
+		expect(
+			await ranked([
+				"money back",
+			]),
+		).toEqual([
+			"a3",
+			"a1",
+		]);
+		expect(
+			await ranked([
+				"refund policy",
+				"money back",
+			]),
+		).toEqual([
+			"a1",
+			"a3",
+		]);
+	});
+
+	test("repeating a wording does not boost the points it finds", async () => {
+		const policy = {
+			retrievalMode: "dense",
+			limit: 6,
+			maxPerAsset: 6,
+		} as const;
+		expect(
+			await search({
+				queries: [
+					"refund policy",
+					"refund policy",
+					"money back",
+				],
+				scope: scope(),
+				policy,
+			}),
+		).toEqual(
+			await search({
+				queries: [
+					"refund policy",
+					"money back",
+				],
+				scope: scope(),
+				policy,
+			}),
+		);
 	});
 
 	test("keeps to the scope's assets, pages and passages", async () => {
@@ -281,13 +253,14 @@ describe("retrievePassages", () => {
 			},
 			policy: {
 				retrievalMode: "dense",
-				limit: 5,
+				limit: 4,
 			},
 		});
 		expect(passages.points.map(([name]) => name)).toEqual([
 			"a1",
 			"a2",
 			"b4",
+			"b5",
 		]);
 	});
 
@@ -319,7 +292,7 @@ describe("retrievePassages", () => {
 				0,
 			],
 		]);
-		expect(metadata.scoreThreshold).toBe(0);
+		expect(metadata.candidateCount).toBe(3);
 	});
 
 	test("an empty scope finds nothing", async () => {
@@ -337,7 +310,6 @@ describe("retrievePassages", () => {
 			points: [],
 			metadata: {
 				retrievalMode: "hybrid",
-				scoreThreshold: 0,
 				candidateCount: 0,
 				returnedCount: 0,
 			},

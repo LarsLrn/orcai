@@ -51,7 +51,6 @@ const repositoryOf = async (client: ApiClient, assetId: AssetId) => {
 			minPassages: 1,
 			maxPassages: 5,
 			defaultPassages: 3,
-			scoreThreshold: 0,
 		},
 	});
 	return block.data.id as BlockId;

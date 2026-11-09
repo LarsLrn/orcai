@@ -11,7 +11,6 @@ import {
 	compareByPageAssetPassage,
 	flattenBlockResponses,
 	loadAssetCatalog,
-	mergeAndSortCandidates,
 	rankAssetsByQuery,
 	resolveSearchBlocks,
 	toPassage,
@@ -117,9 +116,7 @@ export const getAssetPageTool = ({
 					},
 				);
 
-				const points = mergeAndSortCandidates(
-					flattenBlockResponses(blockResponses),
-				)
+				const points = flattenBlockResponses(blockResponses)
 					.sort(compareByPageAssetPassage)
 					.slice(0, limit);
 

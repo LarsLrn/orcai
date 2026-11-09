@@ -31,23 +31,6 @@ export const resolveSearchBlocks = ({
 	return blocks.filter((block) => block.id === blockId);
 };
 
-const toSearchKey = (point: PointWithBlock): string =>
-	`${point.payload.block_id}:${String(point.id)}`;
-
-export const mergeAndSortCandidates = (points: PointWithBlock[]) =>
-	Array.from(
-		points
-			.reduce((entries, point) => {
-				const key = toSearchKey(point);
-				const prev = entries.get(key);
-				if (!prev || point.score > prev.score) {
-					entries.set(key, point);
-				}
-				return entries;
-			}, new Map<string, PointWithBlock>())
-			.values(),
-	).sort((a, b) => b.score - a.score);
-
 const withBlockSource = ({
 	block,
 	points,
@@ -78,13 +61,15 @@ export const withRepository = ({
 		},
 	}));
 
+type BlockResponse = {
+	block: Repository;
+	response: {
+		data: RetrievedAssetPoint[];
+	};
+};
+
 export const flattenBlockResponses = (
-	blockResponses: Array<{
-		block: Repository;
-		response: {
-			data: RetrievedAssetPoint[];
-		};
-	}>,
+	blockResponses: readonly BlockResponse[],
 ): PointWithBlock[] =>
 	blockResponses.flatMap(({ block, response }) =>
 		withBlockSource({
@@ -92,6 +77,35 @@ export const flattenBlockResponses = (
 			points: response.data,
 		}),
 	);
+
+/**
+ * The repositories' results as one list: each repository's best passage,
+ * then each one's second best, and so on. Every repository is ranked by a
+ * search of its own, so their scores do not compare.
+ */
+export const mergeByRank = (
+	blockResponses: readonly BlockResponse[],
+): PointWithBlock[] => {
+	const lists = blockResponses.map(({ block, response }) =>
+		withBlockSource({
+			block,
+			points: response.data,
+		}),
+	);
+	return Array.from(
+		{
+			length: Math.max(0, ...lists.map((list) => list.length)),
+		},
+		(_, rank) =>
+			lists.flatMap((list) =>
+				rank < list.length
+					? [
+							list[rank],
+						]
+					: [],
+			),
+	).flat();
+};
 
 /** A run of neighbouring points of one asset as one passage, named for `anchor`. */
 export const toPassage = (
