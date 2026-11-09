@@ -46,6 +46,10 @@ const points = {
 		similarity: 0,
 		text: "Refund policy.",
 	},
+	fees: {
+		similarity: 0,
+		text: "Wie werden die Gebühren für Kinder über zwölf während der Ferien in the summer berechnet?",
+	},
 };
 
 const ids = Object.fromEntries(
@@ -83,12 +87,16 @@ beforeAll(
 	SETUP_TIMEOUT,
 );
 
-const search = async (retrievalMode: RetrievalMode, limit: number) => {
+const search = async (
+	retrievalMode: RetrievalMode,
+	limit: number,
+	text = "refund",
+) => {
 	const found = await run(
 		queryAssetPoints({
 			queries: [
 				{
-					text: "refund",
+					text,
 					vector: at(1, dimensions),
 				},
 			],
@@ -122,6 +130,20 @@ describe("queryAssetPoints", () => {
 	test("sparse finds the keyword alone", async () => {
 		expect(await search("sparse", 5)).toEqual([
 			"keyword",
+		]);
+	});
+
+	test("sparse leaves out common German and English words", async () => {
+		expect(
+			await search(
+				"sparse",
+				5,
+				"Wie werden the titles für Zeitschriften formatiert?",
+			),
+		).toEqual([]);
+		expect(await search("sparse", 5, "für über während")).toEqual([]);
+		expect(await search("sparse", 5, "Gebühren")).toEqual([
+			"fees",
 		]);
 	});
 

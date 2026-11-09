@@ -151,7 +151,7 @@ A repository's page lists its attached assets and its retrieval configuration:
 - **Passages per answer**: Minimum, Default and Maximum
 - **Passages per asset** and **Candidate limit**, under the advanced settings
 
-Dense ranks passages by meaning, Sparse by the words of the query (BM25), and Hybrid runs both and combines the two rankings. A search with several wordings ranks the passages for each wording and combines those rankings too, so a passage that several wordings find ranks higher. **Candidate limit** is how many passages each ranking contributes before the results are picked. There is no minimum score: a search returns the best passages it finds.
+Dense ranks passages by meaning, Sparse by the words of the query (BM25), and Hybrid runs both and combines the two rankings. Sparse leaves out common German and English words such as "wie", "für" or "the", so a passage does not match on those alone. A search with several wordings ranks the passages for each wording and combines those rankings too, so a passage that several wordings find ranks higher. **Candidate limit** is how many passages each ranking contributes before the results are picked. There is no minimum score: a search returns the best passages it finds.
 
 **Passages per asset** keeps one long asset from crowding out the others, because a search takes at most that many passages from each asset first. When that leaves the results short, the best remaining passages fill the free places.
 
