@@ -155,7 +155,7 @@ Dense ranks passages by meaning, Sparse by the words of the query (BM25), and Hy
 
 **Passages per asset** keeps one long asset from crowding out the others, because a search takes at most that many passages from each asset first. When that leaves the results short, the best remaining passages fill the free places.
 
-The bot reads each passage with its asset, its section headings and its pages. OrcAI finds a passage's pages by matching its text against the text of each page or slide. A passage it cannot place with certainty, such as text read from a scanned page, has no page. A citation names the page of a passage that lies on one page and otherwise shows only the asset's title. An image description is marked as one, so the bot does not quote it as the asset's words, and reading around it returns the text on its page.
+The bot reads each passage with its asset, its section headings and its pages. OrcAI finds a passage's pages by matching its text against the text of each page or slide. A slide deck is split into passages slide by slide, so no passage spans two slides and each names its slide. A passage it cannot place with certainty, such as text read from a scanned page, has no page. A citation names the page of a passage that lies on one page and otherwise shows only the asset's title. An image description is marked as one, so the bot does not quote it as the asset's words, and reading around it returns the text on its page.
 
 When a bot searches several repositories, each is ranked on its own and their results take turns: the best passage of every repository first, then the second best of every repository, and so on.
 

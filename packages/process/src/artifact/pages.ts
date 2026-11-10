@@ -1,5 +1,4 @@
 import type { ExtractionResult } from "@kreuzberg/node";
-import type { ExpandedMetadata } from "../kreuzberg-expanded-types";
 
 /** The text of one page, slide or sheet, as extraction read it. */
 export type ExtractionPage = {
@@ -28,25 +27,12 @@ const normalize = (text: string) =>
 		.toLowerCase()
 		.replaceAll(/[^\p{L}\p{N}]/gu, "");
 
-/**
- * Each page's text: the pages extraction returns, or for formats without them
- * (presentations) the content between the page boundaries.
- */
-export const extractionPages = (result: ExtractionResult): ExtractionPage[] => {
-	if (result.pages && result.pages.length > 0) {
-		return result.pages.map(({ pageNumber, content }) => ({
-			pageNumber,
-			content,
-		}));
-	}
-	const boundaries = (result.metadata as ExpandedMetadata).pages?.boundaries;
-	if (!boundaries) return [];
-	const content = Buffer.from(result.content, "utf-8");
-	return boundaries.map(({ pageNumber, byteStart, byteEnd }) => ({
+/** Each page's text, as extraction returns it. */
+export const extractionPages = (result: ExtractionResult): ExtractionPage[] =>
+	(result.pages ?? []).map(({ pageNumber, content }) => ({
 		pageNumber,
-		content: content.subarray(byteStart, byteEnd).toString("utf-8"),
+		content,
 	}));
-};
 
 const hashOf = (text: string, start: number) => {
 	let hash = 0;

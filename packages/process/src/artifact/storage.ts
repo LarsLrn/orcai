@@ -1,6 +1,7 @@
 import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
 import { processedAssetPrefix } from "@orcai/s3";
 import type { BucketName } from "@orcai/schema";
+import { isSlideDeck } from "../extract/slides";
 import { extractionPages, placeChunks } from "./pages";
 import type {
 	ExtractionArtifact,
@@ -37,7 +38,11 @@ export const createExtractionArtifact = (params: {
 		metadata: params.result.metadata,
 		tables: params.result.tables,
 		detectedLanguages: params.result.detectedLanguages ?? [],
-		chunks: placeChunks(params.result.chunks ?? [], pages),
+		// A deck whose slides extraction read was chunked slide by slide, each chunk with its slide.
+		chunks:
+			isSlideDeck(params.result) && pages.length > 0
+				? (params.result.chunks ?? [])
+				: placeChunks(params.result.chunks ?? [], pages),
 		pages,
 		document: params.result.document,
 		qualityScore: params.result.qualityScore,

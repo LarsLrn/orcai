@@ -12,5 +12,8 @@
 		"@orcai/s3": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"effect": "catalog:"
+	},
+	"devDependencies": {
+		"@orcai/testing": "workspace:*"
 	}
 }

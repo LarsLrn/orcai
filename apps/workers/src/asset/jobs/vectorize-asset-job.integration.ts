@@ -49,6 +49,7 @@ import {
 	integrationRuntime,
 	rejection,
 } from "@orcai/testing";
+import { pptxWithSlides } from "@orcai/testing/documents";
 import { serve } from "bun";
 import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -1288,12 +1289,15 @@ test(
 					"text",
 					"image",
 				],
-				pdf: pdfWithImages([
-					logo,
-					logo,
-					chart,
-					logo,
-				]),
+				document: {
+					fileType: "pdf",
+					body: pdfWithImages([
+						logo,
+						logo,
+						chart,
+						logo,
+					]),
+				},
 			}),
 		);
 		const described = visionRequests.length;
@@ -1401,10 +1405,13 @@ test(
 					"text",
 					"image",
 				],
-				pdf: pdfWithImages([
-					strip,
-					icon,
-				]),
+				document: {
+					fileType: "pdf",
+					body: pdfWithImages([
+						strip,
+						icon,
+					]),
+				},
 			}),
 		);
 		const described = visionRequests.length;
@@ -1466,7 +1473,10 @@ test(
 				capabilities: [
 					"text",
 				],
-				pdf: pdfWithPages(pages),
+				document: {
+					fileType: "pdf",
+					body: pdfWithPages(pages),
+				},
 			}),
 		);
 		await run(
@@ -1545,6 +1555,164 @@ test(
 				point?.chunkPageEnd,
 			]),
 		).toEqual(expected);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a slide deck's passages are split at its slides and carry their slide",
+	async () => {
+		const slides = [
+			{
+				title: "Methods workshop",
+				lines: [
+					"Qualitative content analysis, session three, winter term.",
+				],
+			},
+			{
+				title: "Category system",
+				lines: [
+					"Deductive categories come from theory.",
+					"Inductive categories arise from the material.",
+				],
+			},
+			{
+				title: "Survey response",
+				lines: [
+					"The online survey had 313 responses in total.",
+				],
+			},
+		];
+		const asset = await run(
+			seedVisionAsset({
+				capabilities: [
+					"text",
+				],
+				document: {
+					fileType: "pptx",
+					body: pptxWithSlides(slides),
+				},
+			}),
+		);
+		await run(
+			processAsset({
+				id: crypto.randomUUID(),
+				name: "process-asset",
+				data: {
+					assetRef: {
+						bucket: buckets.processed.name,
+						prefix: asset.prefix,
+						id: asset.assetId,
+						type: asset.fileType,
+					},
+					generation: 0,
+				},
+			} as Job<ProcessAssetPayload>),
+		);
+
+		// Each passage holds its whole slide and nothing of another.
+		const slidesIn = (text: string) =>
+			slides.flatMap(({ title, lines }, index) =>
+				[
+					title,
+					...lines,
+				].some((line) => text.includes(line))
+					? [
+							{
+								slide: index + 1,
+								whole: [
+									title,
+									...lines,
+								].every((line) => text.includes(line)),
+							},
+						]
+					: [],
+			);
+		const extraction = await run(readStoredExtraction(asset.assetId));
+		expect(
+			extraction.chunks.map(({ content, metadata }) => ({
+				slides: slidesIn(content),
+				pages: [
+					metadata.firstPage,
+					metadata.lastPage,
+				],
+			})),
+		).toEqual(
+			[
+				1,
+				2,
+				3,
+			].map((slide) => ({
+				slides: [
+					{
+						slide,
+						whole: true,
+					},
+				],
+				pages: [
+					slide,
+					slide,
+				],
+			})),
+		);
+		expect(extraction.pages?.map(({ pageNumber }) => pageNumber)).toEqual([
+			1,
+			2,
+			3,
+		]);
+
+		const blockId = await run(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				const [block] = yield* db
+					.insert(dbSchema.block)
+					.values({
+						type: "repository",
+						name: "Slides repository",
+						config: defaultRepositoryConfig,
+						userId: asset.uploaderId,
+					})
+					.returning();
+				yield* db.insert(dbSchema.blockAsset).values({
+					blockId: block.id,
+					assetId: asset.assetId,
+				});
+				return block.id as BlockId;
+			}),
+		);
+		const link = {
+			assetId: asset.assetId,
+			blockId,
+		};
+		await vectorize(await admit(link));
+
+		expect(
+			[
+				...(await payloadsOf(link)),
+			]
+				.sort((a, b) => Number(a?.chunk_index) - Number(b?.chunk_index))
+				.map((point) => [
+					point?.chunkPageStart,
+					point?.chunkPageEnd,
+					point?.documentTotalPages,
+				]),
+		).toEqual([
+			[
+				1,
+				1,
+				3,
+			],
+			[
+				2,
+				2,
+				3,
+			],
+			[
+				3,
+				3,
+				3,
+			],
+		]);
 	},
 	TIMEOUT,
 );

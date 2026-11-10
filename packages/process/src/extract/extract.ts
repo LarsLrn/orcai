@@ -1,10 +1,11 @@
-import { type ExtractionResult, extractBytes } from "@kreuzberg/node";
+import { extractBytes } from "@kreuzberg/node";
 import * as Effect from "effect/Effect";
 import { ProcessError } from "../errors";
 import type { ExpandedExtractionConfig } from "../kreuzberg-expanded-types";
 import { readSource } from "../source/read";
 import type { ProcessSource } from "../source/types";
 import { getExtractionProfileConfig } from "./profiles";
+import { chunkSlides, isSlideDeck } from "./slides";
 import type { ExtractionProfile } from "./types";
 
 export const extract = (
@@ -23,7 +24,7 @@ export const extract = (
 			...options?.config,
 		} satisfies ExpandedExtractionConfig;
 
-		return (yield* Effect.tryPromise({
+		const result = yield* Effect.tryPromise({
 			try: async () =>
 				extractBytes(Buffer.from(input.data), input.mimeType, config),
 			catch: (cause) =>
@@ -31,5 +32,12 @@ export const extract = (
 					operation: "extractBytes",
 					cause,
 				}),
-		})) satisfies ExtractionResult;
+		});
+		if (!config.chunking || !isSlideDeck(result)) return result;
+		return yield* chunkSlides({
+			result,
+			data: input.data,
+			mimeType: input.mimeType,
+			config,
+		});
 	});
