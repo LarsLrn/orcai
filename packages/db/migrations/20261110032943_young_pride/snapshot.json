@@ -1,0 +1,91 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "419df984-0558-4af2-bee7-4b4c9abd1655",
+  "prevIds": [
+    "05678b10-8a22-4e84-977b-a9964c5f4fbe"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "block_asset",
+        "indexed_title"
+      ],
+      "writes": [
+        "s|col|public.block_asset.indexed_title",
+        "n|col|public.block_asset.indexed_title",
+        "e|col|public.block_asset.indexed_title"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "asset",
+        "asset_updated_idx"
+      ],
+      "writes": [
+        "s|idx|public.asset_updated_idx",
+        "n|idx|public.asset_updated_idx",
+        "e|idx|public.asset_updated_idx",
+        "n|rel|public.asset_updated_idx"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|col|public.asset.updated_at"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "indexed_title",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_updated_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "updated_at",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    }
+  ]
+}

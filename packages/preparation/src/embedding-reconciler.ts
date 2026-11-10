@@ -19,9 +19,13 @@ import {
 	desc,
 	eq,
 	exists,
+	gte,
 	inArray,
 	isNotNull,
+	isNull,
+	lt,
 	notExists,
+	notInArray,
 	or,
 	sql,
 } from "drizzle-orm";
@@ -31,6 +35,15 @@ import { type AdmissionRun, admit, type ObservedLink } from "./admission";
 import { inActivityRun, leaseHeld, leaseRun, releaseAdmission } from "./runs";
 
 const ADMISSION_BATCH = 500;
+
+/** Links one run embeds again for a new title; the next run takes the rest. */
+const RETITLE_BUDGET = 100;
+
+/** How long an asset's title stays unchanged before its passages are embedded below it again, so a burst of renames embeds once. */
+const RETITLE_QUIET = sql`interval '30 seconds'`;
+
+/** How far back a title change is looked for, so a run reads only recently changed assets. */
+const RETITLE_WINDOW = sql`interval '1 day'`;
 
 /**
  * Failures embedding the stored extraction again can help. A missing
@@ -159,14 +172,17 @@ export const embeddingsRebuilding = rebuildState.pipe(
  * prepared asset whose indexing targets another generation or none, to embed
  * its stored extraction again. It is how waiting links, a new generation and
  * work lost to a crash get indexed; idempotent, so every run resumes where
- * the last one stopped. A rebuild ends once every link has settled. Does
+ * the last one stopped. A rebuild ends once every link has settled. Then
+ * admits up to a budget of indexed links whose passages were embedded below
+ * another title than their asset's, changed in the last day, once the asset
+ * is unchanged for a while and its metadata is not being generated. Does
  * nothing before setup. Returns the links admitted.
  */
 export const reconcileEmbeddings = Effect.gen(function* () {
 	yield* maintainCollections;
 	const db = yield* DB;
 	const { settings } = yield* EmbeddingIndex;
-	const { blockAsset } = dbSchema;
+	const { asset, blockAsset } = dbSchema;
 	const links = yield* embeddable;
 
 	const admitted = yield* admitAll(() =>
@@ -179,6 +195,30 @@ export const reconcileEmbeddings = Effect.gen(function* () {
 			)
 			.limit(ADMISSION_BATCH),
 	);
+
+	const retitled = yield* admit({
+		stage: "indexing",
+		links: yield* links
+			.links()
+			.where(
+				links.where(
+					links.inActive,
+					eq(blockAsset.indexStatus, "completed"),
+					sql`${blockAsset.indexedTitle} is distinct from ${asset.title}`,
+					gte(asset.updatedAt, sql`now() - ${RETITLE_WINDOW}`),
+					lt(asset.updatedAt, sql`now() - ${RETITLE_QUIET}`),
+					or(
+						isNull(asset.metadataStatus),
+						notInArray(asset.metadataStatus, [
+							"pending",
+							"active",
+						]),
+					),
+				),
+			)
+			.orderBy(asset.updatedAt)
+			.limit(RETITLE_BUDGET),
+	});
 
 	const { generation, rebuilding } = yield* rebuildState;
 	if (generation !== undefined && !rebuilding) {
@@ -195,7 +235,7 @@ export const reconcileEmbeddings = Effect.gen(function* () {
 				),
 			);
 	}
-	return admitted;
+	return admitted + retitled.length;
 });
 
 /**

@@ -80,6 +80,7 @@ export const asset = pgTable(
 	},
 	(table) => [
 		index("asset_user_idx").on(table.userId),
+		index("asset_updated_idx").on(table.updatedAt),
 		index("asset_processing_failed_owner_idx")
 			.on(sql`coalesce(${table.processingActorId}, ${table.userId})`)
 			.where(sql`${table.processingStatus} = 'failed'`),

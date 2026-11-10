@@ -161,9 +161,10 @@ export const completeProcessing = (attempt: ProcessingAttempt) =>
 /**
  * Completes the indexing attempt and serves its points in one step, under
  * the link's points lock; served before the commit, so a link never reads
- * indexed without its points. Whether it completed.
+ * indexed without its points. `title` is the one its passages were embedded
+ * below. Whether it completed.
  */
-export const completeIndexing = (attempt: IndexingAttempt) =>
+export const completeIndexing = (attempt: IndexingAttempt, title: string) =>
 	withLinkPoints(
 		attempt,
 		Effect.gen(function* () {
@@ -175,6 +176,7 @@ export const completeIndexing = (attempt: IndexingAttempt) =>
 					indexStatus: "completed",
 					indexFailure: null,
 					indexedAttempt: attempt.attempt,
+					indexedTitle: title,
 				})
 				.where(currentIndexing(attempt))
 				.returning({
