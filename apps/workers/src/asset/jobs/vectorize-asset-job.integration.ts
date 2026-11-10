@@ -213,6 +213,7 @@ const seed = (
 		text: string;
 		page: number;
 	}[] = [],
+	pageCount?: number,
 ) =>
 	run(
 		Effect.gen(function* () {
@@ -254,6 +255,14 @@ const seed = (
 							sourceBucket: buckets.main.name,
 							sourcePath: assetObjectKey(asset),
 						}),
+						metadata: {
+							pages: pageCount
+								? {
+										totalCount: pageCount,
+										unitType: "slide",
+									}
+								: undefined,
+						},
 						content: chunks
 							.map((chunk) =>
 								typeof chunk === "string" ? chunk : chunk.content,
@@ -676,6 +685,30 @@ test(
 				document_title: "refunds.pdf",
 				lexical_text: undefined,
 			},
+		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"passages carry the page count of a presentation",
+	async () => {
+		const link = await seed(
+			[
+				{
+					content: "Deductive categories come from theory.",
+					page: 2,
+				},
+			],
+			[],
+			3,
+		);
+		await vectorize(await admit(link));
+
+		expect(
+			(await payloadsOf(link)).map((point) => point?.documentTotalPages),
+		).toEqual([
+			3,
 		]);
 	},
 	TIMEOUT,

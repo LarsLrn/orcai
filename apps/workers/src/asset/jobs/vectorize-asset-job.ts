@@ -84,18 +84,12 @@ const toValidPageNumber = (value: number | undefined) =>
 		? value
 		: undefined;
 
-const extractDocumentTotalPages = (extraction: StoredExtractionArtifact) => {
-	const pageStructure = extraction.metadata.page_structure as
-		| {
-				totalCount?: number | null;
-		  }
-		| null
-		| undefined;
-
-	return toValidPageNumber(
-		pageStructure?.totalCount ?? extraction.metadata.pageCount ?? undefined,
+const extractDocumentTotalPages = (extraction: StoredExtractionArtifact) =>
+	toValidPageNumber(
+		extraction.metadata.pages?.totalCount ??
+			extraction.metadata.pageCount ??
+			undefined,
 	);
-};
 
 const formatHeadingContext = (
 	headings:
