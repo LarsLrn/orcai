@@ -70,6 +70,24 @@ export const assetOwner = (assetId: AssetId) =>
 		} satisfies AssetOwner;
 	});
 
+/**
+ * The asset's owner and its organisation's utility model. Processing resolves
+ * them once, so keeping figure text and describing figures see the same model.
+ */
+export const imageReader = (assetId: AssetId) =>
+	Effect.gen(function* () {
+		const owner = yield* assetOwner(assetId);
+		return {
+			owner,
+			model: yield* utilityModel(owner.organizationId),
+		} satisfies ImageReader;
+	});
+
+export interface ImageReader {
+	owner: AssetOwner;
+	model: ResolvedModel | undefined;
+}
+
 export const imageMediaType = (format: string) => {
 	const normalized = format.toLowerCase();
 	return normalized === "jpg" ? "image/jpeg" : `image/${normalized}`;
@@ -275,12 +293,14 @@ const describeFigures = (params: {
  * quota that refuses any call fails the asset with `quota`, unless
  * `allowOverBudget` lets the calls run past it.
  */
-export const describeImages = (params: {
+export const describeImages = <E, R>(params: {
 	assetId: AssetId;
 	jobId: string;
 	artifact: ExtractionArtifact;
 	imageAsset: boolean;
 	allowOverBudget?: boolean;
+	/** Run only when the artifact has images. */
+	reader: Effect.Effect<ImageReader, E, R>;
 }) =>
 	Effect.gen(function* () {
 		const { artifact } = params;
@@ -291,8 +311,7 @@ export const describeImages = (params: {
 			} satisfies StoredExtractionArtifact;
 		}
 
-		const owner = yield* assetOwner(params.assetId);
-		const model = yield* utilityModel(owner.organizationId);
+		const { owner, model } = yield* params.reader;
 
 		if (!readsImages(model)) {
 			if (params.imageAsset) {

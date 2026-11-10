@@ -29,7 +29,13 @@ import {
 } from "@orcai/s3/server";
 import { isImageFileType, type ProcessAssetPayload } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { describeImages, imageMediaType } from "@/asset/image-descriptions";
+import {
+	describeImages,
+	type ImageReader,
+	imageMediaType,
+	imageReader,
+} from "@/asset/image-descriptions";
+import { readsImages } from "@/asset/model-call";
 
 const getRequiredMimeType = (
 	fileType: ProcessAssetPayload["assetRef"]["type"],
@@ -48,10 +54,12 @@ const getRequiredMimeType = (
 const MIN_IMAGE_PIXELS = 40_000;
 
 /** Stores each distinct image of the document once, skipping those below `MIN_IMAGE_PIXELS`. */
-const createDocumentArtifact = (params: {
+const createDocumentArtifact = <E, R>(params: {
 	result: Parameters<typeof createExtractionArtifact>[0]["result"];
 	jobId: string;
 	attempt: ProcessingAttempt;
+	/** Run only when figures remain after skipping. */
+	reader: Effect.Effect<ImageReader, E, R>;
 }) =>
 	Effect.gen(function* () {
 		const log = {
@@ -141,8 +149,13 @@ const createDocumentArtifact = (params: {
 			},
 		);
 
+		// Without descriptions, the text OCR read in a figure is the only way search finds it.
+		const keepFigureText =
+			kept.length > 0 && !readsImages((yield* params.reader).model);
+
 		return createExtractionArtifact({
 			result: params.result,
+			keepFigureText,
 			transformImage: (image) => {
 				const sourcePath = storedImagePaths.get(image.imageIndex);
 				if (!sourcePath) {
@@ -199,6 +212,7 @@ const processDelivery = (params: {
 			fileType: assetRef.type,
 		});
 		const imageAsset = isImageFileType(assetRef.type);
+		const reader = yield* Effect.cached(imageReader(assetRef.id));
 		const extracted = imageAsset
 			? createImageOnlyExtractionArtifact({
 					mimeType,
@@ -230,6 +244,7 @@ const processDelivery = (params: {
 							result,
 							jobId: params.job.id,
 							attempt: params.attempt,
+							reader,
 						}),
 					),
 				);
@@ -243,6 +258,7 @@ const processDelivery = (params: {
 
 		const artifact = yield* describeImages({
 			assetId: assetRef.id,
+			reader,
 			jobId: params.job.id,
 			artifact: extracted,
 			imageAsset,

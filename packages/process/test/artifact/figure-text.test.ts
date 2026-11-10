@@ -170,6 +170,25 @@ describe("figure text", () => {
 		]);
 	});
 
+	test("keeps the figure text when asked to, for figures that get no description", () => {
+		const content = `${BODY}\n\n![](image_0.png)\n\n${INLINED_TABLE}\n\n${CAPTION}\n`;
+		const artifact = createExtractionArtifact({
+			result: result({
+				content,
+				chunks: [
+					content.trim(),
+				],
+				images: [
+					image(0, TABLE_OCR),
+				],
+			}),
+			keepFigureText: true,
+		});
+
+		expect(artifact.content).toBe(content);
+		expect(artifact.chunks[0]?.content).toBe(content.trim());
+	});
+
 	test("keeps the text read on a scanned page, which has no figure placeholder", () => {
 		const pageText =
 			"Die Stadtbibliothek Musterstadt steht allen Bürgerinnen und Bürgern offen.";

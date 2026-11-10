@@ -50,6 +50,7 @@ import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import { processAsset } from "@/asset/jobs/process-asset-job";
+import { pdfWithPages } from "@/asset/test-document";
 import {
 	held,
 	requests,
@@ -117,6 +118,7 @@ const delivery = (
 	asset: {
 		assetId: AssetId;
 		prefix: string;
+		fileType?: "png" | "pdf" | "pptx";
 	},
 	generation: number,
 ) =>
@@ -128,7 +130,7 @@ const delivery = (
 				bucket: buckets.processed.name,
 				prefix: asset.prefix,
 				id: asset.assetId,
-				type: "png",
+				type: asset.fileType ?? "png",
 			},
 			generation,
 		},
@@ -246,6 +248,48 @@ test(
 				userId: asset.uploaderId,
 			},
 		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a document without figures is prepared without its utility model, which it does not need",
+	async () => {
+		const asset = await run(
+			seedVisionAsset({
+				capabilities: [
+					"text",
+					"image",
+				],
+				document: {
+					fileType: "pdf",
+					body: pdfWithPages([
+						{
+							lines: [
+								"Refunds are paid within fourteen days of the request.",
+							],
+						},
+					]),
+				},
+			}),
+		);
+		// Resolving the asset's owner and utility model now fails.
+		await run(
+			Effect.gen(function* () {
+				yield* (yield* DB)
+					.delete(dbSchema.resourceScope)
+					.where(eq(dbSchema.resourceScope.resourceId, asset.assetId));
+			}),
+		);
+
+		await processOnce(delivery(asset, 0));
+
+		expect(await statusOf(asset.assetId)).toBe("completed");
+		const stored = await run(readStoredExtraction(asset.assetId));
+		expect(stored.chunks.map(({ content }) => content).join(" ")).toContain(
+			"Refunds are paid within fourteen days",
+		);
+		expect(requests).toHaveLength(0);
 	},
 	TIMEOUT,
 );
