@@ -187,6 +187,7 @@ jobs:
           path: |
             apps/e2e/playwright-report
             apps/e2e/test-results
+            apps/e2e/logs
           retention-days: 7
 
   # The required check: passes when every shard passed or e2e was skipped.

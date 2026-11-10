@@ -45,6 +45,8 @@
  * a mock inference server on E2E_INFERENCE_PORT, which the setup project saves
  * as the embedding endpoint right after `/init`; `up` and `reset` seed a
  * placeholder endpoint for development instead.
+ * Each e2e run writes the app's output to `apps/e2e/logs`, and when Playwright
+ * fails also the PostgreSQL and SpiceDB logs.
  * After Playwright, `e2e` runs `bun run test:integration` against the same
  * stack, whatever Playwright's result; `--no-integration` skips it.
  * `e2e --pipeline` runs the specs in `apps/e2e/tests/pipeline` instead of the
@@ -1091,6 +1093,13 @@ async function runE2e(options: Options, env: Env): Promise<number> {
 		path.join(tmpdir(), `${options.stackName}-e2e-`),
 	);
 	const containerEnvFile = path.join(containerEnvDir, "env");
+	rmSync(e2eLogDir, {
+		recursive: true,
+		force: true,
+	});
+	mkdirSync(e2eLogDir, {
+		recursive: true,
+	});
 	let playwright: number;
 	try {
 		writeFileSync(
@@ -1119,6 +1128,7 @@ async function runE2e(options: Options, env: Env): Promise<number> {
 			{
 				...testEnv,
 				E2E_CONTAINER_ENV_FILE: containerEnvFile,
+				E2E_LOG_DIR: e2eLogDir,
 				E2E_APP_IMAGE: images.app,
 				E2E_WEB_IMAGE: images.web,
 				E2E_WORKERS_IMAGE: images.workers,
@@ -1132,6 +1142,7 @@ async function runE2e(options: Options, env: Env): Promise<number> {
 			force: true,
 		});
 	}
+	if (playwright !== 0 && !interrupted) await saveStackLogs(options, env);
 	if (interrupted || options.flags.has("no-integration")) return playwright;
 	// After Playwright: its setup project initializes the reset instance, which
 	// the integration tier requires.
@@ -1149,6 +1160,36 @@ async function runE2e(options: Options, env: Env): Promise<number> {
 		},
 	);
 	return playwright !== 0 ? playwright : integration;
+}
+
+const e2eLogDir = path.join(repoRoot, "apps", "e2e", "logs");
+
+/** The databases' side of a failed run, next to the app's output. */
+async function saveStackLogs(options: Options, env: Env): Promise<void> {
+	for (const service of [
+		"postgres",
+		"spicedb",
+		"spicedb-database",
+	]) {
+		const proc = Bun.spawn(
+			[
+				"docker",
+				...composeArgs(options),
+				"logs",
+				"--no-color",
+				"--timestamps",
+				service,
+			],
+			{
+				cwd: repoRoot,
+				env: withEnv(env),
+				stdout: Bun.file(path.join(e2eLogDir, `${service}.log`)),
+				stderr: "inherit",
+			},
+		);
+		await proc.exited;
+	}
+	log(`Saved the logs of the run to ${e2eLogDir}`);
 }
 
 // ---------------------------------------------------------------------------

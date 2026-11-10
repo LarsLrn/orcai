@@ -67,6 +67,9 @@ environment. `--no-build` skips the build. A `bun run stack dev` or
 `bun run stack web` already listening is reused instead of its image. The
 images run with `NODE_ENV=production`; the run turns off Better Auth's rate
 limit (`BETTER_AUTH_RATE_LIMIT=false`) because all requests come from loopback.
+The app's logs go to `apps/e2e/logs/app.log`, not the console. When Playwright
+fails, the run adds the PostgreSQL and SpiceDB logs there; CI uploads the
+folder with the Playwright report.
 
 The setup project initialises a reset instance through the first-run UI with
 the well-known admin. Each parallel worker creates and mutates only its own

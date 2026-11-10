@@ -10,6 +10,7 @@ node_modules/
 /apps/app/scripts/prompt-evals/results
 /apps/app/scripts/retrieval-evals/results
 /apps/e2e/playwright-report
+/apps/e2e/logs
 /reports
 
 # TanStack Start / Vite
