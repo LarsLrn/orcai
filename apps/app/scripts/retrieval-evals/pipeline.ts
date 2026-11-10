@@ -11,6 +11,7 @@ import {
 	createExtractionArtifact,
 	extract,
 	getExtractionProfileConfig,
+	isPageScan,
 } from "@orcai/process";
 import { EmbeddingGeneration } from "@orcai/qdrant";
 import { generateText } from "ai";
@@ -68,10 +69,10 @@ const validPage = (value: number | null | undefined) =>
 		? value
 		: undefined;
 
-/** The figures processing keeps: none 200 px or smaller on a side, and each distinct image once. */
-const keptFigures = (images: readonly ExtractedImage[]) => {
+/** The figures processing keeps: none 200 px or smaller on a side, no scan of a page read by OCR, and each distinct image once. */
+const keptFigures = (result: Parameters<typeof isPageScan>[0]) => {
 	const seen = new Set<string>();
-	return images.filter((image) => {
+	return (result.images ?? []).filter((image) => {
 		if (
 			typeof image.width === "number" &&
 			typeof image.height === "number" &&
@@ -79,6 +80,7 @@ const keptFigures = (images: readonly ExtractedImage[]) => {
 		) {
 			return false;
 		}
+		if (isPageScan(result, image)) return false;
 		const digest = sha256(image.data);
 		if (seen.has(digest)) return false;
 		seen.add(digest);
@@ -161,7 +163,7 @@ export const extractDocument = (params: {
 		const artifact = createExtractionArtifact({
 			result,
 		});
-		const figures = keptFigures(result.images ?? []);
+		const figures = keptFigures(result);
 		const described = yield* Effect.forEach(
 			figures,
 			(image) =>

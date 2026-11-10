@@ -1,6 +1,7 @@
 import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
 import { processedAssetPrefix } from "@orcai/s3";
 import type { BucketName } from "@orcai/schema";
+import { withScannedPageTexts } from "./page-scans";
 import { extractionPages, placeChunks } from "./pages";
 import type {
 	ExtractionArtifact,
@@ -29,7 +30,7 @@ export const createExtractionArtifact = (params: {
 			params.transformImage ? params.transformImage(image, index) : image,
 		)
 		.filter((image): image is ExtractionImage => image !== undefined);
-	const pages = extractionPages(params.result);
+	const pages = extractionPages(withScannedPageTexts(params.result));
 
 	return {
 		content: params.result.content,

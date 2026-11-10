@@ -1,3 +1,4 @@
+export { isPageScan } from "./artifact/page-scans";
 export {
 	buildStoredExtractionImageKey,
 	buildStoredExtractionKey,
