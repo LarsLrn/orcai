@@ -1,5 +1,6 @@
 import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
 import type { BucketName } from "@orcai/schema";
+import type { ExpandedMetadata } from "../kreuzberg-expanded-types";
 import type { ExtractionPage } from "./pages";
 
 /** An image as extraction found it, before the utility model describes it. */
@@ -24,7 +25,7 @@ type ImageMetadataSuggestion = {
 export type StoredExtractionArtifact = {
 	content: ExtractionResult["content"];
 	mimeType: ExtractionResult["mimeType"];
-	metadata: ExtractionResult["metadata"];
+	metadata: ExpandedMetadata;
 	tables: ExtractionResult["tables"];
 	detectedLanguages: NonNullable<ExtractionResult["detectedLanguages"]>;
 	/** Each with the pages its text was found on, none where that is uncertain. */

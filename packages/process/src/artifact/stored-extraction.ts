@@ -37,7 +37,7 @@ const StoredExtraction = Schema.Struct({
 		authors: optionalNullable(Strings),
 		keywords: optionalNullable(Strings),
 		pageCount: Schema.optional(Schema.Number),
-		page_structure: optionalNullable(
+		pages: optionalNullable(
 			Schema.Struct({
 				totalCount: Schema.Number,
 			}),
