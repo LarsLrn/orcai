@@ -20,12 +20,16 @@ const stripInlineImageFields = (image: ExtractedImage): ExtractionImage => {
 
 export const createExtractionArtifact = (params: {
 	result: ExtractionResult;
+	/** Leaves the text OCR read in each figure in the document text, for figures that get no description. */
+	keepFigureText?: boolean;
 	transformImage?: (
 		image: ExtractionImage,
 		index: number,
 	) => ExtractionImage | undefined;
 }): ExtractionArtifact => {
-	const result = withoutFigureText(params.result);
+	const result = params.keepFigureText
+		? params.result
+		: withoutFigureText(params.result);
 	const images = (result.images ?? [])
 		.map(stripInlineImageFields)
 		.map((image, index) =>

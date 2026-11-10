@@ -10,7 +10,7 @@ import { integrationRuntime } from "@orcai/testing";
 import { like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import { describeImages } from "@/asset/image-descriptions";
+import { describeImages, imageReader } from "@/asset/image-descriptions";
 import { requests, seedVisionAsset, suggestion } from "@/asset/test-vision";
 
 const { runPromise: run } = integrationRuntime(
@@ -53,6 +53,7 @@ const describe = (
 			jobId: crypto.randomUUID(),
 			artifact,
 			imageAsset,
+			reader: imageReader(assetId),
 		}),
 	);
 

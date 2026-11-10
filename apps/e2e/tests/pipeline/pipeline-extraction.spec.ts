@@ -7,6 +7,15 @@ import {
 	pipelineName,
 	preparedReadiness,
 } from "../../fixtures/pipeline/repository";
+import { useUtilityModel } from "../../fixtures/pipeline/utility-model";
+
+// Specs here set the worker organisation's utility model; later specs expect none.
+test.afterEach(async ({ api, org }) => {
+	await api.as("admin").organization.update({
+		id: org.id,
+		utilityModelId: null,
+	});
+});
 
 const TITLE = "Annual Report of the Northern Branch";
 const BODY =
@@ -17,6 +26,7 @@ const MORE =
 const CAPTION = "Figure 1: Loans per year in the northern branch.";
 /** Words only the figure shows, large enough for the workers' OCR to read. */
 const FIGURE_WORDS = "Quokka Ledger";
+const FIGURE_DESCRIPTION = "A sign that reads Quokka Ledger.";
 
 /** A PDF of Chromium's print, with paragraphs, a figure showing `FIGURE_WORDS` and its caption. */
 const reportWithFigure = async (context: BrowserContext) => {
@@ -71,16 +81,11 @@ const repositoryOf = async (client: ApiClient, pdf: Uint8Array) => {
 	};
 };
 
-test("pipeline: the text read in a figure stays out of the document's text passages", async ({
-	api,
-	inference,
-	newContext,
-}) => {
-	await setUpChatModel(api, inference);
-	const member = api.as("member");
+/** The report's text passages, lower-cased, and its figure descriptions once the workers prepared it. */
+const preparedTexts = async (member: ApiClient, context: BrowserContext) => {
 	const { asset, repositoryId } = await repositoryOf(
 		member,
-		await reportWithFigure(await newContext()),
+		await reportWithFigure(context),
 	);
 	const readiness = await preparedReadiness(member, repositoryId);
 	expect(readiness.totals.ready).toBe(1);
@@ -96,6 +101,52 @@ test("pipeline: the text read in a figure stays out of the document's text passa
 	expect(texts).toContain(TITLE);
 	expect(texts).toContain(BODY);
 	expect(texts).toContain(CAPTION);
-	expect(texts.toLowerCase()).not.toContain("quokka");
-	expect(texts.toLowerCase()).not.toContain("ledger");
+	return {
+		texts: texts.toLowerCase(),
+		figures: points
+			.filter(({ payload }) => payload.source === "image")
+			.map(({ payload }) => payload.text),
+	};
+};
+
+test("pipeline: the text read in a figure stays out of the document's text passages when the figure is described", async ({
+	api,
+	inference,
+	newContext,
+	org,
+}) => {
+	const { providerId } = await setUpChatModel(api, inference);
+	const visionModel = await useUtilityModel(api, org.id, providerId, [
+		"text",
+		"image",
+	]);
+	inference.respondWith({
+		model: visionModel,
+		text: FIGURE_DESCRIPTION,
+	});
+
+	const { texts, figures } = await preparedTexts(
+		api.as("member"),
+		await newContext(),
+	);
+	expect(texts).not.toContain("quokka");
+	expect(texts).not.toContain("ledger");
+	expect(figures).toEqual([
+		FIGURE_DESCRIPTION,
+	]);
+});
+
+test("pipeline: the text read in a figure stays in the document's text passages when no model describes figures", async ({
+	api,
+	inference,
+	newContext,
+}) => {
+	await setUpChatModel(api, inference);
+
+	const { texts, figures } = await preparedTexts(
+		api.as("member"),
+		await newContext(),
+	);
+	expect(texts).toContain("quokka ledger");
+	expect(figures).toEqual([]);
 });
