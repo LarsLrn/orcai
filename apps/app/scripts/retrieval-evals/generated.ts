@@ -1,6 +1,6 @@
+import { zip } from "@orcai/testing/documents";
 import { type Browser, chromium } from "playwright-core";
 import type { EvalDocument } from "./corpus";
-import { zip } from "./zip";
 
 /*
  * Documents built from text written for the eval, each for a case real

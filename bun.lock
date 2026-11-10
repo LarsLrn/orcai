@@ -381,6 +381,9 @@
         "@orcai/schema": "workspace:*",
         "effect": "catalog:",
       },
+      "devDependencies": {
+        "@orcai/testing": "workspace:*",
+      },
     },
     "packages/qdrant": {
       "name": "@orcai/qdrant",

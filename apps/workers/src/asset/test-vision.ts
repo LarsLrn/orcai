@@ -4,7 +4,7 @@ import { buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { createImageOnlyExtractionArtifact } from "@orcai/process";
 import { createQuotaPoolWithInitialPeriod } from "@orcai/quota";
-import { assetObjectKey } from "@orcai/s3";
+import { assetObjectKey, getMimeTypeFromFileType } from "@orcai/s3";
 import { sendPutObjectCommand } from "@orcai/s3/server";
 import type { Locale, ModelCapability } from "@orcai/schema";
 import { createOrganization, createUser } from "@orcai/testing";
@@ -99,7 +99,7 @@ const PNG = Buffer.from(
 /**
  * An organisation whose utility model has `capabilities`, a pool of `budget`
  * tokens for all members unless `pool` is false, and an asset uploaded by a
- * user in `locale` when given: an image, or the document `pdf` when given, with
+ * user in `locale` when given: an image, or `document` when given, with
  * its file stored. The rows are written in one transaction; no membership is
  * stored, as nothing here reads it.
  */
@@ -108,16 +108,19 @@ export const seedVisionAsset = (params: {
 	pool?: boolean;
 	budget?: number;
 	locale?: Locale;
-	pdf?: Buffer;
+	document?: {
+		fileType: "pdf" | "pptx";
+		body: Buffer;
+	};
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const file = params.pdf
+		const file = params.document
 			? {
-					title: "refunds.pdf",
-					fileType: "pdf" as const,
-					body: params.pdf,
-					contentType: "application/pdf",
+					title: `refunds.${params.document.fileType}`,
+					fileType: params.document.fileType,
+					body: params.document.body,
+					contentType: getMimeTypeFromFileType(params.document.fileType),
 				}
 			: {
 					title: "chart.png",
