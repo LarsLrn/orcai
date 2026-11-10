@@ -16,6 +16,7 @@ import {
 	createImageOnlyExtractionArtifact,
 	type ExtractionArtifact,
 	extract,
+	isPageScan,
 	writeStoredExtraction,
 } from "@orcai/process";
 import {
@@ -47,7 +48,7 @@ const getRequiredMimeType = (
 /** Images below this many pixels are icons and bullets, not figures. */
 const MIN_IMAGE_PIXELS = 40_000;
 
-/** Stores each distinct image of the document once, skipping those below `MIN_IMAGE_PIXELS`. */
+/** Stores each distinct image of the document once, skipping those below `MIN_IMAGE_PIXELS` and scans of pages read by OCR. */
 const createDocumentArtifact = (params: {
 	result: Parameters<typeof createExtractionArtifact>[0]["result"];
 	jobId: string;
@@ -79,6 +80,18 @@ const createDocumentArtifact = (params: {
 						height,
 					},
 					"Skipping extracted image due to resolution/validation",
+				);
+				continue;
+			}
+
+			if (isPageScan(params.result, image)) {
+				yield* Effect.logDebug(
+					{
+						...log,
+						imageIndex: image.imageIndex,
+						pageNumber: image.pageNumber,
+					},
+					"Skipping extracted image that is the scan of a page read by OCR",
 				);
 				continue;
 			}
