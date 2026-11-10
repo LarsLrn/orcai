@@ -17,4 +17,5 @@ export type {
 } from "./artifact/types";
 export { ProcessError } from "./errors";
 export { extract } from "./extract/extract";
+export { belowFigureSize } from "./extract/figure-size";
 export { getExtractionProfileConfig } from "./extract/profiles";
