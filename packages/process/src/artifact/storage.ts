@@ -1,6 +1,7 @@
 import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
 import { processedAssetPrefix } from "@orcai/s3";
 import type { BucketName } from "@orcai/schema";
+import { extractionPages, placeChunks } from "./pages";
 import type {
 	ExtractionArtifact,
 	ExtractionImage,
@@ -28,6 +29,7 @@ export const createExtractionArtifact = (params: {
 			params.transformImage ? params.transformImage(image, index) : image,
 		)
 		.filter((image): image is ExtractionImage => image !== undefined);
+	const pages = extractionPages(params.result);
 
 	return {
 		content: params.result.content,
@@ -35,7 +37,8 @@ export const createExtractionArtifact = (params: {
 		metadata: params.result.metadata,
 		tables: params.result.tables,
 		detectedLanguages: params.result.detectedLanguages ?? [],
-		chunks: params.result.chunks ?? [],
+		chunks: placeChunks(params.result.chunks ?? [], pages),
+		pages,
 		document: params.result.document,
 		qualityScore: params.result.qualityScore,
 		processingWarnings: params.result.processingWarnings ?? [],

@@ -20,31 +20,47 @@ export const solidImage = (
 	};
 };
 
-/** A PDF with one page per image, each image its own object, and a line of text on every page. */
-export const pdfWithImages = (images: ReturnType<typeof solidImage>[]) => {
-	const fontId = 3 + images.length * 3;
+/** A PDF with one page per entry, each with its image as an object of its own and its lines of text from the top. */
+export const pdfWithPages = (
+	pages: {
+		image?: ReturnType<typeof solidImage>;
+		lines: string[];
+	}[],
+) => {
+	const fontId = 3 + pages.length * 3;
 	const objects: Buffer[] = [
 		Buffer.from("<< /Type /Catalog /Pages 2 0 R >>"),
 		Buffer.from(
-			`<< /Type /Pages /Kids [${images.map((_, page) => `${3 + page * 3} 0 R`).join(" ")}] /Count ${images.length} >>`,
+			`<< /Type /Pages /Kids [${pages.map((_, page) => `${3 + page * 3} 0 R`).join(" ")}] /Count ${pages.length} >>`,
 		),
-		...images.flatMap((image, page) => {
+		...pages.flatMap(({ image, lines }, page) => {
 			const id = 3 + page * 3;
-			const content = `q ${image.width} 0 0 ${image.height} 50 50 cm /Im0 Do Q BT /F1 12 Tf 50 20 Td (Refunds page ${page + 1}) Tj ET`;
+			const text = lines
+				.map(
+					(line, index) =>
+						`BT /F1 10 Tf 20 ${380 - index * 14} Td (${line}) Tj ET`,
+				)
+				.join(" ");
+			const content = image
+				? `q ${image.width} 0 0 ${image.height} 50 50 cm /Im0 Do Q ${text}`
+				: text;
+			const xObject = image ? `/XObject << /Im0 ${id + 2} 0 R >> ` : "";
 			return [
 				Buffer.from(
-					`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 400 400] /Resources << /XObject << /Im0 ${id + 2} 0 R >> /Font << /F1 ${fontId} 0 R >> >> /Contents ${id + 1} 0 R >>`,
+					`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 400 400] /Resources << ${xObject}/Font << /F1 ${fontId} 0 R >> >> /Contents ${id + 1} 0 R >>`,
 				),
 				Buffer.from(
 					`<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
 				),
-				Buffer.concat([
-					Buffer.from(
-						`<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${image.data.length} >>\nstream\n`,
-					),
-					image.data,
-					Buffer.from("\nendstream"),
-				]),
+				image
+					? Buffer.concat([
+							Buffer.from(
+								`<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${image.data.length} >>\nstream\n`,
+							),
+							image.data,
+							Buffer.from("\nendstream"),
+						])
+					: Buffer.from("null"),
 			];
 		}),
 		Buffer.from("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"),
@@ -76,3 +92,14 @@ export const pdfWithImages = (images: ReturnType<typeof solidImage>[]) => {
 	);
 	return Buffer.concat(parts);
 };
+
+/** A PDF with one page per image and a line of text on every page. */
+export const pdfWithImages = (images: ReturnType<typeof solidImage>[]) =>
+	pdfWithPages(
+		images.map((image, page) => ({
+			image,
+			lines: [
+				`Refunds page ${page + 1}`,
+			],
+		})),
+	);

@@ -217,27 +217,105 @@ test("page at 1 needs a first result that answers on the expected page", () => {
 	).toEqual({
 		rank: 1,
 		pageRight: false,
+		pageExact: false,
 	});
 });
 
-test("summarize gives hit rates, MRR and page at 1", () => {
+test("exact page at 1 needs the first result on the expected page alone", () => {
+	const sources: Source[] = [
+		{
+			document: "guide",
+			page: 2,
+			evidence: "fee",
+		},
+	];
+	expect(
+		outcomeOf(
+			[
+				passage("guide", "a fee", 2),
+			],
+			sources,
+		),
+	).toEqual({
+		rank: 1,
+		pageRight: true,
+		pageExact: true,
+	});
+	expect(
+		outcomeOf(
+			[
+				passage("guide", "a fee", 1, 3),
+			],
+			sources,
+		),
+	).toEqual({
+		rank: 1,
+		pageRight: true,
+		pageExact: false,
+	});
+});
+
+test("the page must be the one of the source the first result answers from", () => {
+	const sources: Source[] = [
+		{
+			document: "census",
+			page: 2,
+			evidence: "median income",
+		},
+		{
+			document: "census",
+			page: 10,
+			evidence: "appendix table",
+		},
+	];
+	expect(
+		outcomeOf(
+			[
+				passage("census", "the median income rose", 10),
+			],
+			sources,
+		),
+	).toEqual({
+		rank: 1,
+		pageRight: false,
+		pageExact: false,
+	});
+	expect(
+		outcomeOf(
+			[
+				passage("census", "the median income rose", 2),
+			],
+			sources,
+		),
+	).toEqual({
+		rank: 1,
+		pageRight: true,
+		pageExact: true,
+	});
+});
+
+test("summarize gives hit rates, MRR and pages at 1", () => {
 	expect(
 		summarize([
 			{
 				rank: 1,
 				pageRight: true,
+				pageExact: true,
 			},
 			{
 				rank: 2,
 				pageRight: false,
+				pageExact: false,
 			},
 			{
 				rank: null,
 				pageRight: false,
+				pageExact: false,
 			},
 			{
 				rank: 4,
 				pageRight: true,
+				pageExact: false,
 			},
 		]),
 	).toEqual({
@@ -247,5 +325,6 @@ test("summarize gives hit rates, MRR and page at 1", () => {
 		hitAtLimit: 0.75,
 		mrr: (1 + 0.5 + 0.25) / 4,
 		pageAt1: 0.5,
+		pageExactAt1: 0.25,
 	});
 });

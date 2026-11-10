@@ -252,7 +252,7 @@ interface Run {
 
 interface Results {
 	commit: string;
-	/** Runs compare only with the same corpus and questions. */
+	/** Runs compare only with the same corpus, questions and metrics. */
 	fingerprint: string;
 	settings: {
 		embeddingModel: string;
@@ -326,11 +326,12 @@ const fingerprint = sha256(
 	JSON.stringify([
 		corpusFingerprint(),
 		questions,
+		sha256(readFileSync(join(import.meta.dir, "metrics.ts"))),
 	]),
 );
 if (before && before.fingerprint !== fingerprint) {
 	fail(
-		`${args.compare} ran on another corpus or question set, so its numbers do not compare with this run.`,
+		`${args.compare} ran on another corpus, question set or metrics, so its numbers do not compare with this run.`,
 	);
 }
 
@@ -617,11 +618,11 @@ console.log(
 	[
 		`Retrieval evals at ${commit}${before ? `, compared with ${before.commit}` : ""}: ${questions.length} questions over ${corpus.length} documents.`,
 		"",
-		"| Chunk | Header | Stopwords | Mode | Results | Hit@1 | Hit@3 | Hit@results | MRR | Page@1 | MRR de | MRR en |",
-		"| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+		"| Chunk | Header | Stopwords | Mode | Results | Hit@1 | Hit@3 | Hit@results | MRR | Page@1 | Exact page@1 | MRR de | MRR en |",
+		"| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
 		...runs.map(
 			(entry) =>
-				`| ${entry.config.chunkSize} | ${entry.config.header} | ${entry.config.stopwords} | ${entry.config.mode} | ${entry.config.limit} | ${cell(entry, (r) => r.summary.all.hitAt1, percent)} | ${cell(entry, (r) => r.summary.all.hitAt3, percent)} | ${cell(entry, (r) => r.summary.all.hitAtLimit, percent)} | ${cell(entry, (r) => r.summary.all.mrr, decimal)} | ${cell(entry, (r) => r.summary.all.pageAt1, percent)} | ${cell(entry, (r) => r.summary.de.mrr, decimal)} | ${cell(entry, (r) => r.summary.en.mrr, decimal)} |`,
+				`| ${entry.config.chunkSize} | ${entry.config.header} | ${entry.config.stopwords} | ${entry.config.mode} | ${entry.config.limit} | ${cell(entry, (r) => r.summary.all.hitAt1, percent)} | ${cell(entry, (r) => r.summary.all.hitAt3, percent)} | ${cell(entry, (r) => r.summary.all.hitAtLimit, percent)} | ${cell(entry, (r) => r.summary.all.mrr, decimal)} | ${cell(entry, (r) => r.summary.all.pageAt1, percent)} | ${cell(entry, (r) => r.summary.all.pageExactAt1, percent)} | ${cell(entry, (r) => r.summary.de.mrr, decimal)} | ${cell(entry, (r) => r.summary.en.mrr, decimal)} |`,
 		),
 		"",
 		...Object.entries(unanswerable)

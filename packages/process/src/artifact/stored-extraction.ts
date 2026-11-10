@@ -67,6 +67,14 @@ const StoredExtraction = Schema.Struct({
 			}),
 		}),
 	),
+	pages: Schema.optional(
+		Schema.Array(
+			Schema.Struct({
+				pageNumber: Schema.Number,
+				content: Schema.String,
+			}),
+		),
+	),
 	processingWarnings: Schema.Array(Schema.Unknown),
 	images: Schema.Array(
 		Schema.Struct({
