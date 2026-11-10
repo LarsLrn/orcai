@@ -208,8 +208,10 @@ describe("instance settings", () => {
 					),
 					reasonOf(
 						run(
-							procedures.instanceSettings.prepareMissingExtractionsAgain(
-								{},
+							procedures.instanceSettings.prepareAssetsAgain(
+								{
+									scope: "all",
+								},
 								options,
 							),
 						),
@@ -434,7 +436,10 @@ describe("instance settings", () => {
 				organizations: [],
 				failures: [],
 				retryable: 0,
-				preparable: 0,
+				preparable: {
+					missing: 0,
+					all: 0,
+				},
 			});
 		},
 		TIMEOUT,

@@ -4099,7 +4099,7 @@
 			}
 		}
 	],
-	"instance_settings_index_prepare_again_confirm_description": "OrcAI queues them in the background and prepares them again in every repository that holds them, also where they are already embedded.",
+	"instance_settings_index_prepare_again_confirm_description": "OrcAI queues them in the background and prepares them again in every repository that holds them, also where they are already embedded. Their image descriptions are charged to the quota pool of the person who uploaded each file, also when that pool is used up.",
 	"instance_settings_index_prepare_again_confirm_button": "Prepare again",
 	"instance_settings_index_prepare_again_toast_loading": "Queueing the assets for preparation...",
 	"instance_settings_index_prepare_again_toast_success": [
@@ -4119,6 +4119,8 @@
 	],
 	"instance_settings_index_prepare_again_toast_joined": "Preparing the assets again is already running.",
 	"instance_settings_index_prepare_again_toast_error": "The assets were not queued for preparation.",
+	"instance_settings_index_prepare_all_button": "Prepare all assets again",
+	"instance_settings_index_prepare_all_confirm_description": "OrcAI reads every ready asset of the instance again, also those in no repository, describes all their images again with the utility model of each organisation and embeds them again in every repository that holds them. Each image description is a model call, charged to the quota pool of the person who uploaded the file, also when that pool is used up. Until an asset is embedded again, search keeps finding it where it was embedded.",
 	"instance_settings_index_reembed_button": "Re-embed everything",
 	"instance_settings_index_reembed_confirm_title": "Re-embed every asset?",
 	"instance_settings_index_reembed_confirm_description": [

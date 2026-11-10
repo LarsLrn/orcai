@@ -63,6 +63,8 @@ export type Admission =
 			 * instead of failing the request: an upload creates its asset either way.
 			 */
 			readonly failWhenRefused?: boolean;
+			/** An instance admin's run: model calls past the uploader's quota still run. */
+			readonly allowOverBudget?: boolean;
 	  }
 	| {
 			readonly stage: "indexing";
@@ -182,6 +184,7 @@ const admitProcessing = (
 					},
 					generation: row.generation,
 					runId: run?.id,
+					allowOverBudget: admission.allowOverBudget,
 				},
 			})),
 		});

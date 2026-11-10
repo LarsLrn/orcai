@@ -67,6 +67,8 @@ export const reserveForAppRequest = (input: {
 	maxRequests: number;
 	maxOutputTokens?: number;
 	inputTokens: number;
+	/** Reserves past the pool's budget instead of refusing; the pool still records the call. */
+	allowOverBudget?: boolean;
 }): Effect.Effect<
 	ReservedQuota,
 	QuotaDeniedError | QuotaUnavailableError,
@@ -112,6 +114,7 @@ export const reserveForAppRequest = (input: {
 				amount,
 				// A request-metered call can run with fewer requests; tokens are all or nothing.
 				minimumAmount: winning.meteringMode === "requests" ? 1 : amount,
+				allowOverBudget: input.allowOverBudget,
 				metadata: {
 					orderedCandidatePoolIds: resolution.orderedCandidatePoolIds,
 				},

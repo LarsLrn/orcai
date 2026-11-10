@@ -31,6 +31,8 @@ interface GenerateTextWithQuotaInput<OUTPUT extends OutputInterface> {
 	model: LanguageModel;
 	call: CallSpec<OUTPUT>;
 	abortSignal?: AbortSignal;
+	/** Runs past the pool's budget instead of being refused; still recorded. */
+	allowOverBudget?: boolean;
 }
 
 /**
@@ -54,6 +56,7 @@ export const generateTextWithQuota = <
 			appRequestId: input.appRequestId,
 			maxOutputTokens: call.maxOutputTokens,
 			maxRequests: 1,
+			allowOverBudget: input.allowOverBudget,
 			inputTokens: promptTokens([
 				call.instructions,
 				...(typeof call.prompt === "string"

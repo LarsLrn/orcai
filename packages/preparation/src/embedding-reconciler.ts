@@ -10,8 +10,9 @@ import {
 	isRetryableFailure,
 	PIPELINE_FAILURES,
 	type PipelineFailure,
-	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
-	type PrepareMissingExtractionsAgainPayload,
+	PREPARE_ASSETS_AGAIN_JOB_NAME,
+	type PrepareAgainScope,
+	type PrepareAssetsAgainPayload,
 } from "@orcai/schema";
 import {
 	and,
@@ -20,7 +21,7 @@ import {
 	exists,
 	inArray,
 	isNotNull,
-	isNull,
+	notExists,
 	or,
 	sql,
 } from "drizzle-orm";
@@ -207,6 +208,7 @@ export const retryFailedEmbeddings = (userId: UserId) =>
 		{
 			userId,
 			kind: "retry",
+			instance: true,
 		},
 		(runId) =>
 			Effect.gen(function* () {
@@ -244,13 +246,46 @@ const missingExtraction = Effect.gen(function* () {
 		);
 });
 
-/** How many assets a failed link of the active generation misses the stored extraction of. */
+/** Every ready asset; under an index scoped to repositories, those linked in them. */
+const readyAssets = Effect.gen(function* () {
+	const db = yield* DB;
+	const { blockIds } = yield* EmbeddingIndex;
+	const { asset, blockAsset } = dbSchema;
+	return (...conditions: ReturnType<typeof and>[]) =>
+		and(
+			eq(asset.processingStatus, "completed"),
+			blockIds
+				? exists(
+						db
+							.select({
+								assetId: blockAsset.assetId,
+							})
+							.from(blockAsset)
+							.where(
+								and(
+									eq(blockAsset.assetId, asset.id),
+									inArray(blockAsset.blockId, [
+										...blockIds,
+									]),
+								),
+							),
+					)
+				: undefined,
+			...conditions,
+		);
+});
+
+/**
+ * How many assets each scope prepares again: those a failed link of the
+ * active generation misses the stored extraction of, and every ready one.
+ */
 const preparableAssets = Effect.gen(function* () {
 	const db = yield* DB;
 	const { settings } = yield* EmbeddingIndex;
 	const { asset, blockAsset } = dbSchema;
 	const missing = yield* missingExtraction;
-	const [row] = yield* db
+	const ready = yield* readyAssets;
+	const [missingRow] = yield* db
 		.select({
 			assets: sql<number>`count(distinct ${blockAsset.assetId})`.mapWith(
 				Number,
@@ -260,19 +295,37 @@ const preparableAssets = Effect.gen(function* () {
 		.innerJoin(asset, eq(asset.id, blockAsset.assetId))
 		.innerJoin(settings, sql`${settings.embeddingGeneration} is not null`)
 		.where(missing());
-	return row?.assets ?? 0;
+	const [readyRow] = yield* db
+		.select({
+			assets: sql<number>`count(*)`.mapWith(Number),
+		})
+		.from(asset)
+		.where(ready());
+	return {
+		missing: missingRow?.assets ?? 0,
+		all: readyRow?.assets ?? 0,
+	} satisfies Record<PrepareAgainScope, number>;
 });
 
+/** The job's run while its lease holds it. */
+const heldRun = (payload: PrepareAssetsAgainPayload) =>
+	leaseHeld(payload.leaseId).pipe(
+		Effect.map((running): AdmissionRun | undefined =>
+			running
+				? {
+						id: payload.runId,
+					}
+				: undefined,
+		),
+	);
+
 /**
- * Prepares every asset again whose stored extraction a failed link of the
- * active generation is missing, a batch at a time, once per asset, as the
- * job's run while its lease holds it; its processing indexes every link of the
- * asset again when it completes. An asset already being prepared is
- * skipped. Releases the lease once done. Returns the assets queued.
+ * Admits every asset whose stored extraction a failed link of the active
+ * generation is missing, a batch at a time, once per asset; its processing
+ * indexes every link of the asset again when it completes. Returns the
+ * assets queued.
  */
-export const prepareMissingExtractionsAgain = (
-	payload: PrepareMissingExtractionsAgainPayload,
-) =>
+const prepareMissingAgain = (payload: PrepareAssetsAgainPayload) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const { settings } = yield* EmbeddingIndex;
@@ -288,16 +341,6 @@ export const prepareMissingExtractionsAgain = (
 				.innerJoin(asset, eq(asset.id, blockAsset.assetId))
 				.innerJoin(settings, sql`${settings.embeddingGeneration} is not null`)
 				.where(missing(...conditions));
-		const held = () =>
-			leaseHeld(payload.leaseId).pipe(
-				Effect.map((running) =>
-					running
-						? {
-								id: payload.runId,
-							}
-						: undefined,
-				),
-			);
 		// Checked again under the generation lock, so a switch since the batch was read queues nothing.
 		const prepare = (
 			selected: Effect.Success<ReturnType<typeof assetsMissing>>[number],
@@ -316,6 +359,7 @@ export const prepareMissingExtractionsAgain = (
 									"completed",
 								],
 								run,
+								allowOverBudget: true,
 							})
 						: [];
 				}),
@@ -326,25 +370,92 @@ export const prepareMissingExtractionsAgain = (
 			);
 		let queued = 0;
 		while (true) {
-			const run = yield* held();
+			const run = yield* heldRun(payload);
 			const assets = yield* assetsMissing().limit(ADMISSION_BATCH);
-			if (assets.length === 0) break;
+			if (assets.length === 0) return queued;
 			const admitted = (yield* Effect.forEach(assets, (selected) =>
 				prepare(selected, run),
 			)).flat().length;
 			queued += admitted;
 			// Every asset went to another admission meanwhile; the next request looks again.
-			if (admitted === 0) break;
+			if (admitted === 0) return queued;
 		}
+	});
+
+/**
+ * Admits every ready asset the run has not prepared yet, a batch at a time;
+ * the run's members mark the ones it took on, so an asset it prepared counts
+ * once however soon it is ready again. Admits nothing once the lease is
+ * gone. Returns the assets queued.
+ */
+const prepareAllAgain = (payload: PrepareAssetsAgainPayload) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { activityMember, asset } = dbSchema;
+		const ready = yield* readyAssets;
+		const notTakenOn = notExists(
+			db
+				.select({
+					id: activityMember.id,
+				})
+				.from(activityMember)
+				.where(
+					and(
+						eq(activityMember.runId, payload.runId),
+						eq(activityMember.assetId, asset.id),
+						isNotNull(activityMember.processingState),
+					),
+				),
+		);
+		let queued = 0;
+		while (true) {
+			const run = yield* heldRun(payload);
+			if (!run) return queued;
+			const assets = yield* db
+				.select({
+					id: asset.id,
+					generation: asset.processingGeneration,
+				})
+				.from(asset)
+				.where(ready(notTakenOn))
+				.limit(ADMISSION_BATCH);
+			if (assets.length === 0) return queued;
+			const admitted = yield* admit({
+				stage: "processing",
+				assets,
+				from: [
+					"completed",
+				],
+				run,
+				allowOverBudget: true,
+			});
+			queued += admitted.length;
+			// Every asset went to another admission meanwhile; the next request looks again.
+			if (admitted.length === 0) return queued;
+		}
+	});
+
+/**
+ * Prepares the assets of the job's scope again, as the job's run while its
+ * lease holds it. An instance admin starts it, so the uploader's used-up
+ * quota does not stop their model calls, which are still recorded against
+ * them. An asset already being prepared is skipped. Releases the lease once
+ * done. Returns the assets queued.
+ */
+export const prepareAssetsAgain = (payload: PrepareAssetsAgainPayload) =>
+	Effect.gen(function* () {
+		const queued =
+			payload.scope === "all"
+				? yield* prepareAllAgain(payload)
+				: yield* prepareMissingAgain(payload);
 		yield* releaseAdmission(payload.leaseId);
 		return queued;
 	});
 
 /**
- * The instance's run preparing assets again whose work is not done: a
- * retry run of no organisation or repository that took on the processing of
- * an asset linked in the index's repositories. A person's retry of an asset
- * in no repository is not one.
+ * The instance's run preparing assets again whose work is not done: an
+ * instance run that took on the processing of an asset; under an index
+ * scoped to repositories, of an asset linked in them.
  */
 const runningInstanceRun = Effect.gen(function* () {
 	const db = yield* DB;
@@ -357,9 +468,7 @@ const runningInstanceRun = Effect.gen(function* () {
 		.from(activityRun)
 		.where(
 			and(
-				eq(activityRun.kind, "retry"),
-				isNull(activityRun.organizationId),
-				isNull(activityRun.blockId),
+				eq(activityRun.instance, true),
 				runningRun,
 				exists(
 					db
@@ -371,23 +480,23 @@ const runningInstanceRun = Effect.gen(function* () {
 							and(
 								eq(activityMember.runId, activityRun.id),
 								isNotNull(activityMember.processingState),
-								exists(
-									db
-										.select({
-											assetId: blockAsset.assetId,
-										})
-										.from(blockAsset)
-										.where(
-											and(
-												eq(blockAsset.assetId, activityMember.assetId),
-												blockIds
-													? inArray(blockAsset.blockId, [
+								blockIds
+									? exists(
+											db
+												.select({
+													assetId: blockAsset.assetId,
+												})
+												.from(blockAsset)
+												.where(
+													and(
+														eq(blockAsset.assetId, activityMember.assetId),
+														inArray(blockAsset.blockId, [
 															...blockIds,
-														])
-													: undefined,
-											),
-										),
-								),
+														]),
+													),
+												),
+										)
+									: undefined,
 							),
 						),
 				),
@@ -399,27 +508,32 @@ const runningInstanceRun = Effect.gen(function* () {
 });
 
 /**
- * Starts preparing again the assets a failed link of the active generation
- * misses the stored extraction of, as a run of the user's that a job
- * admits. A request joins the run of a job still queued or running, else
- * the instance's run whose work is not done, and queues a job for it when
- * no job waits and there are assets to prepare. Requests take turns, so the
- * queue never drops one. Returns how many assets there are and the run.
+ * Starts preparing again the assets of `scope`, as a run of the user's that
+ * a job admits. A request joins the run of a job still queued or running,
+ * else the instance's run whose work is not done, and queues a job for it
+ * when no job of the scope waits and there are assets to prepare. Requests
+ * take turns, so the queue never drops one. Returns how many assets there
+ * are and the run.
  */
-export const startPreparingMissingExtractionsAgain = (userId: UserId) =>
+export const startPreparingAssetsAgain = (
+	userId: UserId,
+	scope: PrepareAgainScope,
+) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		return yield* db.transaction(() =>
 			Effect.gen(function* () {
 				yield* db.execute(
-					advisoryXactLock("instancePreparation", "missingExtractions"),
+					advisoryXactLock("instancePreparation", "assetsAgain"),
 				);
-				const assets = yield* preparableAssets;
-				const live = yield* liveJobs<PrepareMissingExtractionsAgainPayload>([
-					PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+				const assets = (yield* preparableAssets)[scope];
+				const live = yield* liveJobs<PrepareAssetsAgainPayload>([
+					PREPARE_ASSETS_AGAIN_JOB_NAME,
 				]);
 				const joined = live[0]?.data.runId ?? (yield* runningInstanceRun);
-				const waiting = live.some((job) => job.state !== "active");
+				const waiting = live.some(
+					(job) => job.state !== "active" && job.data.scope === scope,
+				);
 				if (waiting || assets === 0) {
 					return {
 						assets,
@@ -435,23 +549,26 @@ export const startPreparingMissingExtractionsAgain = (userId: UserId) =>
 						.values({
 							userId,
 							kind: "retry",
+							instance: true,
 						})
 						.returning({
 							id: dbSchema.activityRun.id,
 						}))[0].id;
-				yield* sendJobBatchInTransaction<PrepareMissingExtractionsAgainPayload>(
-					{
-						jobName: PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
-						jobs: [
-							{
-								data: {
-									runId,
-									leaseId: yield* leaseRun(runId),
-								},
+				yield* sendJobBatchInTransaction<PrepareAssetsAgainPayload>({
+					jobName: PREPARE_ASSETS_AGAIN_JOB_NAME,
+					jobs: [
+						{
+							data: {
+								runId,
+								leaseId: yield* leaseRun(runId),
+								scope,
 							},
-						],
-					},
-				);
+							options: {
+								singletonKey: scope,
+							},
+						},
+					],
+				});
 				return {
 					assets,
 					runId,

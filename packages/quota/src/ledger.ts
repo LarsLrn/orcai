@@ -235,6 +235,8 @@ export const reserveQuotaLedger: (params: {
 	amount: number;
 	/** The least worth reserving; below it the reservation is refused. */
 	minimumAmount: number;
+	/** Reserves the whole amount whatever remains. */
+	allowOverBudget?: boolean;
 	metadata?: Record<string, unknown>;
 }) => Effect.Effect<LedgerReserveResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
@@ -273,7 +275,9 @@ export const reserveQuotaLedger: (params: {
 						: yield* reserveOnCurrentPeriod(true);
 				}
 
-				const reservedAmount = Math.min(params.amount, ledger.remainingAmount);
+				const reservedAmount = params.allowOverBudget
+					? params.amount
+					: Math.min(params.amount, ledger.remainingAmount);
 				if (reservedAmount < params.minimumAmount || reservedAmount <= 0) {
 					return {
 						status: "exhausted",

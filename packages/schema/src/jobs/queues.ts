@@ -18,8 +18,7 @@ export const NOTIFICATION_OUTBOX_CLEANUP_JOB_NAME =
 export const ACTIVITY_CLEANUP_JOB_NAME = "activity-cleanup-job";
 
 export const RECONCILE_EMBEDDINGS_JOB_NAME = "reconcile-embeddings-job";
-export const PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME =
-	"prepare-missing-extractions-again-job";
+export const PREPARE_ASSETS_AGAIN_JOB_NAME = "prepare-assets-again-job";
 export const PREPARATION_SWEEP_JOB_NAME = "preparation-sweep-job";
 export const DELETION_CLEANUP_JOB_NAME = "deletion-cleanup-job";
 
@@ -45,7 +44,7 @@ export const jobQueues = z.enum([
 	DATA_EXPORT_SWEEP_JOB_NAME,
 	ACTIVITY_CLEANUP_JOB_NAME,
 	RECONCILE_EMBEDDINGS_JOB_NAME,
-	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+	PREPARE_ASSETS_AGAIN_JOB_NAME,
 	PREPARATION_SWEEP_JOB_NAME,
 	DELETION_CLEANUP_JOB_NAME,
 ]);

@@ -8,7 +8,7 @@ import {
 	embeddingProgress as countEmbeddings,
 	embeddingsRebuilding,
 	retryFailedEmbeddings as retryFailed,
-	startPreparingMissingExtractionsAgain,
+	startPreparingAssetsAgain,
 } from "@orcai/preparation";
 import {
 	configureEmbeddings,
@@ -240,16 +240,13 @@ const retryFailedEmbeddings = authed.instanceSettings.retryFailedEmbeddings
 		};
 	});
 
-const prepareMissingExtractionsAgain =
-	authed.instanceSettings.prepareMissingExtractionsAgain
-		.use(requireInstanceAdminMiddleware)
-		.effect(function* ({ context }) {
-			return {
-				data: yield* startPreparingMissingExtractionsAgain(
-					context.auth.user.id,
-				),
-			};
-		});
+const prepareAssetsAgain = authed.instanceSettings.prepareAssetsAgain
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ context, input }) {
+		return {
+			data: yield* startPreparingAssetsAgain(context.auth.user.id, input.scope),
+		};
+	});
 
 export const instanceSettingsRouter = {
 	find,
@@ -259,5 +256,5 @@ export const instanceSettingsRouter = {
 	embeddingProgress,
 	reembedEmbeddings,
 	retryFailedEmbeddings,
-	prepareMissingExtractionsAgain,
+	prepareAssetsAgain,
 };

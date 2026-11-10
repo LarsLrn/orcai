@@ -15,10 +15,10 @@ import {
 	embeddingProgress,
 	embeddingsRebuilding,
 	prepareAssetAgain,
-	prepareMissingExtractionsAgain,
+	prepareAssetsAgain,
 	reconcileEmbeddings,
 	retryFailedEmbeddings,
-	startPreparingMissingExtractionsAgain,
+	startPreparingAssetsAgain,
 } from "@orcai/preparation";
 import {
 	buildStoredExtractionKey,
@@ -46,9 +46,9 @@ import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
 	defaultRepositoryConfig,
 	type PipelineFailure,
-	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+	PREPARE_ASSETS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
-	type PrepareMissingExtractionsAgainPayload,
+	type PrepareAssetsAgainPayload,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
@@ -133,7 +133,7 @@ beforeAll(async () => {
 	boss = await runtime.runPromise(PgBossService.useSync(({ boss }) => boss));
 });
 // A test that stops early leaves its preparation job, which the next request would join.
-afterEach(() => boss.deleteAllJobs(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME));
+afterEach(() => boss.deleteAllJobs(PREPARE_ASSETS_AGAIN_JOB_NAME));
 afterAll(() => embeddings.stop(true));
 
 type Link = {
@@ -354,8 +354,8 @@ const leasesOf = (runId: ActivityRunId) =>
 
 /** Takes the queued instance preparation job, as its worker would. */
 const takePreparation = async () => {
-	const [taken] = await boss.fetch<PrepareMissingExtractionsAgainPayload>(
-		PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+	const [taken] = await boss.fetch<PrepareAssetsAgainPayload>(
+		PREPARE_ASSETS_AGAIN_JOB_NAME,
 	);
 	if (!taken) throw new Error("No preparation job queued");
 	return taken;
@@ -419,6 +419,7 @@ const indexes = {
 	preparedWhileSwitching: await configuredIndex(),
 	preparedInBackground: await configuredIndex(),
 	preparedBesidePersonal: await testEmbeddingIndexOn(configured),
+	preparedAll: await testEmbeddingIndexOn(configured),
 };
 
 /** The rebuild flag as stored, before any derivation. */
@@ -649,15 +650,10 @@ test(
 		});
 		expect(await processingOf(link)).toEqual(before);
 
-		await on(index, link, startPreparingMissingExtractionsAgain(await admin()));
+		await on(index, link, startPreparingAssetsAgain(await admin(), "missing"));
 		const preparation = await takePreparation();
-		expect(
-			await on(index, link, prepareMissingExtractionsAgain(preparation.data)),
-		).toBe(1);
-		await boss.complete(
-			PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
-			preparation.id,
-		);
+		expect(await on(index, link, prepareAssetsAgain(preparation.data))).toBe(1);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, preparation.id);
 		expect(await processingOf(link)).toEqual({
 			status: "pending",
 			generation: Number(before.generation) + 1,
@@ -824,7 +820,10 @@ test(
 				},
 			],
 			retryable: 1,
-			preparable: 1,
+			preparable: {
+				missing: 1,
+				all: 5,
+			},
 		});
 		expect(JSON.stringify(progress)).not.toContain(broken.blockId);
 		expect(JSON.stringify(progress)).not.toContain("refunds.pdf");
@@ -1032,17 +1031,19 @@ test(
 					);
 			}),
 		);
-		expect((await on(index, links, embeddingProgress))?.preparable).toBe(1);
+		expect(
+			(await on(index, links, embeddingProgress))?.preparable.missing,
+		).toBe(1);
 		const before = await Promise.all(links.map(processingOf));
 
 		const userId = await admin();
-		await on(index, links, startPreparingMissingExtractionsAgain(userId));
+		await on(index, links, startPreparingAssetsAgain(userId, "missing"));
 		const job = await takePreparation();
 		const queued = await Promise.all([
-			on(index, links, prepareMissingExtractionsAgain(job.data)),
-			on(index, links, prepareMissingExtractionsAgain(job.data)),
+			on(index, links, prepareAssetsAgain(job.data)),
+			on(index, links, prepareAssetsAgain(job.data)),
 		]);
-		await boss.complete(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, job.id);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, job.id);
 		expect(queued[0] + queued[1]).toBe(1);
 		expect(await membersOf(job.data.runId)).toEqual([
 			{
@@ -1070,10 +1071,10 @@ test(
 		}
 		expect(await processingOf(other)).toEqual(before[2]);
 		expect(await processingOf(earlier)).toEqual(before[3]);
+		expect(await on(index, links, prepareAssetsAgain(job.data))).toBe(0);
 		expect(
-			await on(index, links, prepareMissingExtractionsAgain(job.data)),
+			(await on(index, links, embeddingProgress))?.preparable.missing,
 		).toBe(0);
-		expect((await on(index, links, embeddingProgress))?.preparable).toBe(0);
 	},
 	TIMEOUT,
 );
@@ -1087,7 +1088,7 @@ test(
 		await settle(link, "failed", "missing_extraction");
 		const before = await processingOf(link);
 		const collections = await collectionsOf(index);
-		await on(index, link, startPreparingMissingExtractionsAgain(await admin()));
+		await on(index, link, startPreparingAssetsAgain(await admin(), "missing"));
 		const job = await takePreparation();
 
 		// The switch queues for the generation lock first, Prepare again behind it.
@@ -1096,7 +1097,7 @@ test(
 		let preparing: Promise<number> | undefined;
 		try {
 			await runtime.runPromise(awaitLockWaiters(generationLock(index)));
-			preparing = on(index, link, prepareMissingExtractionsAgain(job.data));
+			preparing = on(index, link, prepareAssetsAgain(job.data));
 			await runtime.runPromise(awaitLockWaiters(generationLock(index), 2));
 		} finally {
 			await release();
@@ -1106,7 +1107,7 @@ test(
 		expect(await preparing).toBe(0);
 		// Prepare again writes no points, so it leaves the new generation's collection to its first use.
 		expect(await collectionsOf(index)).toEqual(collections);
-		await boss.complete(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, job.id);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, job.id);
 		expect(await processingOf(link)).toEqual(before);
 		expect(await linkOf(link)).toMatchObject({
 			status: "failed",
@@ -1140,7 +1141,7 @@ test(
 
 		const queuedJobs = async () =>
 			(
-				await boss.findJobs(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, {
+				await boss.findJobs(PREPARE_ASSETS_AGAIN_JOB_NAME, {
 					queued: true,
 				})
 			).length;
@@ -1149,7 +1150,7 @@ test(
 		const started = await on(
 			index,
 			links,
-			startPreparingMissingExtractionsAgain(userId),
+			startPreparingAssetsAgain(userId, "missing"),
 		);
 		expect(started).toMatchObject({
 			assets: 1,
@@ -1158,7 +1159,7 @@ test(
 		expect(await processingOf(missing)).toEqual(before);
 		expect(await queuedJobs()).toBe(1);
 		expect(
-			await on(index, links, startPreparingMissingExtractionsAgain(userId)),
+			await on(index, links, startPreparingAssetsAgain(userId, "missing")),
 		).toEqual({
 			...started,
 			joined: true,
@@ -1166,15 +1167,13 @@ test(
 		expect(await queuedJobs()).toBe(1);
 
 		const worker = assetWorkers.find(
-			({ queue }) => queue === PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+			({ queue }) => queue === PREPARE_ASSETS_AGAIN_JOB_NAME,
 		);
 		// The worker takes the job, and its handler runs again on a retry.
-		const [taken] = await boss.fetch(
-			PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
-		);
+		const [taken] = await boss.fetch(PREPARE_ASSETS_AGAIN_JOB_NAME);
 		await on(index, links, worker?.handler(taken as never) ?? Effect.void);
 		await on(index, links, worker?.handler(taken as never) ?? Effect.void);
-		await boss.complete(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, taken.id);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, taken.id);
 		expect(await processingOf(missing)).toEqual({
 			status: "pending",
 			generation: Number(before.generation) + 1,
@@ -1196,7 +1195,7 @@ test(
 				embedded: sum("embedded"),
 				waiting: sum("waiting"),
 				failed: sum("failed"),
-				preparable: progress?.preparable,
+				preparable: progress?.preparable.missing,
 			};
 		};
 		const preparing = {
@@ -1236,7 +1235,7 @@ test(
 
 		// The run's member still waits, so a request joins the run and queues nothing.
 		expect(
-			await on(index, links, startPreparingMissingExtractionsAgain(userId)),
+			await on(index, links, startPreparingAssetsAgain(userId, "missing")),
 		).toEqual({
 			assets: 0,
 			runId: started.runId,
@@ -1260,8 +1259,8 @@ test(
 		]);
 
 		const requests = await Promise.all([
-			on(index, link, startPreparingMissingExtractionsAgain(first)),
-			on(index, link, startPreparingMissingExtractionsAgain(second)),
+			on(index, link, startPreparingAssetsAgain(first, "missing")),
+			on(index, link, startPreparingAssetsAgain(second, "missing")),
 		]);
 		const runId = requests[0].runId;
 		expect(runId).not.toBeNull();
@@ -1280,33 +1279,28 @@ test(
 		const joined = await on(
 			index,
 			link,
-			startPreparingMissingExtractionsAgain(second),
+			startPreparingAssetsAgain(second, "missing"),
 		);
 		expect(joined).toMatchObject({
 			runId,
 			joined: true,
 		});
 		// A stately queue hands out the next job once the running one is done.
-		const [waiting] =
-			await boss.findJobs<PrepareMissingExtractionsAgainPayload>(
-				PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
-				{
-					queued: true,
-				},
-			);
+		const [waiting] = await boss.findJobs<PrepareAssetsAgainPayload>(
+			PREPARE_ASSETS_AGAIN_JOB_NAME,
+			{
+				queued: true,
+			},
+		);
 		expect(waiting?.data.runId).toBe(runId as ActivityRunId);
 		expect(await leasesOf(runId as ActivityRunId)).toBe(2);
 
-		expect(
-			await on(index, link, prepareMissingExtractionsAgain(running.data)),
-		).toBe(1);
-		await boss.complete(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, running.id);
+		expect(await on(index, link, prepareAssetsAgain(running.data))).toBe(1);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, running.id);
 		const again = await takePreparation();
 		expect(again.id).toBe(waiting?.id as string);
-		expect(
-			await on(index, link, prepareMissingExtractionsAgain(again.data)),
-		).toBe(0);
-		await boss.complete(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, again.id);
+		expect(await on(index, link, prepareAssetsAgain(again.data))).toBe(0);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, again.id);
 		expect(await leasesOf(runId as ActivityRunId)).toBe(0);
 		expect(await membersOf(runId as ActivityRunId)).toEqual([
 			{
@@ -1335,17 +1329,15 @@ test(
 		const started = await on(
 			index,
 			link,
-			startPreparingMissingExtractionsAgain(first),
+			startPreparingAssetsAgain(first, "missing"),
 		);
 		const job = await takePreparation();
-		expect(
-			await on(index, link, prepareMissingExtractionsAgain(job.data)),
-		).toBe(1);
-		await boss.complete(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, job.id);
+		expect(await on(index, link, prepareAssetsAgain(job.data))).toBe(1);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, job.id);
 
 		// The job is done, the asset still waits for its processing.
 		expect(
-			await on(index, link, startPreparingMissingExtractionsAgain(second)),
+			await on(index, link, startPreparingAssetsAgain(second, "missing")),
 		).toEqual({
 			assets: 0,
 			runId: started.runId,
@@ -1364,7 +1356,7 @@ test(
 			}),
 		);
 		expect(
-			await on(index, link, startPreparingMissingExtractionsAgain(second)),
+			await on(index, link, startPreparingAssetsAgain(second, "missing")),
 		).toMatchObject({
 			runId: null,
 			joined: false,
@@ -1412,7 +1404,7 @@ test(
 
 		// Unscoped like the instance itself, so the person's run is the newest candidate.
 		const started = await runtime.runPromise(
-			startPreparingMissingExtractionsAgain(await admin()).pipe(
+			startPreparingAssetsAgain(await admin(), "missing").pipe(
 				Effect.provideService(EmbeddingIndex, {
 					...index,
 					blockIds: undefined,
@@ -1422,7 +1414,257 @@ test(
 		expect(started.runId).not.toBeNull();
 		expect(started.runId).not.toBe(personal as ActivityRunId);
 		const job = await takePreparation();
-		await boss.complete(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, job.id);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, job.id);
+	},
+	TIMEOUT,
+);
+
+/** Sets the asset's processing status as a stage would. */
+const processAs = (link: Link, status: "active" | "completed" | "failed") =>
+	runtime.runPromise(
+		Effect.gen(function* () {
+			const { asset } = dbSchema;
+			yield* (yield* DB)
+				.update(asset)
+				.set({
+					processingStatus: status,
+				})
+				.where(eq(asset.id, link.assetId));
+		}),
+	);
+
+test(
+	"Prepare all again queues every ready asset once as one run, over the uploader's quota, also under a double click, and a request while it runs joins it and prepares no asset twice",
+	async () => {
+		const index = indexes.preparedAll;
+		const ready = await seed();
+		const readyElsewhere = await linkAgain(ready);
+		const other = await seed();
+		const failed = await seed();
+		const preparing = await seed();
+		const links = [
+			ready,
+			readyElsewhere,
+			other,
+			failed,
+			preparing,
+		];
+		await processAs(failed, "failed");
+		await processAs(preparing, "active");
+		expect((await on(index, links, embeddingProgress))?.preparable).toEqual({
+			missing: 0,
+			all: 2,
+		});
+		const before = await Promise.all(links.map(processingOf));
+
+		const userId = await admin();
+		const started = await on(
+			index,
+			links,
+			startPreparingAssetsAgain(userId, "all"),
+		);
+		expect(started).toMatchObject({
+			assets: 2,
+			joined: false,
+		});
+		const job = await takePreparation();
+		expect(job.data.scope).toBe("all");
+		const queued = await Promise.all([
+			on(index, links, prepareAssetsAgain(job.data)),
+			on(index, links, prepareAssetsAgain(job.data)),
+		]);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, job.id);
+		expect(queued[0] + queued[1]).toBe(2);
+
+		for (const [link, previous] of [
+			[
+				ready,
+				before[0],
+			],
+			[
+				other,
+				before[2],
+			],
+		] as const) {
+			expect(await processingOf(link)).toEqual({
+				status: "pending",
+				generation: Number(previous?.generation) + 1,
+				jobs: 1,
+			});
+		}
+		const jobs = await boss.findJobs<ProcessAssetPayload>(
+			PROCESS_ASSET_JOB_NAME,
+			{
+				data: {
+					runId: job.data.runId,
+				},
+			},
+		);
+		expect(jobs.map((queuedJob) => queuedJob.data.allowOverBudget)).toEqual([
+			true,
+			true,
+		]);
+		for (const link of [
+			ready,
+			readyElsewhere,
+		]) {
+			expect(await linkOf(link)).toMatchObject({
+				status: "pending",
+			});
+		}
+		expect(await processingOf(failed)).toEqual(before[3]);
+		expect(await processingOf(preparing)).toEqual(before[4]);
+
+		// One file is ready again while the other is still prepared.
+		await processAs(ready, "completed");
+		const again = await on(
+			index,
+			links,
+			startPreparingAssetsAgain(userId, "all"),
+		);
+		expect(again).toMatchObject({
+			runId: job.data.runId,
+			joined: true,
+		});
+		const joined = await takePreparation();
+		expect(await on(index, links, prepareAssetsAgain(joined.data))).toBe(0);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, joined.id);
+		expect(await processingOf(ready)).toMatchObject({
+			status: "completed",
+			jobs: 1,
+		});
+	},
+	TIMEOUT,
+);
+
+test(
+	"a request for all assets while unlinked assets of the instance run are still prepared joins that run",
+	async () => {
+		const index = indexes.preparedAll;
+		const unscoped = <A, E>(
+			effect: Effect.Effect<
+				A,
+				E,
+				ManagedRuntime.ManagedRuntime.Services<typeof runtime>
+			>,
+		) =>
+			runtime.runPromise(
+				effect.pipe(
+					Effect.provideService(EmbeddingIndex, {
+						...index,
+						blockIds: undefined,
+					}),
+				),
+			);
+		const [finished, preparing] = await runtime.runPromise(
+			Effect.gen(function* () {
+				const user = yield* createUser();
+				return yield* (yield* DB)
+					.insert(dbSchema.asset)
+					.values(
+						[
+							"finished.pdf",
+							"preparing.pdf",
+						].map((title) => ({
+							bucket: buckets.main.name,
+							prefix: `users/${user.id}/asset`,
+							title,
+							size: 1,
+							fileType: "pdf" as const,
+							userId: user.id,
+							processingStatus: "completed" as const,
+						})),
+					)
+					.returning({
+						id: dbSchema.asset.id,
+						generation: dbSchema.asset.processingGeneration,
+					});
+			}),
+		);
+		if (!finished || !preparing) throw new Error("Assets not created");
+
+		const started = await unscoped(
+			startPreparingAssetsAgain(await admin(), "all"),
+		);
+		const job = await takePreparation();
+		// The job takes on both unlinked assets; an index scoped to no repository finds nothing else.
+		await runtime.runPromise(
+			admitPreparation({
+				stage: "processing",
+				assets: [
+					finished,
+					preparing,
+				],
+				from: [
+					"completed",
+				],
+				run: {
+					id: job.data.runId,
+				},
+				allowOverBudget: true,
+			}),
+		);
+		expect(await on(index, [], prepareAssetsAgain(job.data))).toBe(0);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, job.id);
+		await runtime.runPromise(
+			Effect.gen(function* () {
+				const { activityMember, asset } = dbSchema;
+				const db = yield* DB;
+				yield* db
+					.update(asset)
+					.set({
+						processingStatus: "completed",
+					})
+					.where(eq(asset.id, finished.id));
+				yield* db
+					.update(activityMember)
+					.set({
+						processingState: "completed",
+					})
+					.where(
+						and(
+							eq(activityMember.runId, job.data.runId),
+							eq(activityMember.assetId, finished.id),
+						),
+					);
+			}),
+		);
+
+		const again = await unscoped(
+			startPreparingAssetsAgain(await admin(), "all"),
+		);
+		expect(again).toMatchObject({
+			runId: started.runId,
+			joined: true,
+		});
+		expect(await membersOf(job.data.runId)).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					assetId: finished.id,
+					processing: "completed",
+				}),
+				expect.objectContaining({
+					assetId: preparing.id,
+					processing: "pending",
+				}),
+			]),
+		);
+
+		// Leaves no run open for the other instance requests.
+		const joined = await takePreparation();
+		expect(await on(index, [], prepareAssetsAgain(joined.data))).toBe(0);
+		await boss.complete(PREPARE_ASSETS_AGAIN_JOB_NAME, joined.id);
+		await runtime.runPromise(
+			Effect.gen(function* () {
+				const { activityMember } = dbSchema;
+				yield* (yield* DB)
+					.update(activityMember)
+					.set({
+						processingState: "completed",
+					})
+					.where(eq(activityMember.runId, job.data.runId));
+			}),
+		);
 	},
 	TIMEOUT,
 );

@@ -14,6 +14,8 @@ export const processAssetPayloadSchema = z.object({
 	generation: z.number().int().nonnegative(),
 	/** The activity run that admitted the work; none for automatic work. */
 	runId: activityRunIdSchema.optional(),
+	/** An instance admin's run: model calls past the uploader's quota still run, and are recorded. */
+	allowOverBudget: z.boolean().optional(),
 });
 
 export type ProcessAssetPayload = z.infer<typeof processAssetPayloadSchema>;

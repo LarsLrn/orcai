@@ -111,7 +111,7 @@ The workers register every scheduled job when they start, with the cron in UTC:
 | `activity-cleanup-job` | hourly, at minute 25 | Deletes old activity entries, as described above. |
 | `notification-outbox-cleanup-job` | daily at 02:15 | Deletes old email outbox rows, see [Email delivery](#email-delivery). |
 
-The `prepare-missing-extractions-again-job` has no schedule. **Prepare assets again** on the instance Settings page queues it, and it prepares each asset whose stored extraction is missing once more.
+The `prepare-assets-again-job` has no schedule. **Prepare assets again** and **Prepare all assets again** on the instance Settings page queue it. It queues the processing of each asset whose stored extraction is missing, or of every ready asset, once per run. The processing jobs run in the `process-asset-job` queue with its usual concurrency, behind the work already queued.
 
 ## Upload storage lifecycle
 

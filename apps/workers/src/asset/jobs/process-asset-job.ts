@@ -246,6 +246,7 @@ const processDelivery = (params: {
 			jobId: params.job.id,
 			artifact: extracted,
 			imageAsset,
+			allowOverBudget: params.job.data.allowOverBudget,
 		});
 
 		yield* writeWhileProcessing(

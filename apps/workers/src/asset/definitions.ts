@@ -4,7 +4,7 @@ import {
 	markIndexingExhausted,
 	markMetadataExhausted,
 	markProcessingExhausted,
-	prepareMissingExtractionsAgain,
+	prepareAssetsAgain,
 	reconcileEmbeddings,
 	sweepPreparation,
 } from "@orcai/preparation";
@@ -14,10 +14,10 @@ import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	generateAssetMetadataPayloadSchema,
 	PREPARATION_SWEEP_JOB_NAME,
-	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+	PREPARE_ASSETS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
-	prepareMissingExtractionsAgainPayloadSchema,
+	prepareAssetsAgainPayloadSchema,
 	processAssetPayloadSchema,
 	RECONCILE_EMBEDDINGS_JOB_NAME,
 	VECTORIZE_ASSET_DEAD_LETTER_JOB_NAME,
@@ -103,18 +103,18 @@ export const assetWorkers = [
 			),
 	}),
 	defineWorker({
-		queue: PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
-		payload: prepareMissingExtractionsAgainPayloadSchema,
+		queue: PREPARE_ASSETS_AGAIN_JOB_NAME,
+		payload: prepareAssetsAgainPayloadSchema,
 		concurrency: 1,
 		pollingIntervalSeconds: 2,
 		handler: (job) =>
-			prepareMissingExtractionsAgain(job.data).pipe(
+			prepareAssetsAgain(job.data).pipe(
 				Effect.tap((queued) =>
 					Effect.logInfo(
 						{
 							queued,
 						},
-						"Queued assets missing their stored extraction for preparation",
+						"Queued assets to be prepared again",
 					),
 				),
 			),

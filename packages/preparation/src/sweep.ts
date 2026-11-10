@@ -7,10 +7,10 @@ import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type GenerateAssetMetadataPayload,
 	type JobQueue,
-	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+	PREPARE_ASSETS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
-	type PrepareMissingExtractionsAgainPayload,
+	type PrepareAssetsAgainPayload,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_DEAD_LETTER_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
@@ -357,8 +357,8 @@ export const strandedJobLeases = Effect.gen(function* () {
 		.where(eq(activityAdmission.leaseUntil, JOB_LEASE));
 	if (leases.length === 0) return [];
 	const live = new Set(
-		(yield* liveJobs<PrepareMissingExtractionsAgainPayload>([
-			PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+		(yield* liveJobs<PrepareAssetsAgainPayload>([
+			PREPARE_ASSETS_AGAIN_JOB_NAME,
 		])).map((job) => job.data.leaseId),
 	);
 	return leases.map((lease) => lease.id).filter((id) => !live.has(id));

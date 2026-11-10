@@ -99,7 +99,12 @@ const pool = (params: {
 			});
 			return {
 				poolId: pool.id,
-				start: (amount: number, appRequestId = crypto.randomUUID()) =>
+				userId: user.id,
+				start: (
+					amount: number,
+					appRequestId = crypto.randomUUID(),
+					allowOverBudget?: boolean,
+				) =>
 					startMeteredCall({
 						organizationId: organization.id,
 						userId: user.id,
@@ -109,6 +114,7 @@ const pool = (params: {
 						maxRequests: amount,
 						maxOutputTokens: amount,
 						inputTokens: 0,
+						allowOverBudget,
 					}),
 			};
 		}),
@@ -243,6 +249,38 @@ test("a token-metered call is refused unless all it asks remains", async () => {
 	});
 });
 
+const finalizedOf = async (appRequestId: string) =>
+	(await eventsOf(appRequestId)).filter(
+		(event) => event.eventType === "finalized",
+	);
+
+test("a call allowed over budget runs on a used-up pool and is charged all it used to the person", async () => {
+	const { poolId, userId, start } = await pool({
+		budgetAmount: 100,
+		meteringMode: "tokens",
+	});
+	const appRequestId = crypto.randomUUID();
+
+	expect(await run(Effect.flip(start(1000)))).toMatchObject({
+		reason: "QUOTA_EXHAUSTED",
+	});
+	const call = await run(start(1000, appRequestId, true));
+	await run(call.record(step));
+	await run(call.settle("completed"));
+
+	expect(await ledgerOf(poolId)).toMatchObject({
+		reservedAmount: 0,
+		consumedAmount: 120,
+		remainingAmount: 0,
+	});
+	expect(await finalizedOf(appRequestId)).toEqual([
+		expect.objectContaining({
+			userId,
+			actualAmount: 120,
+		}),
+	]);
+});
+
 test("a settled call is charged its steps and frees the rest", async () => {
 	const { poolId, start } = await requestPool(10);
 	const appRequestId = crypto.randomUUID();
@@ -290,11 +328,6 @@ test("a call without a step frees all it reserved, and only a provider failure s
 		"reserved",
 	]);
 });
-
-const finalizedOf = async (appRequestId: string) =>
-	(await eventsOf(appRequestId)).filter(
-		(event) => event.eventType === "finalized",
-	);
 
 test("a call whose settle failed is charged its stored steps once its period closed", async () => {
 	const { poolId, start } = await requestPool(10);

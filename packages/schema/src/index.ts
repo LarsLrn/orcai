@@ -68,7 +68,7 @@ export * from "./instance-settings/responses";
 export * from "./instance-settings/schema";
 export * from "./jobs/data-export";
 export * from "./jobs/generate-asset-metadata";
-export * from "./jobs/prepare-missing-extractions-again";
+export * from "./jobs/prepare-assets-again";
 export * from "./jobs/process-asset";
 export * from "./jobs/queues";
 export * from "./jobs/vectorize-asset";

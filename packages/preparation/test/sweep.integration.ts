@@ -32,9 +32,10 @@ import { activeGeneration, EmbeddingIndex, QdrantLive } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import {
 	defaultRepositoryConfig,
-	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+	PREPARE_ASSETS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
+	type PrepareAssetsAgainPayload,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
@@ -654,7 +655,8 @@ describe("stages no job will deliver", () => {
 							return {
 								runId: created.id,
 								leaseId: yield* leaseRun(created.id),
-							};
+								scope: "missing",
+							} satisfies PrepareAssetsAgainPayload;
 						});
 					return {
 						gone: yield* lease(),
@@ -662,13 +664,10 @@ describe("stages no job will deliver", () => {
 					};
 				}),
 			);
-			const job = await boss.send(
-				PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
-				waiting,
-			);
+			const job = await boss.send(PREPARE_ASSETS_AGAIN_JOB_NAME, waiting);
 			onTestFinished(async () => {
 				if (job) {
-					await boss.deleteJob(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, job);
+					await boss.deleteJob(PREPARE_ASSETS_AGAIN_JOB_NAME, job);
 				}
 			});
 			const ours = new Set([
