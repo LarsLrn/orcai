@@ -124,10 +124,19 @@ const imageFileType = (format: string) => {
 	return isImageFileType(normalized) ? normalized : undefined;
 };
 
+/** `content` below its header lines, as a passage is embedded. */
+const withHeader = (header: (string | undefined)[], content: string) => {
+	const lines = header.filter(Boolean).join("\n");
+	return lines ? `${lines}\n\n${content}` : content;
+};
+
+/** A text passage is embedded below the asset's title and its section, and matched by keyword below its section alone. */
 const buildTextChunks = ({
 	extraction,
+	title,
 }: {
 	extraction: StoredExtractionArtifact;
+	title: string;
 }): VectorizableChunk[] => {
 	const documentTotalPages = extractDocumentTotalPages(extraction);
 	const chunks =
@@ -160,14 +169,23 @@ const buildTextChunks = ({
 		const section = formatHeadingContext(
 			chunk.metadata.headingContext ?? undefined,
 		);
-		const embeddingContent = section
-			? `${section}\n\n${chunk.content}`
-			: chunk.content;
+		const embeddingContent = withHeader(
+			[
+				title,
+				section,
+			],
+			chunk.content,
+		);
 
 		return {
 			content: chunk.content,
 			section,
-			lexicalContent: embeddingContent,
+			lexicalContent: withHeader(
+				[
+					section,
+				],
+				chunk.content,
+			),
 			embeddingContent,
 			tokens: chunk.metadata.tokenCount ?? countTokens(embeddingContent),
 			documentTotalPages,
@@ -181,13 +199,15 @@ const buildTextChunks = ({
 	});
 };
 
-/** A chunk for every image the utility model described, in the section of its page's first text chunk. */
+/** A chunk for every image the utility model described, in the section of its page's first text chunk, embedded below the asset's title. */
 const buildImageChunks = ({
 	extraction,
 	textChunks,
+	title,
 }: {
 	extraction: StoredExtractionArtifact;
 	textChunks: readonly VectorizableChunk[];
+	title: string;
 }): VectorizableChunk[] => {
 	const textChunkCount = extraction.chunks.length;
 	const documentTotalPages = extractDocumentTotalPages(extraction);
@@ -213,7 +233,12 @@ const buildImageChunks = ({
 				content: text,
 				section,
 				lexicalContent: text,
-				embeddingContent: text,
+				embeddingContent: withHeader(
+					[
+						title,
+					],
+					text,
+				),
 				tokens: countTokens(text),
 				documentTotalPages,
 				chunkPageStart: page,
@@ -358,11 +383,13 @@ const indexAsset = ({
 
 		const textChunks = buildTextChunks({
 			extraction,
+			title,
 		});
 
 		const imageChunks = buildImageChunks({
 			extraction,
 			textChunks,
+			title,
 		});
 
 		const mergedChunks: VectorizableChunk[] = [

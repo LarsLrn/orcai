@@ -28,7 +28,7 @@ type ExtractedImage = NonNullable<
  * indexing (vectorize-asset-job.ts), without storage. Keep them in step.
  */
 
-/** What the embedded text of a passage starts with: nothing, its heading path as indexing adds it, or the document title before that. */
+/** What the embedded text of a passage starts with: nothing, its heading path, or the document title before that as indexing adds them. */
 export type Header = "none" | "heading" | "title";
 
 /** A fixed UUID of version 4's shape, as point payloads require, for `name`. */

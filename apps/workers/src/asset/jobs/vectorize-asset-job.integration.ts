@@ -613,7 +613,7 @@ test(
 		await vectorize(job);
 
 		expect(embedding.inputs.slice(before)).toEqual([
-			"passage:\nRefunds rose in February.",
+			"passage:\nrefunds.pdf\n\nRefunds rose in February.",
 		]);
 		const [payload] = await payloadsOf(link);
 		expect(payload?.text).toBe("Refunds rose in February.");
@@ -623,7 +623,7 @@ test(
 );
 
 test(
-	"passages carry their section and the asset's title, a text passage is embedded below its section, and an image takes its page's section",
+	"passages carry their section and the asset's title, a passage is embedded below the title and its section, and an image takes its page's section",
 	async () => {
 		const link = await seed(
 			[
@@ -653,9 +653,9 @@ test(
 		await vectorize(job);
 
 		expect(embedding.inputs.slice(before)).toEqual([
-			"passage:\nRefunds > Late refunds\n\nLate refunds earn interest.",
-			"passage:\nThe desk opens at nine.",
-			"passage:\nBar chart of late refunds per month.",
+			"passage:\nrefunds.pdf\nRefunds > Late refunds\n\nLate refunds earn interest.",
+			"passage:\nrefunds.pdf\n\nThe desk opens at nine.",
+			"passage:\nrefunds.pdf\n\nBar chart of late refunds per month.",
 		]);
 		const payloads = await payloadsOf(link);
 		expect(
