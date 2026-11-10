@@ -113,6 +113,8 @@ export const blockAsset = pgTable(
 		indexedAttempt: bigint("indexed_attempt", {
 			mode: "number",
 		}),
+		/** The asset title the indexed attempt's passages were embedded below. */
+		indexedTitle: text("indexed_title"),
 		/**
 		 * The embedding generation the current attempt indexes into; null when
 		 * it was admitted before embeddings were set up.

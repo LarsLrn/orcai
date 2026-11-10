@@ -428,7 +428,7 @@ const indexAsset = ({
 			title,
 		});
 
-		const completed = yield* completeIndexing(attempt);
+		const completed = yield* completeIndexing(attempt, title);
 		if (!completed) {
 			yield* Effect.logInfo(
 				{

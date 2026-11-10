@@ -12,6 +12,7 @@ import { type Job, type PgBoss, PgBossService } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
 	admit as admitPreparation,
+	completeMetadata,
 	embeddingProgress,
 	embeddingsRebuilding,
 	prepareAssetAgain,
@@ -71,6 +72,9 @@ import { vectorizeAsset } from "@/asset/jobs/vectorize-asset-job";
 const TIMEOUT = 30_000;
 const DIMENSIONS = 4;
 
+/** Every text the endpoint embedded, in order. */
+const embeddedTexts: string[] = [];
+
 /** An OpenAI-compatible endpoint that embeds every value as the same vector. */
 const embeddings = serve({
 	port: 0,
@@ -78,6 +82,7 @@ const embeddings = serve({
 		const body = (await request.json()) as {
 			input: string[];
 		};
+		embeddedTexts.push(...body.input);
 		return Response.json({
 			object: "list",
 			data: body.input.map((_, index) => ({
@@ -1665,6 +1670,265 @@ test(
 					.where(eq(activityMember.runId, job.data.runId));
 			}),
 		);
+	},
+	TIMEOUT,
+);
+
+/** Renames the link's asset, as a save does. */
+const rename = (link: Link, title: string) =>
+	runtime.runPromise(
+		Effect.gen(function* () {
+			yield* (yield* DB)
+				.update(dbSchema.asset)
+				.set({
+					title,
+					updatedAt: new Date(),
+				})
+				.where(eq(dbSchema.asset.id, link.assetId));
+		}),
+	);
+
+/** Moves the asset's last change a minute back, as if it had rested since. */
+const rest = (link: Link) =>
+	runtime.runPromise(
+		Effect.gen(function* () {
+			yield* (yield* DB)
+				.update(dbSchema.asset)
+				.set({
+					updatedAt: new Date(Date.now() - 60_000),
+				})
+				.where(eq(dbSchema.asset.id, link.assetId));
+		}),
+	);
+
+/** Embeds the link's queued attempt, and returns the texts embedded for it. */
+const embedQueued = async (index: EmbeddingIndexScope, link: Link) => {
+	const { attempt } = (await linkOf(link)) ?? {};
+	const job = (await jobsOf(link)).find((data) => data.attempt === attempt);
+	if (!job) throw new Error("No indexing job queued for the link");
+	const from = embeddedTexts.length;
+	await vectorize(index, link, job);
+	expect(await linkOf(link)).toMatchObject({
+		status: "completed",
+	});
+	return embeddedTexts.slice(from);
+};
+
+/** Starts a metadata generation that applies, as processing admits one. */
+const startMetadata = (link: Link) =>
+	runtime.runPromise(
+		Effect.gen(function* () {
+			const [row] = yield* (yield* DB)
+				.update(dbSchema.asset)
+				.set({
+					fileName: "refunds.pdf",
+					metadataStatus: "pending",
+					metadataGeneration: 1,
+				})
+				.where(eq(dbSchema.asset.id, link.assetId))
+				.returning({
+					userId: dbSchema.asset.userId,
+				});
+			return {
+				assetId: link.assetId,
+				userId: row.userId,
+				generation: 1,
+				mode: "apply" as const,
+			};
+		}),
+	);
+
+test(
+	"renaming an indexed asset embeds its passages below the new title once, after the renames rest",
+	async () => {
+		const index = indexes.configured;
+		const link = await seed();
+		await on(index, link, reconcileEmbeddings);
+		expect(await embedQueued(index, link)).toEqual([
+			"refunds.pdf\n\nRefunds rose in February.",
+		]);
+
+		await rename(link, "Refund report");
+		await rename(link, "Refunds in 2025");
+		await rename(link, "Refunds by month");
+		// Still renaming: nothing is embedded yet.
+		expect(await on(index, link, reconcileEmbeddings)).toBe(0);
+
+		await rest(link);
+		expect(await on(index, link, reconcileEmbeddings)).toBe(1);
+		expect(await on(index, link, reconcileEmbeddings)).toBe(0);
+		expect(await embedQueued(index, link)).toEqual([
+			"Refunds by month\n\nRefunds rose in February.",
+		]);
+		expect(await on(index, link, reconcileEmbeddings)).toBe(0);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a rename while indexing is queued is embedded by that indexing",
+	async () => {
+		const index = indexes.configured;
+		const link = await seed();
+		await on(index, link, reconcileEmbeddings);
+		await rename(link, "Refund report");
+
+		expect(await embedQueued(index, link)).toEqual([
+			"Refund report\n\nRefunds rose in February.",
+		]);
+		await rest(link);
+		expect(await on(index, link, reconcileEmbeddings)).toBe(0);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a title generated before indexing is embedded at once",
+	async () => {
+		const index = indexes.configured;
+		const link = await seed();
+		const metadata = await startMetadata(link);
+		await runtime.runPromise(
+			completeMetadata(metadata, {
+				title: "Refund report",
+				metadata: {},
+			}),
+		);
+
+		await on(index, link, reconcileEmbeddings);
+		expect(await embedQueued(index, link)).toEqual([
+			"Refund report\n\nRefunds rose in February.",
+		]);
+		await rest(link);
+		expect(await on(index, link, reconcileEmbeddings)).toBe(0);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a title generated after indexing is embedded once the asset rests",
+	async () => {
+		const index = indexes.configured;
+		const link = await seed();
+		const metadata = await startMetadata(link);
+		await on(index, link, reconcileEmbeddings);
+		expect(await embedQueued(index, link)).toEqual([
+			"refunds.pdf\n\nRefunds rose in February.",
+		]);
+
+		await runtime.runPromise(
+			completeMetadata(metadata, {
+				title: "Refund report",
+				metadata: {},
+			}),
+		);
+		expect(await on(index, link, reconcileEmbeddings)).toBe(0);
+		await rest(link);
+		expect(await on(index, link, reconcileEmbeddings)).toBe(1);
+		expect(await embedQueued(index, link)).toEqual([
+			"Refund report\n\nRefunds rose in February.",
+		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a rename waits while metadata is generated, which may change the title too",
+	async () => {
+		const index = indexes.configured;
+		const link = await seed();
+		const metadata = await startMetadata(link);
+		await on(index, link, reconcileEmbeddings);
+		await embedQueued(index, link);
+
+		await rename(link, "Refunds");
+		await rest(link);
+		expect(await on(index, link, reconcileEmbeddings)).toBe(0);
+
+		// The rename wins over the generated title.
+		await runtime.runPromise(
+			completeMetadata(metadata, {
+				title: "Refund report",
+				metadata: {},
+			}),
+		);
+		await rest(link);
+		expect(await on(index, link, reconcileEmbeddings)).toBe(1);
+		expect(await embedQueued(index, link)).toEqual([
+			"Refunds\n\nRefunds rose in February.",
+		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a rename of a file in many repositories embeds 100 links a run, and the next run the rest",
+	async () => {
+		const index = indexes.configured;
+		const first = await seed();
+		await on(index, first, reconcileEmbeddings);
+		await embedQueued(index, first);
+		const others = await runtime.runPromise(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				const [indexed] = yield* db
+					.select()
+					.from(dbSchema.blockAsset)
+					.where(
+						and(
+							eq(dbSchema.blockAsset.assetId, first.assetId),
+							eq(dbSchema.blockAsset.blockId, first.blockId),
+						),
+					);
+				const [owner] = yield* db
+					.select({
+						userId: dbSchema.asset.userId,
+					})
+					.from(dbSchema.asset)
+					.where(eq(dbSchema.asset.id, first.assetId));
+				const blocks = yield* db
+					.insert(dbSchema.block)
+					.values(
+						Array.from(
+							{
+								length: 100,
+							},
+							(_, n) => ({
+								type: "repository" as const,
+								name: `Repository ${n}`,
+								config: defaultRepositoryConfig,
+								userId: owner.userId,
+							}),
+						),
+					)
+					.returning({
+						id: dbSchema.block.id,
+					});
+				yield* db.insert(dbSchema.blockAsset).values(
+					blocks.map((block) => ({
+						...indexed,
+						blockId: block.id as BlockId,
+						indexAttempt: undefined,
+					})),
+				);
+				return blocks.map(
+					(block): Link => ({
+						assetId: first.assetId,
+						blockId: block.id as BlockId,
+					}),
+				);
+			}),
+		);
+		const links = [
+			first,
+			...others,
+		];
+
+		await rename(first, "Refund report");
+		await rest(first);
+		expect(await on(index, links, reconcileEmbeddings)).toBe(100);
+		expect(await on(index, links, reconcileEmbeddings)).toBe(1);
+		expect(await on(index, links, reconcileEmbeddings)).toBe(0);
 	},
 	TIMEOUT,
 );
