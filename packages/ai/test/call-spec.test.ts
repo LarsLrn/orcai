@@ -44,7 +44,10 @@ const calls: Record<string, (kind: ModelProviderKind) => CallSpec<CallOutput>> =
 				hints: {},
 			}),
 		imageAsset: (kind) => imageAssetCall(kind, image),
-		figure: (kind) => figureCall(kind, image),
+		figure: (kind) =>
+			figureCall(kind, image, {
+				title: "Refund policy",
+			}),
 	};
 
 /** What the provider receives for `call`, whatever the reply. */

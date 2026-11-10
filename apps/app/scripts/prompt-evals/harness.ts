@@ -4,6 +4,8 @@ import {
 	assetMetadataCall,
 	callRequest,
 	chatTitleCall,
+	type FigureContext,
+	figureCall,
 	imageAssetCall,
 	readAssetMetadata,
 	readImageAssetDescription,
@@ -847,6 +849,40 @@ export const runImageAsset = async ({
 			...suggestion,
 			text: searchText,
 		},
+	};
+};
+
+/** A document figure's search description, from the call processing sends with the document's context. */
+export const runFigure = async ({
+	model: { model },
+	png,
+	locale,
+	context,
+}: {
+	model: EvalModel;
+	png: Uint8Array;
+	locale: string;
+	context: FigureContext;
+}): Promise<Transcript> => {
+	const { text } = await generateText(
+		callRequest(
+			model.language,
+			figureCall(
+				model.kind,
+				{
+					data: png,
+					mediaType: "image/png",
+					locale,
+				},
+				context,
+			),
+		),
+	);
+
+	return {
+		text,
+		calls: [],
+		stop: "answer",
 	};
 };
 

@@ -2,6 +2,7 @@ import {
 	type CallOutput,
 	type CallSpec,
 	type DescribedImage,
+	type FigureContext,
 	figureCall,
 	imageAssetCall,
 	type ResolvedModel,
@@ -74,14 +75,6 @@ export const imageMediaType = (format: string) => {
 	return normalized === "jpg" ? "image/jpeg" : `image/${normalized}`;
 };
 
-const hintOf = (image: ExtractionImage) =>
-	[
-		image.description,
-		image.sourcePath,
-	]
-		.filter(Boolean)
-		.join(" ");
-
 /** One metered vision call on a stored image, with the call `kind` builds for it. */
 const describe = <OUTPUT extends CallOutput>(params: {
 	assetId: AssetId;
@@ -108,7 +101,6 @@ const describe = <OUTPUT extends CallOutput>(params: {
 			call: params.call(params.model.kind, {
 				data: Buffer.from(base64, "base64"),
 				mediaType: imageMediaType(params.image.format),
-				hint: hintOf(params.image),
 				locale: params.owner.locale,
 			}),
 		});
@@ -176,6 +168,40 @@ const describeImageAsset = (params: {
 		),
 	);
 
+/** The asset's title, and the title extraction found in the file where it differs. */
+const documentTitle = (assetId: AssetId, artifact: ExtractionArtifact) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const [asset] = yield* db
+			.select({
+				title: dbSchema.asset.title,
+			})
+			.from(dbSchema.asset)
+			.where(eq(dbSchema.asset.id, assetId))
+			.limit(1);
+		return [
+			...new Set(
+				[
+					asset?.title,
+					artifact.metadata.title,
+				].flatMap((title) => title?.trim() || []),
+			),
+		].join("\n");
+	});
+
+/** What the document says about `image`: its title, the image's caption and the text of its page. */
+const figureContext = (
+	artifact: ExtractionArtifact,
+	image: ExtractionImage,
+	title: string,
+): FigureContext => ({
+	title,
+	caption: image.description ?? undefined,
+	pageText: artifact.pages?.find(
+		({ pageNumber }) => pageNumber === image.pageNumber,
+	)?.content,
+});
+
 const describeFigures = (params: {
 	assetId: AssetId;
 	jobId: string;
@@ -184,51 +210,56 @@ const describeFigures = (params: {
 	artifact: ExtractionArtifact;
 	allowOverBudget?: boolean;
 }) =>
-	Effect.forEach(
-		params.artifact.images,
-		(extracted) => {
-			const image = withSource(extracted);
-			if (!image) {
-				return Effect.succeed<StoredExtractionImage>({
-					...extracted,
-					text: null,
-				});
-			}
+	documentTitle(params.assetId, params.artifact).pipe(
+		Effect.flatMap((title) =>
+			Effect.forEach(
+				params.artifact.images,
+				(extracted) => {
+					const image = withSource(extracted);
+					if (!image) {
+						return Effect.succeed<StoredExtractionImage>({
+							...extracted,
+							text: null,
+						});
+					}
 
-			return describe({
-				...params,
-				image,
-				call: figureCall,
-			}).pipe(
-				Effect.map(({ text }) => ({
-					...image,
-					text: text.trim() || null,
-				})),
-				Effect.catchIf(
-					(error): error is AssetPipelineError =>
-						error instanceof AssetPipelineError && error.failure !== "quota",
-					(error) =>
-						Effect.logWarning(
-							{
-								assetId: params.assetId,
-								imageIndex: image.imageIndex,
-								failure: error.failure,
-								error: error.cause,
-							},
-							"Skipping a figure whose description failed",
-						).pipe(
-							Effect.as({
-								...image,
-								text: null,
-							}),
+					const context = figureContext(params.artifact, image, title);
+					return describe({
+						...params,
+						image,
+						call: (kind, described) => figureCall(kind, described, context),
+					}).pipe(
+						Effect.map(({ text }) => ({
+							...image,
+							text: text.trim() || null,
+						})),
+						Effect.catchIf(
+							(error): error is AssetPipelineError =>
+								error instanceof AssetPipelineError &&
+								error.failure !== "quota",
+							(error) =>
+								Effect.logWarning(
+									{
+										assetId: params.assetId,
+										imageIndex: image.imageIndex,
+										failure: error.failure,
+										error: error.cause,
+									},
+									"Skipping a figure whose description failed",
+								).pipe(
+									Effect.as({
+										...image,
+										text: null,
+									}),
+								),
 						),
-				),
-			);
-		},
-		{
-			concurrency: 2,
-		},
-	).pipe(
+					);
+				},
+				{
+					concurrency: 2,
+				},
+			),
+		),
 		Effect.map(
 			(images): StoredExtractionArtifact => ({
 				...params.artifact,

@@ -128,6 +128,68 @@ test("every figure is described, in the uploader's language", async () => {
 	}
 });
 
+/** The text a request sent before its image. */
+const contextOf = (request: (typeof requests)[number]) =>
+	(
+		request.content as {
+			type: string;
+			text?: string;
+		}[]
+	)
+		.flatMap((part) =>
+			part.type === "text" && part.text
+				? [
+						part.text,
+					]
+				: [],
+		)
+		.join("");
+
+test("a figure is described with the document's title, its caption and the text of its page", async () => {
+	const { assetId, artifact } = await seed({
+		capabilities: [
+			"text",
+			"image",
+		],
+	});
+	const [image] = artifact.images;
+	if (!image) throw new Error("The seeded asset has no image.");
+	const document: ExtractionArtifact = {
+		...artifact,
+		content: "A document about refunds.",
+		metadata: {
+			...artifact.metadata,
+			title: "Refunds in 2025",
+		},
+		pages: [
+			{
+				pageNumber: 2,
+				content: "Figure 1 shows refunds per month at the Leeds office.",
+			},
+		],
+		images: [
+			{
+				...image,
+				imageIndex: 0,
+				pageNumber: 2,
+			},
+			{
+				...image,
+				imageIndex: 1,
+				pageNumber: 9,
+				description: "Refunds per month",
+			},
+		],
+	};
+
+	await describe(assetId, document, false);
+
+	expect(requests.map(contextOf).sort()).toEqual([
+		"<document_title>\nchart.png\nRefunds in 2025\n</document_title>\n\n<caption>\nRefunds per month\n</caption>",
+		"<document_title>\nchart.png\nRefunds in 2025\n</document_title>\n\n<page_text>\nFigure 1 shows refunds per month at the Leeds office.\n</page_text>",
+	]);
+});
+
 test("without a utility model that reads images, an image asset is unsupported and figures are skipped", async () => {
 	const { assetId, artifact } = await seed({
 		capabilities: [
