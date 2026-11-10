@@ -4,6 +4,7 @@ import {
 	countTokens,
 	type EmbeddingConnection,
 	embedValues,
+	type FigureContext,
 	figureCall,
 } from "@orcai/ai";
 import type { AssetId, BlockId } from "@orcai/core";
@@ -101,18 +102,23 @@ const describe = (
 	},
 	image: ExtractedImage,
 	locale: string,
+	context: FigureContext,
 ) =>
 	Effect.gen(function* () {
-		const call = figureCall(vision.model.kind, {
-			data: image.data,
-			mediaType: mediaType(image.format),
-			hint: image.description ?? undefined,
-			locale,
-		});
+		const call = figureCall(
+			vision.model.kind,
+			{
+				data: image.data,
+				mediaType: mediaType(image.format),
+				locale,
+			},
+			context,
+		);
 		const key = sha256(
 			JSON.stringify([
 				vision.id,
 				call.instructions,
+				context,
 				sha256(image.data),
 			]),
 		);
@@ -162,10 +168,24 @@ export const extractDocument = (params: {
 			result,
 		});
 		const figures = keptFigures(result.images ?? []);
+		const title = [
+			...new Set(
+				[
+					document.title,
+					artifact.metadata.title,
+				].flatMap((value) => value?.trim() || []),
+			),
+		].join("\n");
 		const described = yield* Effect.forEach(
 			figures,
 			(image) =>
-				describe(params.vision, image, document.language).pipe(
+				describe(params.vision, image, document.language, {
+					title,
+					caption: image.description ?? undefined,
+					pageText: artifact.pages?.find(
+						({ pageNumber }) => pageNumber === image.pageNumber,
+					)?.content,
+				}).pipe(
 					Effect.map((text) => ({
 						image,
 						text,

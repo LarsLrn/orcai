@@ -13,6 +13,7 @@ export {
 } from "./generate-embedding";
 export {
 	type DescribedImage,
+	type FigureContext,
 	figureCall,
 	imageAssetCall,
 	readImageAssetDescription,
