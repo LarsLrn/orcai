@@ -1,5 +1,6 @@
 import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
 import type { BucketName } from "@orcai/schema";
+import type { ExtractionPage } from "./pages";
 
 /** An image as extraction found it, before the utility model describes it. */
 export type ExtractionImage = Omit<ExtractedImage, "data" | "ocrResult"> & {
@@ -26,7 +27,10 @@ export type StoredExtractionArtifact = {
 	metadata: ExtractionResult["metadata"];
 	tables: ExtractionResult["tables"];
 	detectedLanguages: NonNullable<ExtractionResult["detectedLanguages"]>;
+	/** Each with the pages its text was found on, none where that is uncertain. */
 	chunks: NonNullable<ExtractionResult["chunks"]>;
+	/** Absent from extractions stored without their pages. */
+	pages?: ExtractionPage[];
 	document: ExtractionResult["document"];
 	qualityScore: ExtractionResult["qualityScore"];
 	processingWarnings: NonNullable<ExtractionResult["processingWarnings"]>;

@@ -38,11 +38,12 @@ const listOf = <T>(value: T | T[] | undefined) =>
 					value,
 				];
 
-/** Whether `found` lies on one of the source's pages. */
-const onPage = (found: Found, source: Source) => {
+/** Whether `found` lies on one of the source's pages; with `exact`, on that page alone. */
+const onPage = (found: Found, source: Source, exact = false) => {
 	const start = found.pageStart;
 	if (found.document !== source.document || start === undefined) return false;
 	const end = found.pageEnd ?? start;
+	if (exact && end !== start) return false;
 	return listOf(source.page).some((page) => start <= page && end >= page);
 };
 
@@ -79,6 +80,8 @@ export interface Outcome {
 	rank: number | null;
 	/** Whether the first result answers and its pages include the expected page, the page a citation of it would name. */
 	pageRight: boolean;
+	/** Whether the first result answers and names the expected page alone, as a citation shows it. */
+	pageExact: boolean;
 }
 
 export const outcomeOf = (
@@ -86,10 +89,17 @@ export const outcomeOf = (
 	sources: readonly Source[],
 ): Outcome => {
 	const rank = rankOf(results, sources);
+	// The page must be the one of the source the first result answers from.
+	const onAnsweredPage = (exact: boolean) =>
+		rank === 1 &&
+		sources.some(
+			(source) =>
+				answers(results[0], source) && onPage(results[0], source, exact),
+		);
 	return {
 		rank,
-		pageRight:
-			rank === 1 && sources.some((source) => onPage(results[0], source)),
+		pageRight: onAnsweredPage(false),
+		pageExact: onAnsweredPage(true),
 	};
 };
 
@@ -101,6 +111,7 @@ export interface Summary {
 	hitAtLimit: number;
 	mrr: number;
 	pageAt1: number;
+	pageExactAt1: number;
 }
 
 const share = (
@@ -120,4 +131,5 @@ export const summarize = (outcomes: readonly Outcome[]): Summary => ({
 			: outcomes.reduce((sum, { rank }) => sum + (rank ? 1 / rank : 0), 0) /
 				outcomes.length,
 	pageAt1: share(outcomes, ({ pageRight }) => pageRight),
+	pageExactAt1: share(outcomes, ({ pageExact }) => pageExact),
 });

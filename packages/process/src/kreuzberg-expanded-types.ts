@@ -1,4 +1,4 @@
-import type { ExtractionConfig } from "@kreuzberg/node";
+import type { ExtractionConfig, ExtractionResult } from "@kreuzberg/node";
 
 /**
  * Local compatibility types for Kreuzberg runtime options that exist in the
@@ -36,4 +36,9 @@ interface ExpandedChunkingConfig
 export type ExpandedExtractionConfig = Omit<ExtractionConfig, "chunking"> & {
 	chunking?: ExpandedChunkingConfig;
 	contentFilter?: ContentFilterConfig;
+};
+
+/** The declarations name the page structure `page_structure`; the native package returns it as `pages`. */
+export type ExpandedMetadata = ExtractionResult["metadata"] & {
+	pages?: ExtractionResult["metadata"]["page_structure"];
 };

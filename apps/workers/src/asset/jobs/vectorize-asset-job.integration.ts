@@ -14,6 +14,7 @@ import {
 import {
 	buildStoredExtractionKey,
 	createImageOnlyExtractionArtifact,
+	readStoredExtraction,
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
 import {
@@ -55,7 +56,7 @@ import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import { processAsset } from "@/asset/jobs/process-asset-job";
 import { vectorizeAsset } from "@/asset/jobs/vectorize-asset-job";
-import { pdfWithImages, solidImage } from "@/asset/test-document";
+import { pdfWithImages, pdfWithPages, solidImage } from "@/asset/test-document";
 import {
 	seedVisionAsset,
 	requests as visionRequests,
@@ -1397,6 +1398,120 @@ test(
 			}),
 		);
 		expect(stored).toHaveLength(1);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a document's passages carry the pages their text is on",
+	async () => {
+		const words = [
+			"harbour",
+			"ledger",
+			"meadow",
+			"copper",
+			"lantern",
+			"orchard",
+			"glacier",
+			"timber",
+		];
+		// Every line names its page at both ends, so any part of it in a passage tells the page.
+		const pages = [
+			1,
+			2,
+			3,
+		].map((page) => ({
+			lines: Array.from({
+				length: 8,
+			}).map((_, line) => {
+				const code = `P${page}L${line}`;
+				return `${code} the ${words[(page * 3 + line) % 8]} report notes ${words[(line * 5 + page) % 8]} figures for ${2000 + page * 30 + line} ${code}`;
+			}),
+		}));
+		const asset = await run(
+			seedVisionAsset({
+				capabilities: [
+					"text",
+				],
+				pdf: pdfWithPages(pages),
+			}),
+		);
+		await run(
+			processAsset({
+				id: crypto.randomUUID(),
+				name: "process-asset",
+				data: {
+					assetRef: {
+						bucket: buckets.processed.name,
+						prefix: asset.prefix,
+						id: asset.assetId,
+						type: asset.fileType,
+					},
+					generation: 0,
+				},
+			} as Job<ProcessAssetPayload>),
+		);
+
+		const pagesNamed = (text: string) => {
+			const named = [
+				...text.matchAll(/P(\d)L\d/g),
+			].map((match) => Number(match[1]));
+			return [
+				Math.min(...named),
+				Math.max(...named),
+			];
+		};
+		const extraction = await run(readStoredExtraction(asset.assetId));
+		const expected = extraction.chunks.map((chunk) =>
+			pagesNamed(chunk.content),
+		);
+		expect(
+			extraction.chunks.map(({ metadata }) => [
+				metadata.firstPage,
+				metadata.lastPage,
+			]),
+		).toEqual(expected);
+		expect(expected.some(([first, last]) => first !== last)).toBe(true);
+		expect(extraction.pages?.map(({ pageNumber }) => pageNumber)).toEqual([
+			1,
+			2,
+			3,
+		]);
+
+		const blockId = await run(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				const [block] = yield* db
+					.insert(dbSchema.block)
+					.values({
+						type: "repository",
+						name: "Report repository",
+						config: defaultRepositoryConfig,
+						userId: asset.uploaderId,
+					})
+					.returning();
+				yield* db.insert(dbSchema.blockAsset).values({
+					blockId: block.id,
+					assetId: asset.assetId,
+				});
+				return block.id as BlockId;
+			}),
+		);
+		const link = {
+			assetId: asset.assetId,
+			blockId,
+		};
+		await vectorize(await admit(link));
+
+		const points = [
+			...(await payloadsOf(link)),
+		].sort((a, b) => Number(a?.chunk_index) - Number(b?.chunk_index));
+		expect(
+			points.map((point) => [
+				point?.chunkPageStart,
+				point?.chunkPageEnd,
+			]),
+		).toEqual(expected);
 	},
 	TIMEOUT,
 );
