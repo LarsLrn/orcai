@@ -7,8 +7,8 @@ import {
 	findEmbeddingsStatusResponseSchema,
 	findInstanceSettingsInputSchema,
 	findInstanceSettingsResponseSchema,
-	prepareMissingExtractionsAgainInputSchema,
-	prepareMissingExtractionsAgainResponseSchema,
+	prepareAssetsAgainInputSchema,
+	prepareAssetsAgainResponseSchema,
 	reembedEmbeddingsInputSchema,
 	reembedEmbeddingsResponseSchema,
 	retryFailedEmbeddingsInputSchema,
@@ -109,17 +109,17 @@ export const instanceSettingsContracts = {
 		)
 		.input(retryFailedEmbeddingsInputSchema)
 		.output(retryFailedEmbeddingsResponseSchema),
-	prepareMissingExtractionsAgain: base
+	prepareAssetsAgain: base
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/instance/settings/embeddings/prepare-again",
-				summary: "Prepare the assets again whose stored text is missing",
+				summary: "Prepare assets again",
 				tags,
 				description:
-					"Starts queueing each asset whose failed embedding misses its stored extraction once, in the background, as an activity run of the caller, and returns how many there are and the run. Reading the file again also describes its images. Assets already being prepared are skipped, and a request while a run is queued or running joins that run.",
+					"Starts queueing assets once to be prepared again, in the background, as an activity run of the caller, and returns how many there are and the run. Scope `missing` takes each asset whose failed embedding misses its stored extraction, `all` every ready asset. Preparing reads the file again, describes its images and embeds it again. Model calls are metered to each asset's uploader and still run when the uploader's quota is used up. Assets already being prepared are skipped, and a request while a run of the same scope is queued or running joins that run.",
 			}),
 		)
-		.input(prepareMissingExtractionsAgainInputSchema)
-		.output(prepareMissingExtractionsAgainResponseSchema),
+		.input(prepareAssetsAgainInputSchema)
+		.output(prepareAssetsAgainResponseSchema),
 };

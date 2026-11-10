@@ -13,6 +13,7 @@ import {
 } from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import {
+	boolean,
 	check,
 	index,
 	pgEnum,
@@ -66,6 +67,8 @@ export const activityRun = pgTable(
 			.references(() => block.id, {
 				onDelete: "set null",
 			}),
+		/** An instance admin's run over the whole instance, which later instance requests join. */
+		instance: boolean("instance").notNull().default(false),
 		/** The client's key for an upload, so a repeated call joins its run. */
 		clientKey: uuid("client_key"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),

@@ -57,6 +57,8 @@ export interface MeteredCallInput {
 	maxOutputTokens?: number;
 	/** What one request sends, by `promptTokens`. */
 	inputTokens: number;
+	/** Runs past the pool's budget instead of being refused; still recorded. */
+	allowOverBudget?: boolean;
 }
 
 export interface MeteredCall {

@@ -24,6 +24,7 @@ export const inActivityRun = <A, E, R>(
 		kind: Exclude<ActivityRunKind, "upload">;
 		organizationId?: OrganizationId | ReturnType<typeof homeOrganization>;
 		blockId?: BlockId;
+		instance?: boolean;
 	},
 	admit: (runId: ActivityRunId) => Effect.Effect<A, E, R>,
 ) =>

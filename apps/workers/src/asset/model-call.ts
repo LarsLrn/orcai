@@ -47,6 +47,7 @@ export const assetModelCall = <OUTPUT extends CallOutput>({
 	owner,
 	model,
 	call,
+	allowOverBudget,
 }: {
 	appRequestId: string;
 	owner: {
@@ -55,9 +56,12 @@ export const assetModelCall = <OUTPUT extends CallOutput>({
 	};
 	model: ResolvedModel;
 	call: CallSpec<OUTPUT>;
+	/** An instance admin's run, which an uploader's used-up quota does not stop. */
+	allowOverBudget?: boolean;
 }) =>
 	generateTextWithQuota({
 		appRequestId,
+		allowOverBudget,
 		organizationId: owner.organizationId,
 		userId: owner.userId,
 		providerId: model.providerId,

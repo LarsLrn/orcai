@@ -20,6 +20,31 @@ import { m } from "@/paraglide/messages";
 
 const PREPARING_POLL_MS = 5_000;
 
+/** Prepare again for one scope, confirmed with the number of assets it covers. */
+const usePrepareAgain = (count: number, description: string) =>
+	useMutationAction({
+		mutationOptions: () =>
+			orpc.instanceSettings.prepareAssetsAgain.mutationOptions(),
+		messages: {
+			loading: m.instance_settings_index_prepare_again_toast_loading(),
+			success: ({ data }) =>
+				data.data.joined
+					? m.instance_settings_index_prepare_again_toast_joined()
+					: m.instance_settings_index_prepare_again_toast_success({
+							count: data.data.assets,
+						}),
+			error: m.instance_settings_index_prepare_again_toast_error(),
+		},
+		confirm: {
+			title: m.instance_settings_index_prepare_again_confirm_title({
+				count,
+			}),
+			description,
+			confirmText: m.instance_settings_index_prepare_again_confirm_button(),
+			confirmVariant: "default",
+		},
+	});
+
 /** The files embedded, waiting and failed per organisation, without naming any of them. */
 export const SearchIndexSection = ({
 	progress,
@@ -54,36 +79,24 @@ export const SearchIndexSection = ({
 			confirmVariant: "default",
 		},
 	});
-	const prepareAgain = useMutationAction({
-		mutationOptions: () =>
-			orpc.instanceSettings.prepareMissingExtractionsAgain.mutationOptions(),
-		messages: {
-			loading: m.instance_settings_index_prepare_again_toast_loading(),
-			success: ({ data }) =>
-				data.data.joined
-					? m.instance_settings_index_prepare_again_toast_joined()
-					: m.instance_settings_index_prepare_again_toast_success({
-							count: data.data.assets,
-						}),
-			error: m.instance_settings_index_prepare_again_toast_error(),
-		},
-		confirm: {
-			title: m.instance_settings_index_prepare_again_confirm_title({
-				count: progress.preparable,
-			}),
-			description:
-				m.instance_settings_index_prepare_again_confirm_description(),
-			confirmText: m.instance_settings_index_prepare_again_confirm_button(),
-			confirmVariant: "default",
-		},
-	});
+	const prepareMissing = usePrepareAgain(
+		progress.preparable.missing,
+		m.instance_settings_index_prepare_again_confirm_description(),
+	);
+	const prepareAll = usePrepareAgain(
+		progress.preparable.all,
+		m.instance_settings_index_prepare_all_confirm_description(),
+	);
 	const [preparing, setPreparing] = useState(false);
-	// Preparing again starts in the background, after the mutation returned; once queued the assets wait.
+	// Preparing again starts in the background, after the mutation returned; once assets wait, the page refreshes itself.
+	if (preparing && progress.organizations.some((row) => row.waiting > 0)) {
+		setPreparing(false);
+	}
 	useQuery({
 		...orpc.instanceSettings.embeddingProgress.queryOptions({
 			input: {},
 		}),
-		enabled: preparing && progress.preparable > 0,
+		enabled: preparing,
 		refetchInterval: PREPARING_POLL_MS,
 	});
 	const reembed = useMutationAction({
@@ -185,25 +198,40 @@ export const SearchIndexSection = ({
 				</section>
 			)}
 
-			{progress.preparable > 0 && (
+			{progress.preparable.missing > 0 && (
 				<p className="text-muted-foreground text-sm">
 					{m.instance_settings_index_prepare_again_description()}
 				</p>
 			)}
 
 			<div className="flex flex-wrap justify-end gap-2">
-				{progress.preparable > 0 && (
+				{progress.preparable.missing > 0 && (
 					<Button
 						variant="outline"
-						loading={prepareAgain.isPending}
+						loading={prepareMissing.isPending}
 						onClick={async () => {
-							const result = await prepareAgain.mutateAsync({});
+							const result = await prepareMissing.mutateAsync({
+								scope: "missing",
+							});
 							if (result.status === "success") setPreparing(true);
 						}}
 					>
 						{m.instance_settings_index_prepare_again_button()}
 					</Button>
 				)}
+				<Button
+					variant="outline"
+					disabled={progress.preparable.all === 0}
+					loading={prepareAll.isPending}
+					onClick={async () => {
+						const result = await prepareAll.mutateAsync({
+							scope: "all",
+						});
+						if (result.status === "success") setPreparing(true);
+					}}
+				>
+					{m.instance_settings_index_prepare_all_button()}
+				</Button>
 				<Button
 					variant="outline"
 					disabled={progress.retryable === 0}

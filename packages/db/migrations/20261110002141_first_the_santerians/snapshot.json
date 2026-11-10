@@ -1,0 +1,47 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "05678b10-8a22-4e84-977b-a9964c5f4fbe",
+  "prevIds": [
+    "852bbe4e-ac99-4ddd-a1c5-c81cac8c9912"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "activity_run",
+        "instance"
+      ],
+      "writes": [
+        "s|col|public.activity_run.instance",
+        "n|col|public.activity_run.instance",
+        "e|col|public.activity_run.instance"
+      ],
+      "reads": [
+        "n|tbl|public.activity_run",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "instance",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    }
+  ]
+}

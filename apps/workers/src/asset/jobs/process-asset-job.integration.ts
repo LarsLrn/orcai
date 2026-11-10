@@ -34,6 +34,7 @@ import {
 import {
 	defaultRepositoryConfig,
 	GENERATE_ASSET_METADATA_JOB_NAME,
+	PROCESS_ASSET_JOB_NAME,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
@@ -179,6 +180,75 @@ const prepareAgain = (assetId: AssetId) =>
 				.where(eq(dbSchema.asset.id, assetId));
 		}),
 	);
+
+test(
+	"over the uploader's quota an upload fails with quota, and an instance admin's run prepares it again, charged to the uploader",
+	async () => {
+		const asset = await run(
+			seedVisionAsset({
+				capabilities: [
+					"text",
+					"image",
+				],
+				budget: 1,
+			}),
+		);
+
+		await processOnce(delivery(asset, 0));
+		expect(await statusOf(asset.assetId)).toBe("failed");
+		expect(requests).toHaveLength(0);
+
+		await run(
+			admit({
+				stage: "processing",
+				assets: [
+					{
+						id: asset.assetId,
+						generation: 0,
+					},
+				],
+				from: [
+					"failed",
+				],
+				allowOverBudget: true,
+			}),
+		);
+		const [job] = (
+			await boss.findJobs<ProcessAssetPayload>(PROCESS_ASSET_JOB_NAME, {
+				queued: true,
+			})
+		).filter((queued) => queued.data.assetRef.id === asset.assetId);
+		if (!job) throw new Error("No processing job queued");
+		await processOnce(job);
+
+		expect(await statusOf(asset.assetId)).toBe("completed");
+		expect(requests).toHaveLength(1);
+		const charged = await run(
+			Effect.gen(function* () {
+				return yield* (yield* DB)
+					.select({
+						userId: dbSchema.quotaUsageEvent.userId,
+					})
+					.from(dbSchema.quotaUsageEvent)
+					.where(
+						and(
+							like(
+								dbSchema.quotaUsageEvent.appRequestId,
+								`image:${asset.assetId}:%`,
+							),
+							eq(dbSchema.quotaUsageEvent.eventType, "finalized"),
+						),
+					);
+			}),
+		);
+		expect(charged).toEqual([
+			{
+				userId: asset.uploaderId,
+			},
+		]);
+	},
+	TIMEOUT,
+);
 
 test(
 	"a replayed or superseded delivery describes nothing; each generation is described once",

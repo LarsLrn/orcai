@@ -92,6 +92,7 @@ const describe = <OUTPUT extends CallOutput>(params: {
 		sourcePath: string;
 	};
 	call: (kind: ModelProviderKind, image: DescribedImage) => CallSpec<OUTPUT>;
+	allowOverBudget?: boolean;
 }) =>
 	Effect.gen(function* () {
 		const base64 = yield* getImageAsBase64({
@@ -103,6 +104,7 @@ const describe = <OUTPUT extends CallOutput>(params: {
 			appRequestId: `image:${params.assetId}:${params.image.imageIndex}:${params.jobId}`,
 			owner: params.owner,
 			model: params.model,
+			allowOverBudget: params.allowOverBudget,
 			call: params.call(params.model.kind, {
 				data: Buffer.from(base64, "base64"),
 				mediaType: imageMediaType(params.image.format),
@@ -127,6 +129,7 @@ export const readImageAsset = (params: {
 	owner: AssetOwner;
 	model: ResolvedModel;
 	artifact: ExtractionArtifact;
+	allowOverBudget?: boolean;
 }) =>
 	Effect.gen(function* () {
 		const [stored] = params.artifact.images;
@@ -156,6 +159,7 @@ const describeImageAsset = (params: {
 	owner: AssetOwner;
 	model: ResolvedModel;
 	artifact: ExtractionArtifact;
+	allowOverBudget?: boolean;
 }) =>
 	readImageAsset(params).pipe(
 		Effect.map(
@@ -178,6 +182,7 @@ const describeFigures = (params: {
 	owner: AssetOwner;
 	model: ResolvedModel;
 	artifact: ExtractionArtifact;
+	allowOverBudget?: boolean;
 }) =>
 	Effect.forEach(
 		params.artifact.images,
@@ -236,13 +241,15 @@ const describeFigures = (params: {
  * Describes every image of the artifact with the asset organisation's
  * utility model, metered against the uploader. Without a model that reads
  * images, figures are skipped and an image asset fails `unsupported`. A failed figure is skipped; a failed image asset fails. A
- * quota that refuses any call fails the asset with `quota`.
+ * quota that refuses any call fails the asset with `quota`, unless
+ * `allowOverBudget` lets the calls run past it.
  */
 export const describeImages = (params: {
 	assetId: AssetId;
 	jobId: string;
 	artifact: ExtractionArtifact;
 	imageAsset: boolean;
+	allowOverBudget?: boolean;
 }) =>
 	Effect.gen(function* () {
 		const { artifact } = params;

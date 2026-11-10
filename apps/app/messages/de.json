@@ -4099,7 +4099,7 @@
 			}
 		}
 	],
-	"instance_settings_index_prepare_again_confirm_description": "OrcAI reiht sie im Hintergrund ein und bereitet sie in allen Repositories, die sie enthalten, erneut vor, auch dort, wo sie bereits eingebettet sind.",
+	"instance_settings_index_prepare_again_confirm_description": "OrcAI reiht sie im Hintergrund ein und bereitet sie in allen Repositories, die sie enthalten, erneut vor, auch dort, wo sie bereits eingebettet sind. Ihre Bildbeschreibungen werden dem Kontingent-Pool der Person angerechnet, die die jeweilige Datei hochgeladen hat, auch wenn dieser Pool aufgebraucht ist.",
 	"instance_settings_index_prepare_again_confirm_button": "Erneut vorbereiten",
 	"instance_settings_index_prepare_again_toast_loading": "Die Assets werden zur Vorbereitung eingereiht...",
 	"instance_settings_index_prepare_again_toast_success": [
@@ -4119,6 +4119,8 @@
 	],
 	"instance_settings_index_prepare_again_toast_joined": "Die Assets werden bereits erneut vorbereitet.",
 	"instance_settings_index_prepare_again_toast_error": "Die Assets wurden nicht zur Vorbereitung eingereiht.",
+	"instance_settings_index_prepare_all_button": "Alle Assets erneut vorbereiten",
+	"instance_settings_index_prepare_all_confirm_description": "OrcAI liest alle bereiten Assets der Instanz erneut, auch die in keinem Repository, beschreibt alle ihre Bilder erneut mit dem Hilfsmodell der jeweiligen Organisation und bettet sie in allen Repositories, die sie enthalten, erneut ein. Jede Bildbeschreibung ist ein Modellaufruf, der dem Kontingent-Pool der Person angerechnet wird, die die Datei hochgeladen hat, auch wenn dieser Pool aufgebraucht ist. Bis ein Asset erneut eingebettet ist, findet die Suche es weiter dort, wo es eingebettet war.",
 	"instance_settings_index_reembed_button": "Alles neu einbetten",
 	"instance_settings_index_reembed_confirm_title": "Alle Assets neu einbetten?",
 	"instance_settings_index_reembed_confirm_description": [

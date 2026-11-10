@@ -382,8 +382,8 @@ describes the fields. Until they are set up, repository search is unavailable,
 and instance admins see a banner in the app that links to this page. Changing
 the model or the passage prefix embeds every asset in a repository again after
 a confirmation, and the **Search index** section counts the progress per
-organisation, with **Retry failed assets**, **Prepare assets again** and
-**Re-embed everything**, as described under [Change the model](/docs/self-hosting/configuration#change-the-model).
+organisation, with **Retry failed assets**, **Prepare assets again**,
+**Prepare all assets again** and **Re-embed everything**, as described under [Change the model](/docs/self-hosting/configuration#change-the-model).
 
 **Organisations** (`/instance/organizations`) lists every organisation of the
 instance with its slug and member count, with search, creates one with
@@ -589,6 +589,9 @@ Each description draws on the quota pools of the utility model, attributed to
 the person who uploaded the file. When the pool is used up, the file fails to
 prepare and can be retried once the pool resets. When no active pool covers
 the utility model for the uploader, create or adjust one before retrying.
+When an instance admin prepares assets again from the instance Settings page,
+the descriptions run even when the uploader's pool is used up, and the pool
+still records them, see [Embeddings](/docs/self-hosting/configuration#change-the-model).
 
 The utility model also [generates asset metadata](/docs/using-orcai/library#metadata-generated-with-ai),
 automatically for prepared Library uploads and on request from the metadata

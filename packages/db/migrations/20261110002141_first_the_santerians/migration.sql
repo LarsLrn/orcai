@@ -1,0 +1,1 @@
+ALTER TABLE "activity_run" ADD COLUMN "instance" boolean DEFAULT false NOT NULL;

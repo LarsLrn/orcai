@@ -205,7 +205,7 @@ test("instance: Re-embed everything asks first, and Retry failed waits for a fai
 	).toBeHidden();
 });
 
-test("instance: Prepare assets again shows for an asset missing its stored text and asks first with the count", async ({
+test("instance: Prepare assets again shows for an asset missing its stored text, Prepare all assets again waits for a ready asset, and both ask first with the count", async ({
 	api,
 	pageAsWellKnownAdmin,
 }) => {
@@ -214,12 +214,16 @@ test("instance: Prepare assets again shows for an asset missing its stored text 
 	const prepareAgain = page.getByRole("button", {
 		name: message("instance_settings_index_prepare_again_button"),
 	});
+	const prepareAll = page.getByRole("button", {
+		name: message("instance_settings_index_prepare_all_button"),
+	});
 	await expect(
 		page.getByRole("heading", {
 			name: message("instance_settings_index_title"),
 		}),
 	).toBeVisible();
 	await expect(prepareAgain).toBeHidden();
+	await expect(prepareAll).toBeDisabled();
 
 	const client = api.as("admin");
 	const name = `Missing extraction ${runId()}`;
@@ -260,6 +264,18 @@ test("instance: Prepare assets again shows for an asset missing its stored text 
 			})
 			.click();
 		await expect(dialog).toBeHidden();
+
+		await prepareAll.click();
+		const allDialog = confirmation(page, "Prepare 1 asset again?");
+		await expect(allDialog).toContainText(
+			message("instance_settings_index_prepare_all_confirm_description"),
+		);
+		await allDialog
+			.getByRole("button", {
+				name: message("common_cancel_button"),
+			})
+			.click();
+		await expect(allDialog).toBeHidden();
 	} finally {
 		// The other specs count no prepared asset.
 		await restore();

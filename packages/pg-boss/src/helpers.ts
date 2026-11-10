@@ -30,6 +30,8 @@ type JobBatch<T> = {
 		options?: {
 			/** Seconds before the job may run. */
 			startAfter?: number;
+			/** Splits a stately queue: its one waiting and one running job are per key. */
+			singletonKey?: string;
 		};
 	}>;
 };
@@ -48,6 +50,7 @@ const insertJobs = <T extends object>(
 					params.jobs.map((job) => ({
 						data: job.data,
 						startAfter: job.options?.startAfter,
+						singletonKey: job.options?.singletonKey,
 					})),
 					options,
 				),

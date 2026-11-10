@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { prepareAgainScopeSchema } from "../jobs/prepare-assets-again";
 
 export const findInstanceSettingsInputSchema = z.object({});
 
@@ -46,4 +47,6 @@ export const reembedEmbeddingsInputSchema = z.object({
 
 export const retryFailedEmbeddingsInputSchema = z.object({});
 
-export const prepareMissingExtractionsAgainInputSchema = z.object({});
+export const prepareAssetsAgainInputSchema = z.object({
+	scope: prepareAgainScopeSchema,
+});
