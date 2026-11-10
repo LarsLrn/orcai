@@ -123,7 +123,7 @@ The evals need the stack and an OpenAI-compatible endpoint that serves the embed
 | `--chunk-sizes` | Chunk sizes in characters, by default `1000,2000`, each with an overlap of a fifth. |
 | `--limits` | Results per search, by default `6,12`. The search tool returns at most 8 passages, so a larger limit measures a higher cap. |
 | `--modes` | Retrieval modes, by default `hybrid,dense,sparse`. |
-| `--headers` | What the embedded text of a passage starts with: `heading` by default, its heading path as indexing adds it, `title` for the document title before the heading path, or `none`. |
+| `--headers` | What the embedded text of a passage starts with: `title` by default, the document title before the heading path as indexing adds them, `heading` for the heading path alone, or `none`. |
 | `--stopwords` | BM25 stopwords: `indexing` by default, the stopwords indexing uses, or `none`, or Qdrant's lists for languages joined by `+`, such as `german+english`. |
 | `--questions` | Only the questions whose id starts with one of these, such as `de/` or `en/naca-scan`. |
 

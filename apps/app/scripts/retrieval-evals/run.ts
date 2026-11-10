@@ -71,7 +71,7 @@ const { values: args } = parseArgs({
 		},
 		headers: {
 			type: "string",
-			default: "heading",
+			default: "title",
 		},
 		stopwords: {
 			type: "string",
