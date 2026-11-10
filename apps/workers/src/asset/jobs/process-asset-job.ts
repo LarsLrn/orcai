@@ -11,6 +11,7 @@ import {
 	writeWhileProcessing,
 } from "@orcai/preparation";
 import {
+	belowFigureSize,
 	buildStoredExtractionImageKey,
 	createExtractionArtifact,
 	createImageOnlyExtractionArtifact,
@@ -50,10 +51,7 @@ const getRequiredMimeType = (
 		),
 	);
 
-/** Images below this many pixels are icons and bullets, not figures. */
-const MIN_IMAGE_PIXELS = 40_000;
-
-/** Stores each distinct image of the document once, skipping those below `MIN_IMAGE_PIXELS`. */
+/** Stores each distinct image of the document once, skipping those too small to be figures. */
 const createDocumentArtifact = <E, R>(params: {
 	result: Parameters<typeof createExtractionArtifact>[0]["result"];
 	jobId: string;
@@ -71,20 +69,13 @@ const createDocumentArtifact = <E, R>(params: {
 		let repeatCount = 0;
 
 		for (const image of params.result.images ?? []) {
-			const width = typeof image.width === "number" ? image.width : undefined;
-			const height =
-				typeof image.height === "number" ? image.height : undefined;
-			if (
-				width !== undefined &&
-				height !== undefined &&
-				width * height < MIN_IMAGE_PIXELS
-			) {
+			if (belowFigureSize(image)) {
 				yield* Effect.logWarning(
 					{
 						...log,
 						imageIndex: image.imageIndex,
-						width,
-						height,
+						width: image.width,
+						height: image.height,
 					},
 					"Skipping extracted image due to resolution/validation",
 				);

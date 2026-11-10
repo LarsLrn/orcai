@@ -9,6 +9,7 @@ import {
 } from "@orcai/ai";
 import type { AssetId, BlockId } from "@orcai/core";
 import {
+	belowFigureSize,
 	createExtractionArtifact,
 	extract,
 	getExtractionProfileConfig,
@@ -69,17 +70,11 @@ const validPage = (value: number | null | undefined) =>
 		? value
 		: undefined;
 
-/** The figures processing keeps: none 200 px or smaller on a side, and each distinct image once. */
+/** The figures processing keeps: none too small to be a figure, and each distinct image once. */
 const keptFigures = (images: readonly ExtractedImage[]) => {
 	const seen = new Set<string>();
 	return images.filter((image) => {
-		if (
-			typeof image.width === "number" &&
-			typeof image.height === "number" &&
-			(image.width <= 200 || image.height <= 200)
-		) {
-			return false;
-		}
+		if (belowFigureSize(image)) return false;
 		const digest = sha256(image.data);
 		if (seen.has(digest)) return false;
 		seen.add(digest);
