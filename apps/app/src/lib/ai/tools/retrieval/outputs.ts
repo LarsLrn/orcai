@@ -74,9 +74,19 @@ const passageText = (passage: Passage) =>
 		passage.text,
 	);
 
+const figureNote =
+	'Passages with kind="figure" describe an image in the asset and were written by a model. Say what the image shows.';
+
 const passagesText = (passages: Passage[]) =>
 	passages.length > 0
-		? passages.map(passageText).join("\n\n")
+		? [
+				...passages.map(passageText),
+				...(passages.some(({ kind }) => kind === "figure")
+					? [
+							figureNote,
+						]
+					: []),
+			].join("\n\n")
 		: "No matching passages.";
 
 const assetState = ({

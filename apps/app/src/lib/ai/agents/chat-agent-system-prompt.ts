@@ -41,7 +41,6 @@ const repositoryGuidance = (
 		`- You can search these repositories: ${repositories.map(({ id, name }) => `${quoted(name)} (id ${id})`).join(", ")}.`,
 		"- Answer from their passages whenever a question may be covered by them. Start with one focused search, and search again only when the first result is clearly incomplete, since a repeated search adds no new evidence. When the user asks about a page, read it with getAssetPage instead of searching.",
 		"- When no passage answers the question, say that the repositories do not cover it rather than guessing. If another of your tools fits the question, such as web search, use it for that part.",
-		'- A passage with kind="figure" is an image description: a model described an image of the asset when it was prepared. Present it as what the image shows, not as words the asset contains, and quote only passages without kind="figure" as the asset\'s wording.',
 	].join("\n");
 
 export const buildFormattingGuidance = () =>

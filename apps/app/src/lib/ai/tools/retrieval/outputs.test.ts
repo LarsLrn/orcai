@@ -94,8 +94,24 @@ describe("repository model output", () => {
 				'<passage ref=k000002 asset="Refund policy" pages="4" kind="figure">',
 				"Bar chart of refunds per month.",
 				"</passage>",
+				"",
+				'Passages with kind="figure" describe an image in the asset and were written by a model. Say what the image shows.',
 			].join("\n"),
 		);
+	});
+
+	test("results without an image description carry no note about them", () => {
+		expect(
+			text(
+				searchModelOutput({
+					output: {
+						results: [
+							passage(),
+						],
+					},
+				}),
+			),
+		).not.toContain("kind=");
 	});
 
 	test("a search without results says so", () => {
