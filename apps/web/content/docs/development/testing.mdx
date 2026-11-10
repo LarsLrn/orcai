@@ -109,7 +109,7 @@ The `inference` fixture's scripted replies and failures reset before and after e
 
 `fixtures/users.ts` creates the users a test may change: `createUser` for one in no organisation, `createMember` for a member of the caller's organisation, and `addMember` adds an existing user to another organisation. `open` and `submitForm` wait until the page has hydrated; after a reload `open` did not make, call `awaitHydration` before interacting.
 
-The suite does not cover email delivery, real AI endpoints or OCR. Background workers run only for the pipeline specs.
+The suite does not cover email delivery or real AI endpoints. Background workers run only for the pipeline specs, and only those run OCR, in the workers image.
 
 ## Pipeline specs
 
@@ -117,7 +117,7 @@ The specs in `apps/e2e/tests/pipeline/` cover upload, preparation, indexing, sea
 
 Every other run has no workers, so only the data export queues the app creates exist. Queueing preparation fails, and an uploaded asset ends up failed with kind `other`, which the other specs rely on. A pipeline run leaves its queues behind, so reset before the next run of the rest of the suite.
 
-Pipeline assets are txt or md files, so extraction needs no OCR. Their embeddings come from the mock inference server that the `setup` project saved as the embedding endpoint. Image descriptions are not exercised. `fixtures/pipeline/repository.ts` creates a repository holding one uploaded asset and waits through `block.readiness` until nothing in it is being prepared.
+Most pipeline assets are txt or md files. The extraction specs upload PDFs that Chromium prints, with text in a figure, so the workers image reads them with Tesseract. Their embeddings come from the mock inference server that the `setup` project saved as the embedding endpoint. Image descriptions are not exercised. `fixtures/pipeline/repository.ts` creates a repository holding one uploaded asset and waits through `block.readiness` until nothing in it is being prepared.
 
 ## Slices
 

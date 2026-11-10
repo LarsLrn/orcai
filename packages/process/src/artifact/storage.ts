@@ -2,6 +2,7 @@ import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
 import { processedAssetPrefix } from "@orcai/s3";
 import type { BucketName } from "@orcai/schema";
 import { isSlideDeck } from "../extract/slides";
+import { withoutFigureText } from "./figure-text";
 import { extractionPages, placeChunks } from "./pages";
 import type {
 	ExtractionArtifact,
@@ -24,29 +25,30 @@ export const createExtractionArtifact = (params: {
 		index: number,
 	) => ExtractionImage | undefined;
 }): ExtractionArtifact => {
-	const images = (params.result.images ?? [])
+	const result = withoutFigureText(params.result);
+	const images = (result.images ?? [])
 		.map(stripInlineImageFields)
 		.map((image, index) =>
 			params.transformImage ? params.transformImage(image, index) : image,
 		)
 		.filter((image): image is ExtractionImage => image !== undefined);
-	const pages = extractionPages(params.result);
+	const pages = extractionPages(result);
 
 	return {
-		content: params.result.content,
-		mimeType: params.result.mimeType,
-		metadata: params.result.metadata,
-		tables: params.result.tables,
-		detectedLanguages: params.result.detectedLanguages ?? [],
+		content: result.content,
+		mimeType: result.mimeType,
+		metadata: result.metadata,
+		tables: result.tables,
+		detectedLanguages: result.detectedLanguages ?? [],
 		// A deck whose slides extraction read was chunked slide by slide, each chunk with its slide.
 		chunks:
-			isSlideDeck(params.result) && pages.length > 0
-				? (params.result.chunks ?? [])
-				: placeChunks(params.result.chunks ?? [], pages),
+			isSlideDeck(result) && pages.length > 0
+				? (result.chunks ?? [])
+				: placeChunks(result.chunks ?? [], pages),
 		pages,
-		document: params.result.document,
-		qualityScore: params.result.qualityScore,
-		processingWarnings: params.result.processingWarnings ?? [],
+		document: result.document,
+		qualityScore: result.qualityScore,
+		processingWarnings: result.processingWarnings ?? [],
 		images,
 	};
 };
