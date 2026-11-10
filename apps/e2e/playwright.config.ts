@@ -6,6 +6,7 @@ const missing = [
 	"E2E_INFERENCE_PORT",
 	"WEB_PORT",
 	"E2E_CONTAINER_ENV_FILE",
+	"E2E_LOG_DIR",
 	"E2E_APP_IMAGE",
 	"E2E_WEB_IMAGE",
 	"E2E_WORKERS_IMAGE",
@@ -37,6 +38,9 @@ const container = (image: string, args: string[] = []) =>
 		...args,
 		`--name ${image} ${image}`,
 	].join(" ");
+// A server's output goes to a file, where a failed run can still read it.
+const logTo = (name: string) =>
+	`> "${process.env.E2E_LOG_DIR as string}/${name}.log"`;
 // Stops the container through `docker run`, which forwards the signal.
 const gracefulShutdown = {
 	signal: "SIGTERM" as const,
@@ -141,7 +145,7 @@ export default defineConfig({
 			stderr: "pipe",
 		},
 		{
-			command: container(process.env.E2E_APP_IMAGE as string),
+			command: `${container(process.env.E2E_APP_IMAGE as string)} ${logTo("app")}`,
 			url: baseURL,
 			reuseExistingServer: true,
 			timeout: 60_000,
