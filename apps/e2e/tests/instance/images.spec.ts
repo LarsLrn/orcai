@@ -4,6 +4,10 @@ import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 import { createMember } from "../../fixtures/users";
 
+test.describe.configure({
+	lock: "-exclusive-",
+});
+
 test("instance: an instance admin removes an account's picture from its page", async ({
 	api,
 	pageAsWellKnownAdmin,

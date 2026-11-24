@@ -9,6 +9,7 @@ import { enterApp, open } from "../../fixtures/navigation";
 
 test.describe.configure({
 	mode: "serial",
+	lock: "-exclusive-",
 });
 
 test("the well-known admin signs in and reads instance data", async ({

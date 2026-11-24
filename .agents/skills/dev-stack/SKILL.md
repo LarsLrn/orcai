@@ -74,8 +74,9 @@ folder with the Playwright report.
 The setup project initialises a reset instance through the first-run UI with
 the well-known admin. Each parallel worker creates and mutates only its own
 organisations through the public API. Every fixture user and the well-known
-admin have skipped the initial tour. Instance-level specs run serially before
-parallel specs, and CI runs them in a job of their own. The mock inference server is used for e2e; do not call a real
+admin have skipped the initial tour. Every spec file in `apps/e2e/tests/instance/`
+declares Playwright's `-exclusive-` lock with `test.describe.configure`, so
+its tests run while no other test runs. The mock inference server is used for e2e; do not call a real
 provider. Playwright also runs the docs image on `WEB_PORT` for the
 assistant, reusing a running `bun run stack web`. Email delivery and OCR
 are outside the suite.
@@ -107,7 +108,7 @@ An e2e slice owns `apps/e2e/tests/<area>/` and may add
 script, this skill, `AGENTS.md`, `README.md`, and public development docs are
 foundation files. Stop and report when a slice needs one of them changed.
 Create test data through fixtures. There are two direct-store exceptions,
-because no public API can produce their data: the serial outbox
+because no public API can produce their data: the exclusive outbox
 failure-injection spec and `failWithMissingExtraction` in
 `fixtures/instance/missing-extraction.ts`, which the embeddings spec uses to
 simulate a missing-extraction indexing failure by setting the asset's and

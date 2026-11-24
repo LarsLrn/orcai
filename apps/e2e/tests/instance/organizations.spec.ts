@@ -8,6 +8,7 @@ import { runId } from "../../fixtures/organisation";
 
 test.describe.configure({
 	mode: "serial",
+	lock: "-exclusive-",
 });
 
 /** The instance listing narrowed to one slug, which it matches as a search term. */

@@ -15,8 +15,9 @@ config throws when the stack environment is missing.
 - Locate by role and accessible English name; the browser locale is `en`.
 - Mutate only inside your worker's organisations. Lists paginate and
   `--no-reset` reruns accumulate rows, so find your own rows by a unique name.
-- Instance-wide state belongs in `tests/instance/`, which runs alone and
-  serially before everything else.
+- Instance-wide state belongs in `tests/instance/`. Every file there declares
+  `test.describe.configure({ lock: "-exclusive-" })`, so its tests run while
+  no other test runs.
 
 ## Waiting
 

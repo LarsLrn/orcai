@@ -10,6 +10,7 @@ import { runId } from "../../fixtures/organisation";
 
 test.describe.configure({
 	mode: "serial",
+	lock: "-exclusive-",
 });
 
 const ALTERNATIVE_MODEL = `${INFERENCE_MOCK_MODELS.embedding}-alternative`;

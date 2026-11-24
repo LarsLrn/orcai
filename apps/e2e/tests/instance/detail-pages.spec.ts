@@ -5,6 +5,7 @@ import { runId } from "../../fixtures/organisation";
 
 test.describe.configure({
 	mode: "serial",
+	lock: "-exclusive-",
 });
 
 test("instance: organisation and user pages link to each other through searchable lists", async ({

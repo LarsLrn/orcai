@@ -15,6 +15,7 @@ import { addMember, createUser } from "../../fixtures/users";
 
 test.describe.configure({
 	mode: "serial",
+	lock: "-exclusive-",
 });
 
 /** Instance > Users lists every account, independent of the active organisation. */
@@ -358,7 +359,19 @@ test("instance: nobody changes their own instance role, and only instance admins
 	await page
 		.getByPlaceholder(message("instance_users_search_placeholder"))
 		.fill(WELL_KNOWN_ADMIN.email);
-	// Other accounts' addresses end in the same text, so match the whole cell.
+	// Fixture admins' addresses end in the same text, so match the whole cell.
+	// They can fill the first page, and the well-known admin is the oldest.
+	await page
+		.getByRole("button", {
+			name: message("common_created_column_header"),
+			exact: true,
+		})
+		.click();
+	await page
+		.getByRole("menuitem", {
+			name: message("data_table_column_header_sort_ascending_action"),
+		})
+		.click();
 	const ownRow = page.getByRole("row").filter({
 		has: page.getByRole("cell", {
 			name: WELL_KNOWN_ADMIN.email,

@@ -6,6 +6,7 @@ import { runId } from "../../fixtures/organisation";
 
 test.describe.configure({
 	mode: "serial",
+	lock: "-exclusive-",
 });
 
 const PHONE = {

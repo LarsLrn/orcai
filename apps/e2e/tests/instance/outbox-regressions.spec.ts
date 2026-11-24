@@ -87,7 +87,11 @@ const test = base.extend<{
 	},
 });
 
-// Injects outbox faults instance-wide, so it must stay in the serial `instance` project.
+// Injects outbox faults instance-wide, so nothing else may run beside it.
+test.describe.configure({
+	lock: "-exclusive-",
+});
+
 /** Failure injection is scoped to tuple payloads mentioning this test's UUID. */
 test("deletion transactions roll back with their outbox and committed cleanup replays", async ({
 	api,

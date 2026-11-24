@@ -26,9 +26,6 @@ const isCI = Boolean(process.env.CI);
 // which only this run starts. Elsewhere no queue exists, which other specs
 // rely on.
 const isPipeline = Boolean(process.env.E2E_PIPELINE);
-// CI runs the instance specs in a job of their own, and its shards set
-// `E2E_NO_INSTANCE`: Playwright would run a dependency project on every shard.
-const withInstance = !process.env.E2E_NO_INSTANCE;
 // The production images on the host network, so they reach the stack and the
 // mock inference server on loopback. Each container is named after its image.
 const container = (image: string, args: string[] = []) =>
@@ -102,31 +99,11 @@ export default defineConfig({
 			]
 		: [
 				setupProject,
-				...(withInstance
-					? [
-							{
-								// Instance-wide state is shared, so these specs never run beside
-								// anything else: the project is not parallel and `chromium` waits
-								// for it.
-								name: "instance",
-								testMatch: /tests\/instance\/.*\.spec\.ts$/,
-								fullyParallel: false,
-								workers: 1,
-								dependencies: [
-									"setup",
-								],
-								use: {
-									...devices["Desktop Chrome"],
-								},
-							},
-						]
-					: []),
 				{
 					name: "chromium",
-					testIgnore:
-						/(setup\/.*\.setup\.ts|tests\/(instance|pipeline)\/.*\.spec\.ts)$/,
+					testIgnore: /(setup\/.*\.setup\.ts|tests\/pipeline\/.*\.spec\.ts)$/,
 					dependencies: [
-						withInstance ? "instance" : "setup",
+						"setup",
 					],
 					use: {
 						...devices["Desktop Chrome"],

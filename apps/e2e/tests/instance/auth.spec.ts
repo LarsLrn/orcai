@@ -4,6 +4,7 @@ import { open } from "../../fixtures/navigation";
 
 test.describe.configure({
 	mode: "serial",
+	lock: "-exclusive-",
 });
 
 test("the init page is gone once the instance is initialised", async ({
