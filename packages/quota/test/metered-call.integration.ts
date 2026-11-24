@@ -10,6 +10,7 @@ import {
 } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import type * as Context from "effect/Context";
+import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
@@ -32,6 +33,10 @@ import { openQuotaPeriod } from "../src/period";
 
 const runtime = integrationRuntime(QuotaReservationsLive);
 
+class ConnectionLost extends Data.TaggedError("ConnectionLost")<{
+	readonly message: string;
+}> {}
+
 /** The database, with every transaction failing while `broken.on`, as when its connection drops. */
 const failingTransactions = (
 	db: Context.Service.Shape<typeof DB>,
@@ -42,7 +47,12 @@ const failingTransactions = (
 	new Proxy(db, {
 		get: (target, property) => {
 			if (property === "transaction" && broken.on) {
-				return () => Effect.fail(new Error("connection lost"));
+				return () =>
+					Effect.fail(
+						new ConnectionLost({
+							message: "connection lost",
+						}),
+					);
 			}
 			const value = Reflect.get(target, property);
 			return typeof value === "function" ? value.bind(target) : value;

@@ -11,6 +11,7 @@ import { DB, dbSchema } from "@orcai/db";
 import { and, eq, inArray, lt, notExists, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import * as Clock from "effect/Clock";
+import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
@@ -19,6 +20,13 @@ import { type QuotaWriteFailedError, writeFailed } from "./errors";
 import { openQuotaPeriod } from "./period";
 import { type PriceList, priceSteps } from "./pricing";
 import { MeteredStep, usageCounts } from "./usage";
+
+/** Each period opened for the reservation had ended before its ledger was locked. */
+class QuotaPeriodKeptRollingOver extends Data.TaggedError(
+	"QuotaPeriodKeptRollingOver",
+)<{
+	readonly message: string;
+}> {}
 
 type QuotaPool = typeof dbSchema.quotaPool.$inferSelect;
 type QuotaPeriod = typeof dbSchema.quotaPeriod.$inferSelect;
@@ -270,7 +278,9 @@ export const reserveQuotaLedger: (params: {
 				if (now >= period.endsAt) {
 					return retried
 						? yield* Effect.fail(
-								new Error(`Quota pool ${params.quotaPoolId} kept rolling over`),
+								new QuotaPeriodKeptRollingOver({
+									message: `Quota pool ${params.quotaPoolId} kept rolling over`,
+								}),
 							)
 						: yield* reserveOnCurrentPeriod(true);
 				}

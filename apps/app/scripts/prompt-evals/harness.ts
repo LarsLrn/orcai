@@ -447,7 +447,7 @@ const readLocalDocs = ({ path }: { path?: string }) =>
 			docs: DOCS,
 			path,
 			fetch: localDocsFetch,
-		}).pipe(Effect.mapError(({ message }) => new Error(message))),
+		}),
 	);
 
 /** The calls that returned, as the stored conversation holds them. */
