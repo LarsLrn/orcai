@@ -63,10 +63,7 @@
 				"FanaticPythoner.better-todo-tree",
 				"pflannery.vscode-versionlens",
 				"typescriptteam.native-preview"
-			],
-			"settings": {
-				"js/ts.experimental.useTsgo": true
-			}
+			]
 		}
 	},
 	"shutdownAction": "stopCompose"

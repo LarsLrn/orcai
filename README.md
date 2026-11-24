@@ -347,6 +347,7 @@ Repository hooks and rules:
 - `pre-commit` runs `lint-staged`, which applies Biome's safe fixes and formatting to the staged files and fails on remaining errors.
 - `commit-msg` runs commitlint with `@commitlint/config-conventional`.
 - `pre-push` runs `bun run prepush`, which is `bun run lint`.
+- The TypeScript check runs TypeScript 7. In VS Code, the TypeScript 7 extension (`TypeScriptTeam.native-preview`, in the devcontainer list) uses the workspace compiler, which `.vscode/settings.json` selects.
 
 For contributor docs on branch naming, PR content, and documentation expectations, see [Development docs: Contributing To The Main Repo](apps/web/content/docs/development/contributing.mdx).
 

@@ -55,7 +55,7 @@
 		"dev:all": "bun run stack dev --all",
 		"e2e": "bun run stack e2e",
 		"knip": "knip",
-		"lint": "bun run --filter '*' paraglide:compile && biome check . && tsgo --build --noEmit --force tsconfig.json && bun run --filter @orcai/db check && knip",
+		"lint": "bun run --filter '*' paraglide:compile && biome check . && tsc --build --noEmit --force tsconfig.json && bun run --filter @orcai/db check && knip",
 		"machine-translate": "bun run --filter @orcai/app machine-translate",
 		"precommit": "lint-staged",
 		"prepare": "husky",
@@ -79,13 +79,11 @@
 		"@biomejs/biome": "2.6.9",
 		"@commitlint/cli": "21.2.4",
 		"@commitlint/config-conventional": "21.2.4",
-		"@effect/language-service": "0.87.5",
 		"@types/bun": "catalog:",
-		"@typescript/native-preview": "7.0.0-dev.20260707.2",
 		"husky": "9.1.7",
 		"knip": "6.44.0",
 		"lint-staged": "17.6.0",
-		"typescript": "6.0.3"
+		"typescript": "7.0.2"
 	},
 	"packageManager": "bun@1.4.4",
 	"engines": {
