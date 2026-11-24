@@ -309,7 +309,7 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run start`: run the production server from `apps/app/.output`
 - `bun run workers:dev`: start worker process directly on the host
 - `bun run workers:start`: run the worker bundle from `apps/workers/dist`
-- `bun run lint`: run Biome, TypeScript checks, the migration check, and Knip. Biome also fails a module in `apps/app/src/lib` that imports from `components`, `hooks` or `routes`
+- `bun run lint`: run Biome, the Effect-aware TypeScript check, the migration check, and Knip. Biome also fails a module in `apps/app/src/lib` that imports from `components`, `hooks` or `routes`
 - `bun run ci`: run the same lint, test, docs type-check, and build suite used by GitHub Actions
 - `bun run prompt-evals`: run the prompt evals against real models through OpenRouter, on demand for prompt changes (see `.agents/skills/prompting/EVALS.md`)
 - `bun run stack exec -- bun run retrieval-evals`: run the retrieval evals against the stack's Qdrant and real models, on demand for extraction, indexing and search changes (see the contributing docs)
@@ -347,7 +347,8 @@ Repository hooks and rules:
 - `pre-commit` runs `lint-staged`, which applies Biome's safe fixes and formatting to the staged files and fails on remaining errors.
 - `commit-msg` runs commitlint with `@commitlint/config-conventional`.
 - `pre-push` runs `bun run prepush`, which is `bun run lint`.
-- The TypeScript check runs TypeScript 7. In VS Code, the TypeScript 7 extension (`TypeScriptTeam.native-preview`, in the devcontainer list) uses the workspace compiler, which `.vscode/settings.json` selects.
+- The TypeScript check runs `effect-tsgo tsc` from `@effect/tsgo`: TypeScript 7 with the Effect diagnostics in the same pass. Effect errors and warnings fail it, suggestions stay hidden. The options sit in the `@effect/language-service` plugin entry in `tsconfig.base.json`. `@effect/tsgo` ships compiler builds for specific TypeScript versions, so update `typescript` and `@effect/tsgo` together.
+- In VS Code, the TypeScript 7 extension (`TypeScriptTeam.native-preview`, in the devcontainer list) uses the workspace compiler, which `.vscode/settings.json` selects. For Effect diagnostics in the editor, run `bunx effect-tsgo patch --typescript --no-oxlint` once after installing, and `bunx effect-tsgo unpatch --typescript --no-oxlint` to undo it. Other editors can start `bunx effect-tsgo tsc --lsp --stdio` as their language server without patching.
 
 For contributor docs on branch naming, PR content, and documentation expectations, see [Development docs: Contributing To The Main Repo](apps/web/content/docs/development/contributing.mdx).
 

@@ -66,16 +66,34 @@ These options apply to every command and can stand anywhere before `--`:
 | `bun run verify` | Run `lint` and unit tests. |
 | `bun run test:integration` | Run the integration tier against the stack. |
 | `bun run e2e` | Alias for `bun run stack e2e`. |
-| `bun run lint` | Run Biome, TypeScript checks, the migration check, and Knip. |
+| `bun run lint` | Run Biome, the Effect-aware TypeScript check, the migration check, and Knip. |
 | `bun run knip` | Run only Knip. |
 | `bun run prepush` | Run the pre-push check, which is `lint`. |
 | `bun run prompt-evals` | Run the prompt evals against real models through OpenRouter or `PROMPT_EVALS_ENDPOINT`. Costs money and never runs in CI, see [Contributing](/docs/development/contributing#model-facing-text). |
 | `bun run stack exec -- bun run retrieval-evals` | Run the retrieval evals on a fixed corpus against the stack's Qdrant and the models at `RETRIEVAL_EVALS_ENDPOINT`. Never runs in CI, see [Contributing](/docs/development/contributing#search-and-extraction-changes). |
 
-The TypeScript check passes `--force` to `tsc --build`, so stale build info
-cannot hide an error that a fresh CI checkout reports. It runs TypeScript 7.
-In VS Code, the TypeScript 7 extension uses the same compiler, and the
-repository settings select it.
+The TypeScript check runs `effect-tsgo tsc --build --force`. `effect-tsgo`
+comes from `@effect/tsgo` and runs TypeScript 7 with the Effect diagnostics in
+the same pass. Effect errors and warnings fail the check, and suggestions stay
+hidden. The `@effect/language-service` plugin entry in `tsconfig.base.json`
+holds these options and the unstable Effect APIs the code may use. `--force`
+keeps stale build info from hiding an error that a fresh CI checkout reports.
+
+`@effect/tsgo` ships compiler builds for specific TypeScript versions and
+falls back to its own build for any other, so update `typescript` and
+`@effect/tsgo` together.
+
+In VS Code, the TypeScript 7 extension uses the workspace compiler, and the
+repository settings select it. For Effect diagnostics in the editor, patch
+that compiler once after installing:
+
+```bash title="Repository root"
+bunx effect-tsgo patch --typescript --no-oxlint
+```
+
+`bunx effect-tsgo unpatch --typescript --no-oxlint` undoes it. Other editors
+can start `bunx effect-tsgo tsc --lsp --stdio` as their language server
+without patching.
 
 The migration check is `drizzle-kit check` on `packages/db/migrations`. It
 needs no database and fails when two migrations branch from the same parent
