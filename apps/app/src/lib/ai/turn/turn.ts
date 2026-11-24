@@ -42,6 +42,7 @@ import {
 	type ChatAgentUIMessage,
 	toChatAgentMessages,
 	toChatAgentParts,
+	toStoredParts,
 } from "@/lib/ai/messages/chat-agent-message";
 import {
 	closeLastReply,
@@ -426,9 +427,11 @@ const streamTurn = ({
 				parts: parts.every((part) => part.type === "step-start")
 					? []
 					: // A call the turn stopped mid-run needs a result before the model reads the reply again.
-						closeRunningToolParts(
-							assistantTurn?.calls.finish(parts) ?? parts,
-							agent.tools,
+						toStoredParts(
+							closeRunningToolParts(
+								assistantTurn?.calls.finish(parts) ?? parts,
+								agent.tools,
+							),
 						),
 				metadata: {
 					...settled,
@@ -752,7 +755,7 @@ export const startTurn = (
 					chatId: chat.id,
 					closedReply: closedReply && {
 						id: closedReply.id,
-						parts: closedReply.parts,
+						parts: toStoredParts(closedReply.parts),
 					},
 					question: storedQuestion,
 					replyId,
@@ -878,7 +881,7 @@ export const continueTurn = (
 						...metadata
 					} = reply?.metadata ?? {};
 					return Effect.succeed({
-						parts: applied.parts,
+						parts: toStoredParts(applied.parts),
 						metadata: {
 							...metadata,
 							continuedAt: now.toISOString(),

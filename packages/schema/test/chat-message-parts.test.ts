@@ -1,12 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
+	type ChatMessagePart,
 	chatMessagePartSchema,
 	chatMessageSchema,
 	mergeReadableParts,
 	readableChatMessageParts,
 } from "../src";
 
-const knownParts = [
+const knownParts: ChatMessagePart[] = [
 	{
 		type: "step-start",
 	},
@@ -76,7 +77,22 @@ const knownParts = [
 		sourceId: "source-1",
 		url: "https://example.org",
 	},
-] as const;
+	{
+		type: "steering-message",
+		id: "steer-1",
+		parts: [
+			{
+				type: "text",
+				text: "Only the 2025 figures.",
+			},
+			{
+				type: "file",
+				mediaType: "image/png",
+				url: "https://example.org/chart.png",
+			},
+		],
+	},
+];
 
 /** An AI SDK 4 tool call, stored before the parts format changed. */
 const oldToolInvocation = {
@@ -135,6 +151,16 @@ describe("chat message parts", () => {
 				toolCallId: "call-2",
 				state: "approval-requested",
 				input: {},
+			},
+			{
+				type: "steering-message",
+				id: "steer-1",
+				parts: [
+					{
+						type: "reasoning",
+						text: "Not a user message.",
+					},
+				],
 			},
 		]) {
 			expect(chatMessagePartSchema.safeParse(part).success).toBe(false);

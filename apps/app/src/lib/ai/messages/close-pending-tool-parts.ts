@@ -4,7 +4,10 @@ import {
 	type StoredChatMessageParts,
 } from "@orcai/schema";
 import { getToolName, isToolUIPart, type ToolSet, type UIMessage } from "ai";
-import { toChatAgentParts } from "@/lib/ai/messages/chat-agent-message";
+import {
+	toChatAgentParts,
+	toStoredParts,
+} from "@/lib/ai/messages/chat-agent-message";
 import { isConversationalTool } from "@/lib/ai/tools/registry";
 
 /** Why a pending call was closed, as the sentence the model reads for it. */
@@ -196,7 +199,7 @@ export const closeCopiedToolParts = <
 		return closed.changed
 			? {
 					...row,
-					parts: mergeReadableParts(row.parts, closed.parts),
+					parts: mergeReadableParts(row.parts, toStoredParts(closed.parts)),
 				}
 			: row;
 	});
