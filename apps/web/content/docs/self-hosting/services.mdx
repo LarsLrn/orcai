@@ -33,7 +33,7 @@ Workers run background jobs for asset preparation (including indexing), metadata
 
 ## PostgreSQL
 
-PostgreSQL stores application data. The Compose stack uses the `pgvector/pgvector:0.8.7-pg17` image, although retrieval vectors are stored in Qdrant.
+PostgreSQL stores application data. The Compose stack uses the `pgvector/pgvector:0.8.7-pg17` image, although retrieval vectors are stored in Qdrant. That tag moves to each new PostgreSQL minor release, so `docker-compose.yaml` pins it by digest to the build on PostgreSQL 17.12. Only a dependency update moves the digest, on purpose.
 
 ## SeaweedFS or S3-compatible storage
 
