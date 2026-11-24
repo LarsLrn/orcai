@@ -12,6 +12,10 @@ import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { adminSession, signUpUnaffiliated } from "../../fixtures/organisation";
 
+test.describe.configure({
+	lock: "-exclusive-",
+});
+
 test("instance management has an independent route and survives the last organisation", async ({
 	appBaseURL,
 	newContext,
@@ -197,8 +201,8 @@ test("admin browser and API sessions keep independent organisation selections", 
 		cookies.map(({ name, value }) => `${name}=${value}`).join("; "),
 	);
 	// The API session is cached per worker, so what this test selects on it
-	// outlives the test; the rest of the instance project expects the
-	// instance organisation.
+	// outlives the test; later tests in the worker expect the instance
+	// organisation.
 	const selected = await activeOrganizationOf(
 		appBaseURL,
 		await adminSession(appBaseURL),

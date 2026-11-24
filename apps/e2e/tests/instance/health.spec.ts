@@ -5,6 +5,7 @@ import { open } from "../../fixtures/navigation";
 
 test.describe.configure({
 	mode: "serial",
+	lock: "-exclusive-",
 });
 
 const DEPENDENCIES = [
