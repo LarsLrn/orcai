@@ -36,7 +36,6 @@
 		},
 		"apps/workers": {
 			"entry": [
-				"src/start-workers.ts",
 				"src/**/*.integration.ts"
 			],
 			"ignoreDependencies": [

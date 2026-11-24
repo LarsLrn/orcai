@@ -94,4 +94,4 @@ const BlockEditor = ({
 	);
 };
 
-export { BlockEditor, type BlockEditorProps };
+export { BlockEditor };

@@ -17,7 +17,7 @@
 		"@orcai/schema": "workspace:*",
 		"@orcai/spice-db": "workspace:*",
 		"@orpc/client": "2.0.0-beta.48",
-		"@playwright/test": "1.64.1",
+		"@playwright/test": "1.65.1",
 		"@types/node": "catalog:",
 		"@types/pg": "catalog:",
 		"effect": "catalog:",
