@@ -3,8 +3,18 @@ import { DB, dbSchema } from "@orcai/db";
 import { and, eq, lte } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import * as Clock from "effect/Clock";
+import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import { type QuotaUnavailableError, unavailable } from "./errors";
+
+class QuotaPoolNotFound extends Data.TaggedError("QuotaPoolNotFound")<{
+	readonly message: string;
+}> {}
+
+/** Opening the period lost a race and found none open afterwards. */
+class QuotaPeriodNotOpened extends Data.TaggedError("QuotaPeriodNotOpened")<{
+	readonly message: string;
+}> {}
 
 type QuotaPeriodState = {
 	pool: Pick<
@@ -93,7 +103,9 @@ export const openQuotaPeriod: (params: {
 					.for("no key update");
 				if (!pool) {
 					return yield* Effect.fail(
-						new Error(`Quota pool ${params.quotaPoolId} not found`),
+						new QuotaPoolNotFound({
+							message: `Quota pool ${params.quotaPoolId} not found`,
+						}),
 					);
 				}
 				const now = new Date(yield* Clock.currentTimeMillis);
@@ -128,7 +140,9 @@ export const openQuotaPeriod: (params: {
 				}
 				if (!period) {
 					return yield* Effect.fail(
-						new Error(`Quota pool ${params.quotaPoolId} has no open period`),
+						new QuotaPeriodNotOpened({
+							message: `Quota pool ${params.quotaPoolId} has no open period`,
+						}),
 					);
 				}
 

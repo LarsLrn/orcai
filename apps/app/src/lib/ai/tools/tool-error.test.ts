@@ -1,9 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import { ORPCError } from "@orpc/client";
+import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import "./assistant/test-procedures";
 
 const { AssistantToolError, runAssistantTool } = await import("./tool-error");
+
+class ConnectionRefused extends Data.TaggedError("ConnectionRefused")<{
+	readonly message: string;
+}> {}
 
 const rejection = (promise: Promise<unknown>) =>
 	promise.then(
@@ -80,7 +85,12 @@ describe("runAssistantTool", () => {
 		expect((error as Error).message).toBe("NOT_FOUND: Bot not found");
 	});
 
-	test.each([
+	test.each<
+		[
+			string,
+			Effect.Effect<never, unknown>,
+		]
+	>([
 		[
 			"an internal ORPCError",
 			Effect.fail(
@@ -94,8 +104,12 @@ describe("runAssistantTool", () => {
 			Effect.die(new Error("connection to db-primary:5432 refused")),
 		],
 		[
-			"a plain failure",
-			Effect.fail(new Error("connection to db-primary:5432 refused")),
+			"another failure",
+			Effect.fail(
+				new ConnectionRefused({
+					message: "connection to db-primary:5432 refused",
+				}),
+			),
 		],
 	])("%s does not leak its message", async (_, effect) => {
 		const error = await rejection(runAssistantTool(effect, undefined));

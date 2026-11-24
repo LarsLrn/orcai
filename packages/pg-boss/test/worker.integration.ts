@@ -9,6 +9,7 @@ import {
 	processAssetPayloadSchema,
 } from "@orcai/schema";
 import { integrationRuntime } from "@orcai/testing";
+import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Logger from "effect/Logger";
@@ -23,6 +24,10 @@ import {
 	type WorkerDefinition,
 } from "../src";
 import { clockSteps, IsolatedPgBossLive } from "./isolated-pg-boss";
+
+class ExportFailed extends Data.TaggedError("ExportFailed")<{
+	readonly message: string;
+}> {}
 
 const clock = new TestClock();
 const steps = clockSteps(clock);
@@ -95,7 +100,11 @@ test("a failing job runs as often as the queue table says, logs each failure onc
 			handler: (job) =>
 				Effect.suspend(() => {
 					deliveries.push(job.id);
-					return Effect.fail(new Error("export failed"));
+					return Effect.fail(
+						new ExportFailed({
+							message: "export failed",
+						}),
+					);
 				}),
 		}),
 	]);

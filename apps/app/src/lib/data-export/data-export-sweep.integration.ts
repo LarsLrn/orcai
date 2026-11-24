@@ -15,6 +15,7 @@ import {
 	DATA_EXPORT_SWEEP_JOB_NAME,
 	type DataExportPayload,
 } from "@orcai/schema";
+import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
@@ -155,13 +156,23 @@ const dropJob = async (dataExportId: DataExportId) => {
 	);
 };
 
-const unreachable = new Error("connect ECONNREFUSED 127.0.0.1:5432");
+class ExportFailure extends Data.TaggedError("ExportFailure")<{
+	readonly message: string;
+}> {}
+
+const unreachable = new ExportFailure({
+	message: "connect ECONNREFUSED 127.0.0.1:5432",
+});
 
 describe("an export whose dead letter handler gave up", () => {
 	test.each([
 		{
 			case: "a handler exception",
-			attempt: Effect.fail(new Error("archive failed")),
+			attempt: Effect.fail(
+				new ExportFailure({
+					message: "archive failed",
+				}),
+			),
 			exhausted: Effect.die(new Error("dead letter handler bug")),
 			stepMs: 120_000,
 		},

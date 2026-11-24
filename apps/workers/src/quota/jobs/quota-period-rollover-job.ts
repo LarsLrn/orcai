@@ -2,7 +2,14 @@ import {
 	listExpiredOpenQuotaPeriods,
 	rollOverQuotaPeriods,
 } from "@orcai/quota";
+import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
+
+class QuotaRolloverIncomplete extends Data.TaggedError(
+	"QuotaRolloverIncomplete",
+)<{
+	readonly message: string;
+}> {}
 
 export const rollOverExpiredQuotaPeriods = Effect.gen(function* () {
 	const poolIds = yield* listExpiredOpenQuotaPeriods({
@@ -20,7 +27,9 @@ export const rollOverExpiredQuotaPeriods = Effect.gen(function* () {
 	// The queue runs it again soon; pools already rolled over stay as they are.
 	if (failed > 0) {
 		return yield* Effect.fail(
-			new Error(`${failed} quota pools could not roll over`),
+			new QuotaRolloverIncomplete({
+				message: `${failed} quota pools could not roll over`,
+			}),
 		);
 	}
 });
