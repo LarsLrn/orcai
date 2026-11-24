@@ -14,9 +14,14 @@ import {
 } from "../../fixtures/authz/resources";
 import { setUpChatModel } from "../../fixtures/chat/chat";
 import { serverHtml } from "../../fixtures/hydration/server-html";
-import { expect, test } from "../../fixtures/index";
+import {
+	type ApiClient,
+	expect,
+	test,
+	type WorkerOrganisation,
+} from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
-import { enterApp, open } from "../../fixtures/navigation";
+import { awaitHydration, enterApp, open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 
 // Far from the server's UTC, so a date written in the wrong zone reads differently.
@@ -26,20 +31,28 @@ test.use({
 	timezoneId: TIME_ZONE,
 });
 
-// The shared fixtures fail the test on a hydration mismatch.
-const openEach = async (page: Page, paths: string[]) => {
-	for (const path of paths) {
-		await open(page, path);
-	}
+/** Sets the cookie the app sets after a page loads, so the next load renders in the zone. */
+const seedTimeZone = (page: Page, origin: string) =>
+	page.context().addCookies([
+		{
+			name: "time_zone",
+			value: TIME_ZONE,
+			url: origin,
+			sameSite: "Lax",
+		},
+	]);
+
+/** Open a page and check the server rendered it in the zone. */
+const openInTimeZone = async (page: Page, path: string) => {
+	const response = await page.goto(path);
+	expect(await response?.text(), "server render time zone").toContain(
+		`"${TIME_ZONE}"`,
+	);
+	await awaitHydration(page);
 };
 
-test("hydration: organisation pages with dates match the server in another time zone", async ({
-	api,
-	org,
-	pageAs,
-}) => {
-	const admin = api.as("admin");
-	await untilAllowed(() =>
+const createProvider = (admin: ApiClient) =>
+	untilAllowed(() =>
 		admin.provider.create({
 			name: `Time zone ${runId()}`,
 			description: "Time zone",
@@ -50,9 +63,85 @@ test("hydration: organisation pages with dates match the server in another time 
 			enabled: true,
 		}),
 	);
+
+// Each page in a test of its own, so a test's time stays flat. Entering the
+// organisation loads a page before the time zone cookie is set and sets it, the
+// page under test loads with it. The shared fixtures fail the test on a
+// hydration mismatch.
+const organisationPages: {
+	readonly name: string;
+	readonly path: (
+		admin: ApiClient,
+		org: WorkerOrganisation,
+	) => Promise<string> | string;
+}[] = [
+	{
+		name: "the Home page",
+		path: () => "/app",
+	},
+	{
+		name: "the Chat page",
+		path: () => "/app/chat",
+	},
+	{
+		name: "a chat",
+		path: async (admin) => {
+			const { data: chat } = await admin.chat.create({
+				title: `Time zone ${runId()}`,
+			});
+			return `/app/chat/${chat.id}`;
+		},
+	},
+	{
+		name: "the History page",
+		path: () => "/history",
+	},
+	{
+		name: "the Providers page",
+		path: async (admin) => {
+			await createProvider(admin);
+			return "/app/providers";
+		},
+	},
+	{
+		name: "the Providers page with invalid paging",
+		path: async (admin) => {
+			await createProvider(admin);
+			return "/app/providers?pageIndex=-1&pageSize=abc";
+		},
+	},
+	{
+		name: "the Models page",
+		path: () => "/app/models",
+	},
+	{
+		name: "a member's edit page",
+		path: (_, org) => `/app/members/${org.users.member.id}/edit`,
+	},
+];
+
+for (const { name, path } of organisationPages) {
+	test(`hydration: ${name} matches the server in another time zone`, async ({
+		api,
+		org,
+		pageAs,
+	}) => {
+		const target = await path(api.as("admin"), org);
+		const page = await pageAs("admin");
+
+		await enterApp(page, org.slug);
+		await openInTimeZone(page, target);
+	});
+}
+
+test("hydration: invitations show their expiry in the browser's time zone and match the server", async ({
+	api,
+	org,
+	pageAs,
+}) => {
 	const invitee = `time-zone-${runId()}@e2e.orcai.test`;
 	const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-	await admin.organizationInvitation.create({
+	await api.as("admin").organizationInvitation.create({
 		role: "member",
 		expiresAt,
 		items: [
@@ -61,27 +150,10 @@ test("hydration: organisation pages with dates match the server in another time 
 			},
 		],
 	});
-	const { data: chat } = await admin.chat.create({
-		title: `Time zone ${runId()}`,
-	});
-
 	const page = await pageAs("admin");
 
-	// The first load has no time zone cookie yet, later ones do.
 	await enterApp(page, org.slug);
-	await openEach(page, [
-		"/app",
-		"/app/chat",
-		`/app/chat/${chat.id}`,
-		"/history",
-		"/app/members/invitations",
-		"/app/providers",
-		"/app/providers?pageIndex=-1&pageSize=abc",
-		"/app/models",
-		`/app/members/${org.users.member.id}/edit`,
-	]);
-
-	await open(page, "/app/members/invitations");
+	await openInTimeZone(page, "/app/members/invitations");
 	await expect(
 		page.getByRole("row").filter({
 			hasText: invitee,
@@ -95,21 +167,48 @@ test("hydration: organisation pages with dates match the server in another time 
 	);
 });
 
-test("hydration: instance pages with dates match the server in another time zone", async ({
-	org,
-	pageAsWellKnownAdmin,
-}) => {
-	const page = await pageAsWellKnownAdmin();
+const instancePages: {
+	readonly name: string;
+	readonly path: (org: WorkerOrganisation) => string;
+}[] = [
+	{
+		name: "overview",
+		path: () => "/instance",
+	},
+	{
+		name: "health page",
+		path: () => "/instance/health",
+	},
+	{
+		name: "users page",
+		path: () => "/instance/users",
+	},
+	{
+		name: "organisations page",
+		path: () => "/instance/organizations",
+	},
+	{
+		name: "page of a user",
+		path: (org) => `/instance/users/${org.users.admin.id}`,
+	},
+	{
+		name: "page of an organisation",
+		path: (org) => `/instance/organizations/${org.id}`,
+	},
+];
 
-	await openEach(page, [
-		"/instance",
-		"/instance/health",
-		"/instance/users",
-		"/instance/organizations",
-		`/instance/users/${org.users.admin.id}`,
-		`/instance/organizations/${org.id}`,
-	]);
-});
+for (const { name, path } of instancePages) {
+	test(`hydration: the instance ${name} matches the server in another time zone`, async ({
+		appBaseURL,
+		org,
+		pageAsWellKnownAdmin,
+	}) => {
+		const page = await pageAsWellKnownAdmin();
+		await seedTimeZone(page, appBaseURL);
+
+		await openInTimeZone(page, path(org));
+	});
+}
 
 test("hydration: an entry added from the catalogue matches the server in the catalogue and the Library", async ({
 	api,
@@ -145,10 +244,8 @@ test("hydration: an entry added from the catalogue matches the server in the cat
 	const page = await pageAs("admin", other);
 
 	await enterApp(page, other.slug);
-	await openEach(page, [
-		`/app/catalogue/behaviours?query=${id}`,
-		`/app/library?query=${id}`,
-	]);
+	await open(page, `/app/catalogue/behaviours?query=${id}`);
+	await open(page, `/app/library?query=${id}`);
 });
 
 /*
