@@ -32,11 +32,6 @@
 		"noFallthroughCasesInSwitch": true,
 		"forceConsistentCasingInFileNames": true,
 		"noUncheckedSideEffectImports": true,
-		"strictNullChecks": true,
-		"plugins": [
-			{
-				"name": "@effect/language-service"
-			}
-		]
+		"strictNullChecks": true
 	}
 }
