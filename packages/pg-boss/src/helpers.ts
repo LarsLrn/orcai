@@ -1,6 +1,6 @@
-import { PgClient } from "@effect/sql-pg";
 import type { JobQueue } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { SqlClient } from "effect/sql";
 import { PgBossError } from "./errors";
 import { PgBossService } from "./service";
 
@@ -9,7 +9,7 @@ import { PgBossService } from "./service";
  * transaction commit or roll back with it.
  */
 const currentConnection = Effect.gen(function* () {
-	const sql = yield* PgClient.PgClient;
+	const sql = yield* SqlClient.SqlClient;
 	const context = yield* Effect.context<never>();
 	return {
 		executeSql: (text: string, values: unknown[] = []) =>
@@ -84,7 +84,7 @@ export const liveJobs = <T>(queues: readonly JobQueue[], matching?: JobMatch) =>
 		)
 			return [];
 		const { schema } = yield* PgBossService;
-		const sql = yield* PgClient.PgClient;
+		const sql = yield* SqlClient.SqlClient;
 		const paths = matching?.paths ?? [];
 		const columns = paths.map((_, index) =>
 			(matching?.values ?? []).map((value) => value[index]),

@@ -8,7 +8,6 @@
 		"./testing": "./test/fake.ts"
 	},
 	"dependencies": {
-		"@effect/sql-pg": "catalog:",
 		"@orcai/core": "workspace:*",
 		"@orcai/db": "workspace:*",
 		"drizzle-orm": "catalog:",

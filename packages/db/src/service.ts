@@ -3,6 +3,7 @@ import * as PgDrizzle from "drizzle-orm/effect-postgres";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import type { SqlClient } from "effect/sql";
 import { DbConfigLive, DbConfigService } from "./config";
 import { makePgConnectionString } from "./pg-connection-string";
 import { relations } from "./schema/relations";
@@ -10,10 +11,9 @@ import { relations } from "./schema/relations";
 /** Names this process's query connections in `pg_stat_activity`. */
 export const applicationName = `orcai-${process.pid}`;
 
-export const PgClientServiceLive: Layer.Layer<
-	PgClient.PgClient,
-	unknown,
-	DbConfigService
+const PgClientLive: Layer.Layer<
+	PgClient.PgClient | SqlClient.SqlClient,
+	unknown
 > = Layer.unwrap(
 	Effect.gen(function* () {
 		const { config } = yield* DbConfigService;
@@ -29,11 +29,7 @@ export const PgClientServiceLive: Layer.Layer<
 			},
 		});
 	}),
-);
-
-export const PgClientLive = PgClientServiceLive.pipe(
-	Layer.provide(DbConfigLive),
-);
+).pipe(Layer.provide(DbConfigLive));
 
 const dbEffect = PgDrizzle.make({
 	relations,

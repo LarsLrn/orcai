@@ -20,7 +20,7 @@ export const findLatestMigration = Effect.gen(function* () {
 	const db = yield* DB;
 	const [row] = yield* db.execute<{
 		name: string | null;
-		applied_at: Date | string | null;
+		applied_at: Date | null;
 	}>(
 		sql`SELECT name, applied_at FROM drizzle.__drizzle_migrations ORDER BY id DESC LIMIT 1`,
 		"objects",
@@ -29,7 +29,7 @@ export const findLatestMigration = Effect.gen(function* () {
 	return row?.name
 		? {
 				name: row.name,
-				appliedAt: row.applied_at ? new Date(row.applied_at) : null,
+				appliedAt: row.applied_at,
 			}
 		: null;
 });

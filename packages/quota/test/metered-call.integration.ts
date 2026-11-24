@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test";
-import type { PgClient } from "@effect/sql-pg";
 import type { QuotaPeriodId, QuotaPoolId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
@@ -16,6 +15,7 @@ import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import * as Logger from "effect/Logger";
 import * as Schedule from "effect/Schedule";
+import type { SqlClient } from "effect/sql";
 import { STALE_RESERVATION_AGE_MS } from "../src/call-timeout";
 import {
 	type QuotaReservations,
@@ -50,7 +50,7 @@ const failingTransactions = (
 	});
 
 const run = <A, E>(
-	effect: Effect.Effect<A, E, DB | PgClient.PgClient | QuotaReservations>,
+	effect: Effect.Effect<A, E, DB | SqlClient.SqlClient | QuotaReservations>,
 ) => runtime.runPromise(effect);
 
 /** A pool open to every member of a fresh organization. */

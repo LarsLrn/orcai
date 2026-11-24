@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { PgClient } from "@effect/sql-pg";
 import type { ActivityRunId, AssetId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
@@ -26,6 +25,7 @@ import * as Context from "effect/Context";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
+import { SqlClient } from "effect/sql";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { AuthzService } from "@/lib/effect/services/authz";
@@ -513,7 +513,7 @@ describe("createAssetsFromUploads", () => {
 			const committed = () =>
 				run(
 					Effect.gen(function* () {
-						const sql = yield* PgClient.PgClient;
+						const sql = yield* SqlClient.SqlClient;
 						const { schema } = yield* PgBossService;
 						const [row] = yield* sql<{
 							asset: boolean;

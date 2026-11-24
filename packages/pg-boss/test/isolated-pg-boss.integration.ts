@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
-import { PgClient } from "@effect/sql-pg";
 import { integrationRuntime } from "@orcai/testing";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
+import { SqlClient } from "effect/sql";
 import { type AttachableClock, systemClock } from "pg-boss";
 import { IsolatedPgBossLive } from "./isolated-pg-boss";
 
@@ -40,7 +40,7 @@ test("a setup that fails once the schema exists leaves no schema behind", async 
 	expect(schema).toStartWith("pgboss_test_");
 	const [{ exists }] = await run(
 		Effect.gen(function* () {
-			const sql = yield* PgClient.PgClient;
+			const sql = yield* SqlClient.SqlClient;
 			return yield* sql<{
 				exists: boolean;
 			}>`SELECT exists (SELECT 1 FROM pg_namespace WHERE nspname = ${schema}) AS exists`;
