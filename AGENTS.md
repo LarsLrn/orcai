@@ -6,7 +6,8 @@ Effect-based services).
 
 ## Verification
 
-`bun run verify` runs Biome, TypeScript, the Drizzle migration check, Knip,
+`bun run verify` runs Biome, the Effect-aware TypeScript check, the Drizzle
+migration check, Knip,
 and the unit tests without any infrastructure. `bun run ci` adds the docs type
 check and the production build; it is what GitHub Actions runs.
 
@@ -18,6 +19,16 @@ End-to-end tests are Playwright specs in `apps/e2e`, run with
 `bun run stack e2e` against this worktree's stack. A run resets the stack's
 data first. The `dev-stack` skill carries the workflow, the fixtures, and the
 slice rules.
+
+## Learning more about Effect
+
+This repository uses the Effect Typescript library.
+
+Before writing any Effect code, first read `node_modules/effect/AGENTS.md`
+**completely**, and follow the links in the file when required.
+
+If you need to learn more about particular Effect apis and concepts that the
+guide doesn't cover, search through the source code in `node_modules/effect/src`.
 
 ## Conventions
 

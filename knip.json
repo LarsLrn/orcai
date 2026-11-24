@@ -3,6 +3,10 @@
 		".": {
 			"entry": [
 				"scripts/*.ts"
+			],
+			"ignoreDependencies": [
+				"effect",
+				"@effect/language-service"
 			]
 		},
 		"apps/app": {

@@ -1,4 +1,5 @@
 {
+	"$schema": "./node_modules/@effect/tsgo/schema.json",
 	"watchOptions": {
 		"excludeDirectories": [
 			"**/node_modules",
@@ -32,6 +33,22 @@
 		"noFallthroughCasesInSwitch": true,
 		"forceConsistentCasingInFileNames": true,
 		"noUncheckedSideEffectImports": true,
-		"strictNullChecks": true
+		"strictNullChecks": true,
+		"plugins": [
+			{
+				"name": "@effect/language-service",
+				"includeSuggestionsInTsc": false,
+				"ignoreEffectSuggestionsInTscExitCode": true,
+				"ignoreEffectWarningsInTscExitCode": false,
+				"ignoreEffectErrorsInTscExitCode": false,
+				"allowedUnstableApis": [
+					"@effect/sql-pg/PgClient",
+					"effect/sql/SqlClient",
+					"effect/sql/SqlError",
+					"@effect/platform-bun/BunRuntime#runMain",
+					"@effect/opentelemetry"
+				]
+			}
+		]
 	}
 }
