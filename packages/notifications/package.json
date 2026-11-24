@@ -12,7 +12,6 @@
 		"test": "bun run paraglide:compile && bun test"
 	},
 	"dependencies": {
-		"@effect/sql-pg": "catalog:",
 		"@orcai/db": "workspace:*",
 		"@orcai/pg-boss": "workspace:*",
 		"@orcai/schema": "workspace:*",

@@ -1,7 +1,7 @@
-import { PgClient } from "@effect/sql-pg";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schedule from "effect/Schedule";
+import { SqlClient } from "effect/sql";
 import { sqlFailure } from "./sql-failure";
 
 const isDeadlock = (error: unknown) =>
@@ -19,7 +19,7 @@ const backoff = Schedule.max([
  */
 export const retryDeadlocks = <A, E, R>(transaction: Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
-		const sql = yield* PgClient.PgClient;
+		const sql = yield* SqlClient.SqlClient;
 		if (Option.isSome(yield* Effect.serviceOption(sql.transactionService)))
 			return yield* transaction;
 		return yield* transaction.pipe(

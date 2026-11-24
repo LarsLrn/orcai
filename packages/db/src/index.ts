@@ -31,7 +31,5 @@ export {
 	DB,
 	DBLive,
 	DrizzleLive,
-	PgClientLive,
-	PgClientServiceLive,
 } from "./service";
 export { isLockTimeout, uniqueViolationConstraint } from "./sql-failure";

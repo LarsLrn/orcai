@@ -8,7 +8,6 @@
 		"./documents": "./src/documents.ts"
 	},
 	"dependencies": {
-		"@effect/sql-pg": "catalog:",
 		"@orcai/core": "workspace:*",
 		"@orcai/db": "workspace:*",
 		"@orcai/spice-db": "workspace:*",

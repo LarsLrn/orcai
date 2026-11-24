@@ -1,8 +1,8 @@
-import { PgClient } from "@effect/sql-pg";
 import { applicationName, DB, type LockSpace, lockSpaces } from "@orcai/db";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
+import { SqlClient } from "effect/sql";
 
 /**
  * Takes what `lock` locks in a transaction of its own and holds it until the
@@ -37,7 +37,7 @@ export type AdvisoryLock = {
 
 const waiters = (on: string | AdvisoryLock) =>
 	Effect.gen(function* () {
-		const sql = yield* PgClient.PgClient;
+		const sql = yield* SqlClient.SqlClient;
 		const [waiting] =
 			typeof on === "string"
 				? yield* sql<{

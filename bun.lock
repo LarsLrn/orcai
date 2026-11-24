@@ -30,7 +30,6 @@
         "@base-ui/react": "1.9.0",
         "@better-auth/passkey": "1.7.14",
         "@effect/platform-bun": "catalog:",
-        "@effect/sql-pg": "catalog:",
         "@kreuzberg/node": "catalog:",
         "@opentelemetry/api": "1.9.1",
         "@opentelemetry/semantic-conventions": "1.44.0",
@@ -219,7 +218,6 @@
       },
       "devDependencies": {
         "@effect/platform-bun": "catalog:",
-        "@effect/sql-pg": "catalog:",
         "@orcai/ai": "workspace:*",
         "@orcai/core": "workspace:*",
         "@orcai/db": "workspace:*",
@@ -296,7 +294,6 @@
       "name": "@orcai/notifications",
       "version": "0.1.0",
       "dependencies": {
-        "@effect/sql-pg": "catalog:",
         "@orcai/db": "workspace:*",
         "@orcai/pg-boss": "workspace:*",
         "@orcai/schema": "workspace:*",
@@ -337,7 +334,6 @@
       "name": "@orcai/pg-boss",
       "version": "0.1.0",
       "dependencies": {
-        "@effect/sql-pg": "catalog:",
         "@opentelemetry/core": "2.12.0",
         "@orcai/core": "workspace:*",
         "@orcai/db": "workspace:*",
@@ -406,7 +402,6 @@
       "name": "@orcai/quota",
       "version": "0.1.0",
       "dependencies": {
-        "@effect/sql-pg": "catalog:",
         "@orcai/core": "workspace:*",
         "@orcai/db": "workspace:*",
         "drizzle-orm": "catalog:",
@@ -459,7 +454,6 @@
       "name": "@orcai/testing",
       "version": "0.1.0",
       "dependencies": {
-        "@effect/sql-pg": "catalog:",
         "@orcai/core": "workspace:*",
         "@orcai/db": "workspace:*",
         "@orcai/spice-db": "workspace:*",

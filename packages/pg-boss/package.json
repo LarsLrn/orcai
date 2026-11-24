@@ -8,7 +8,6 @@
 		"./testing": "./test/isolated-pg-boss.ts"
 	},
 	"dependencies": {
-		"@effect/sql-pg": "catalog:",
 		"@opentelemetry/core": "2.12.0",
 		"@orcai/core": "workspace:*",
 		"@orcai/db": "workspace:*",

@@ -1,4 +1,3 @@
-import { PgClient } from "@effect/sql-pg";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
 import { NOTIFICATION_OUTBOX_JOB_NAME } from "@orcai/schema";
@@ -6,6 +5,7 @@ import { and, asc, eq, isNotNull, lte, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Option from "effect/Option";
+import { SqlClient } from "effect/sql";
 import { EmailService } from "./email";
 import { EmailError } from "./errors";
 import { renderEmail } from "./render";
@@ -62,7 +62,7 @@ const pendingWakes = new WeakMap<
 >();
 
 const wakeAfterCommit = Effect.gen(function* () {
-	const sql = yield* PgClient.PgClient;
+	const sql = yield* SqlClient.SqlClient;
 	const transaction = yield* Effect.serviceOption(sql.transactionService);
 	if (Option.isNone(transaction)) return yield* wakeNotificationWorker;
 	const [connection] = transaction.value;
