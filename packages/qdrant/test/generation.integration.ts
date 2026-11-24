@@ -26,10 +26,15 @@ import { QdrantLive, QdrantService } from "../src/service";
 import { testEmbeddingIndex } from "./embedding-index";
 
 const TIMEOUT = 30_000;
+// Asks again while the setup is preparing, as a later health check does, so a slow Qdrant delays the answer instead of changing it.
 const inspect = inspectActiveCollection({
-	patience: "20 seconds",
+	patience: "1 second",
 	lockWait: "20 seconds",
-});
+}).pipe(
+	Effect.repeat({
+		until: (answer) => answer !== "preparing",
+	}),
+);
 const DIMENSIONS = 4;
 
 const runtime = ManagedRuntime.make(
