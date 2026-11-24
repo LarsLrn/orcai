@@ -57,7 +57,7 @@ const submitWith = async (password: string) => {
 			value: password,
 		},
 	});
-	await act(async () => {
+	await act(() => {
 		fireEvent.click(
 			screen.getByRole("button", {
 				name: "Submit",

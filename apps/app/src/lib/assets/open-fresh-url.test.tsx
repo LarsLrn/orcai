@@ -106,7 +106,6 @@ describe("openFreshUrl", () => {
 
 	test("never opens the cached url once the refetch is refused", async () => {
 		const tab = stubTab();
-		let calls = 0;
 		const queryClient = new QueryClient({
 			defaultOptions: {
 				queries: {
@@ -118,14 +117,15 @@ describe("openFreshUrl", () => {
 			queryKey: [
 				"download",
 			],
-			queryFn: () => {
-				calls += 1;
-				return calls > 1
-					? Promise.reject(new Error("FORBIDDEN"))
-					: Promise.resolve({
-							url: "https://files.test/stale",
-						});
-			},
+			queryFn: mock<
+				() => Promise<{
+					url: string;
+				}>
+			>()
+				.mockResolvedValueOnce({
+					url: "https://files.test/stale",
+				})
+				.mockRejectedValue(new Error("FORBIDDEN")),
 		});
 		const { result } = renderHook(() => useQuery(download), {
 			wrapper: ({ children }: { children: ReactNode }) => (

@@ -73,6 +73,13 @@ const setUp = ({
 	};
 };
 
+/** Runs a change in act and lets the save it starts settle before act ends. */
+const settled = (change: () => void) =>
+	act(() => {
+		change();
+		return Promise.resolve();
+	});
+
 const outputs = (output: ReturnType<typeof mock>) =>
 	output.mock.calls.map(
 		([call]) =>
@@ -87,7 +94,7 @@ describe("useUploadAnswer", () => {
 	test("each change is kept, and only Continue answers, with the stored list", async () => {
 		const { result, output, keepUploads } = setUp();
 
-		await act(async () => {
+		await settled(() => {
 			result.current.created(
 				[
 					apa,
@@ -95,7 +102,7 @@ describe("useUploadAnswer", () => {
 				"zed-apa",
 			);
 		});
-		await act(async () => {
+		await settled(() => {
 			result.current.created(
 				[
 					mla,
@@ -133,7 +140,7 @@ describe("useUploadAnswer", () => {
 	test("a removed upload leaves the list and the answer", async () => {
 		const { result, output, keepUploads } = setUp();
 
-		await act(async () => {
+		await settled(() => {
 			result.current.created(
 				[
 					apa,
@@ -142,7 +149,7 @@ describe("useUploadAnswer", () => {
 				"zed-created",
 			);
 		});
-		await act(async () => {
+		await settled(() => {
 			result.current.removed(apa.id);
 		});
 		await act(() => result.current.continue());
@@ -235,7 +242,7 @@ describe("useUploadAnswer", () => {
 				online ? storing(input) : Promise.reject(new Error("offline")),
 		});
 
-		await act(async () => {
+		await settled(() => {
 			result.current.created(
 				[
 					apa,
@@ -250,7 +257,7 @@ describe("useUploadAnswer", () => {
 		expect(result.current.problem).toBe("unsaved");
 
 		online = true;
-		await act(async () => {
+		await settled(() => {
 			result.current.retry();
 		});
 		expect(result.current.problem).toBeUndefined();
@@ -274,7 +281,7 @@ describe("useUploadAnswer", () => {
 				return storing(input);
 			},
 		});
-		await act(async () => {
+		await settled(() => {
 			result.current.created(
 				[
 					apa,
@@ -303,7 +310,7 @@ describe("useUploadAnswer", () => {
 		const { result, output, keepUploads } = setUp();
 
 		await act(() => result.current.continue());
-		await act(async () => {
+		await settled(() => {
 			result.current.created(
 				[
 					apa,
@@ -337,7 +344,7 @@ describe("useUploadAnswer", () => {
 	test("Cancel after uploads answers cancelled", async () => {
 		const { result, output } = setUp();
 
-		await act(async () => {
+		await settled(() => {
 			result.current.created(
 				[
 					apa,

@@ -16,7 +16,7 @@ function ComboboxInputGroup({
 		<ComboboxPrimitive.InputGroup
 			data-slot="combobox-input-group"
 			className={cn(
-				"bg-input/50 focus-within:border-ring focus-within:ring-ring/30 has-aria-invalid:border-destructive has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:border-destructive/50 dark:has-aria-invalid:ring-destructive/40 relative flex min-h-9 w-full cursor-text items-center rounded-3xl border border-transparent py-[calc(--spacing(1)-1px)] pr-9 pl-[calc(--spacing(1.5)-1px)] transition-[color,box-shadow,background-color] focus-within:ring-3 has-aria-invalid:ring-3 data-disabled:cursor-not-allowed data-disabled:opacity-50",
+				"bg-input/50 focus-within:border-ring focus-within:ring-ring/30 has-aria-invalid:border-destructive has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:border-destructive/50 dark:has-aria-invalid:ring-destructive/40 py-[calc(--spacing(1)-1px)] pl-[calc(--spacing(1.5)-1px)] relative flex min-h-9 w-full cursor-text items-center rounded-3xl border border-transparent pr-9 transition-[color,box-shadow,background-color] focus-within:ring-3 has-aria-invalid:ring-3 data-disabled:cursor-not-allowed data-disabled:opacity-50",
 				className,
 			)}
 			{...props}

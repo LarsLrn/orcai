@@ -48,7 +48,7 @@ const surfaces = [
 		},
 		alignmentTrigger: () => m.editor_control_align_left(),
 		alignmentRole: "menuitem",
-		quote: async () => {
+		quote: () => {
 			fireEvent.click(button(m.editor_control_blockquote()));
 		},
 	},

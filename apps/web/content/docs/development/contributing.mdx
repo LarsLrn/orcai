@@ -45,7 +45,7 @@ While iterating, run Biome, the TypeScript check, the migration check, Knip and 
 bun run verify
 ```
 
-Before you open a pull request, run what the `validate` job in CI runs. It adds ESLint, the docs type check and the production build.
+Before you open a pull request, run what the `validate` job in CI runs. It adds the docs type check and the production build.
 
 ```bash title="Repository root"
 bun run ci
@@ -61,7 +61,7 @@ bun run stack e2e
 
 - `pre-commit` runs `lint-staged`, which applies Biome's safe fixes and formatting to the staged files and fails on remaining errors. Biome lints Markdown but does not format it, because it pads table columns.
 - `commit-msg` runs commitlint.
-- `pre-push` runs `bun run prepush`, which is `bun run lint-full`.
+- `pre-push` runs `bun run prepush`, which is `bun run lint`.
 
 GitHub Actions runs `bun run ci` and the end-to-end suite as two blocking checks, `validate` and `e2e`, for pushes to `main` and for pull requests. Pull requests that only touch docs content or Markdown skip the end-to-end suite. Pull request runs check the branch merged into `main`, so rebase onto `main` when CI fails on something a local run passes.
 
