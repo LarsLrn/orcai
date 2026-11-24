@@ -7,8 +7,8 @@ Effect-based services).
 ## Verification
 
 `bun run verify` runs Biome, TypeScript, the Drizzle migration check, Knip,
-and the unit tests without any infrastructure. `bun run ci` adds ESLint, the docs type check, and the
-production build; it is what GitHub Actions runs.
+and the unit tests without any infrastructure. `bun run ci` adds the docs type
+check and the production build; it is what GitHub Actions runs.
 
 Need the running app, workers, databases, or migrations? Use the `dev-stack`
 skill. It owns this worktree's isolated Docker Compose stack; nothing else in
@@ -22,9 +22,9 @@ slice rules.
 ## Conventions
 
 - Conventional Commits.
-- Biome owns formatting and general linting, including the Drizzle rules;
-  ESLint carries only the package-specific TanStack rules. Markdown is linted
-  but not formatted, because Biome pads table columns.
+- Biome owns formatting and linting, including the Drizzle and TanStack Query
+  rules. Markdown is linted but not formatted, because Biome pads table
+  columns.
 - When a workflow or configuration changes, update `README.md` and
   `apps/web/content/docs` in the same change.
 - An e2e slice owns `apps/e2e/tests/<area>/` and may add

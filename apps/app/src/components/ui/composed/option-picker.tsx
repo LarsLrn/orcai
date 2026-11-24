@@ -76,7 +76,7 @@ const OptionPicker = <T extends string>({
 		<SelectContent
 			side={side}
 			align="start"
-			className="w-auto min-w-[max(--spacing(36),var(--anchor-width))]"
+			className="min-w-[max(--spacing(36),var(--anchor-width))] w-auto"
 		>
 			{options.map((option) => (
 				<SelectItem

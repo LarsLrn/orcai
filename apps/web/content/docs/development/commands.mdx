@@ -67,9 +67,8 @@ These options apply to every command and can stand anywhere before `--`:
 | `bun run test:integration` | Run the integration tier against the stack. |
 | `bun run e2e` | Alias for `bun run stack e2e`. |
 | `bun run lint` | Run Biome, TypeScript checks, the migration check, and Knip. |
-| `bun run lint-full` | Run `lint` and ESLint. |
 | `bun run knip` | Run only Knip. |
-| `bun run prepush` | Run the full pre-push check. |
+| `bun run prepush` | Run the pre-push check, which is `lint`. |
 | `bun run prompt-evals` | Run the prompt evals against real models through OpenRouter or `PROMPT_EVALS_ENDPOINT`. Costs money and never runs in CI, see [Contributing](/docs/development/contributing#model-facing-text). |
 | `bun run stack exec -- bun run retrieval-evals` | Run the retrieval evals on a fixed corpus against the stack's Qdrant and the models at `RETRIEVAL_EVALS_ENDPOINT`. Never runs in CI, see [Contributing](/docs/development/contributing#search-and-extraction-changes). |
 
@@ -84,10 +83,6 @@ branch's migration on top.
 
 Knip fails on unused files, exports and dependencies. Delete the dead code
 or the `export` keyword rather than adding an ignore.
-
-`lint:eslint`, which `lint-full` runs, enumerates the workspaces
-(`apps/app`, `apps/web`, then `apps/e2e` and `apps/workers`) because
-each carries its own ESLint project settings.
 
 ## End-to-end tests
 

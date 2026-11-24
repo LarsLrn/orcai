@@ -114,7 +114,13 @@
 				"useTailwindSortedClasses": {
 					"level": "error",
 					"fix": "safe"
-				}
+				},
+				"noTanstackQueryRestDestructuring": "error",
+				"noTanstackQueryVoidQueryFn": "error",
+				"useTanstackQueryExhaustiveDependencies": "error",
+				"useTanstackQueryInfiniteQueryPropertyOrder": "error",
+				"useTanstackQueryMutationPropertyOrder": "error",
+				"useTanstackQueryStableQueryClient": "error"
 			}
 		}
 	},
