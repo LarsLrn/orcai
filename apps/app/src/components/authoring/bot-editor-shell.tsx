@@ -106,7 +106,8 @@ const BotEditorShell = ({
 }: {
 	editorData?: BotEditor;
 	stepIndex: number;
-	onStepChange: (step: number) => void;
+	/** Resolves once the new step is shown. */
+	onStepChange: (step: number) => Promise<void>;
 }) => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
@@ -184,6 +185,8 @@ const BotEditorShell = ({
 		};
 	const isWizardActionPending = (action: typeof wizardAction) =>
 		isWorking && wizardAction === action;
+	// Next and Back count from the step shown, so they wait until it changes.
+	const isStepping = wizardAction === "back" || wizardAction === "next";
 
 	// The Model step saves through its own procedure and loses its form when left.
 	const leaveModelStep = async () => (await modelStep.current?.save()) ?? true;
@@ -300,7 +303,7 @@ const BotEditorShell = ({
 		}
 
 		if (editorData?.id && savedEditor.id === editorData.id) {
-			onStepChange(nextStep);
+			await onStepChange(nextStep);
 		}
 	};
 
@@ -312,7 +315,7 @@ const BotEditorShell = ({
 			await handleSave();
 		}
 
-		onStepChange(Math.max(stepIndex - 1, 0));
+		await onStepChange(Math.max(stepIndex - 1, 0));
 	};
 
 	const handlePublish = async () => {
@@ -438,7 +441,7 @@ const BotEditorShell = ({
 							)}
 							onClick={async () => {
 								if (!isLocked && (await leaveModelStep())) {
-									onStepChange(index);
+									await onStepChange(index);
 								}
 							}}
 							disabled={isLocked}
@@ -530,8 +533,8 @@ const BotEditorShell = ({
 							variant="outline"
 							className="col-start-1 row-start-1"
 							onClick={runWizardAction("back", handleWizardBack)}
-							loading={isWizardActionPending("back")}
-							disabled={stepIndex === 0 || isWorking}
+							loading={wizardAction === "back"}
+							disabled={stepIndex === 0 || isWorking || isStepping}
 						>
 							<ChevronLeftIcon />
 							{m.common_back_button()}
@@ -576,8 +579,8 @@ const BotEditorShell = ({
 							<Button
 								className="col-start-2 row-start-1 justify-self-end sm:col-start-3"
 								onClick={runWizardAction("next", handleWizardNext)}
-								loading={isWizardActionPending("next")}
-								disabled={isWorking}
+								loading={wizardAction === "next"}
+								disabled={isWorking || isStepping}
 							>
 								{m.common_next_button()}
 								<ChevronRightIcon />
