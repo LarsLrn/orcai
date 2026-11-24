@@ -68,6 +68,18 @@ const reasoningFilePartSchema = z.looseObject({
 	providerMetadata: providerMetadataSchema.optional(),
 });
 
+/** A user message steered into the reply; the model reads it as a user turn. */
+const steeringMessagePartSchema = z.looseObject({
+	type: z.literal("steering-message"),
+	id: z.string(),
+	parts: z.array(
+		z.discriminatedUnion("type", [
+			textPartSchema,
+			filePartSchema,
+		]),
+	),
+});
+
 const stepStartPartSchema = z.looseObject({
 	type: z.literal("step-start"),
 });
@@ -165,6 +177,7 @@ const namedPartSchemas = [
 	sourceDocumentPartSchema,
 	filePartSchema,
 	reasoningFilePartSchema,
+	steeringMessagePartSchema,
 	stepStartPartSchema,
 ] as const;
 

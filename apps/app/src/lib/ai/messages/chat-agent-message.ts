@@ -93,6 +93,13 @@ export const toChatAgentParts = (parts: readonly ChatMessagePart[]) => {
 	) as ChatAgentUIMessage["parts"];
 };
 
+/**
+ * The chat's UI parts as stored parts. Every SDK part reaches storage through
+ * here, so a part type the stored schema lacks fails to compile here alone.
+ */
+export const toStoredParts = (parts: UIMessage["parts"]): ChatMessagePart[] =>
+	parts;
+
 /** Messages with read parts, as the chat's UI messages. */
 export const toChatAgentMessages = (
 	messages: readonly {

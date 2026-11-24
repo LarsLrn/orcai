@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
+	type ChatMessagePart,
+	chatMessagePartSchema,
+	readableChatMessageParts,
+} from "@orcai/schema";
+import {
 	createAgentUIStream,
 	isStepCount,
 	ToolLoopAgent,
@@ -13,10 +18,7 @@ import { deleteBotInputSchema } from "@/lib/ai/tools/assistant/bots/delete-bot.d
 import { findBotsTool } from "@/lib/ai/tools/assistant/bots/find-bots";
 import { planSchema } from "@/lib/ai/tools/assistant/plan/plan";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
-import {
-	type ChatAgentUIMessage,
-	toChatAgentParts,
-} from "./chat-agent-message";
+import { toChatAgentParts } from "./chat-agent-message";
 
 type LanguageModelV4StreamPart =
 	Awaited<
@@ -185,7 +187,7 @@ const pausedReply = (
 const read = (message: UIMessage): UIMessage => ({
 	...message,
 	parts: toChatAgentParts(
-		message.parts as ChatAgentUIMessage["parts"],
+		readableChatMessageParts(message.parts),
 	) as UIMessage["parts"],
 });
 
@@ -260,12 +262,12 @@ describe("invalid tool input", () => {
 const call = (
 	toolName: string,
 	fields: Record<string, unknown>,
-): ChatAgentUIMessage["parts"][number] =>
-	({
+): ChatMessagePart =>
+	chatMessagePartSchema.parse({
 		type: `tool-${toolName}`,
 		toolCallId: `call-${toolName}`,
 		...fields,
-	}) as ChatAgentUIMessage["parts"][number];
+	});
 
 describe("toChatAgentParts", () => {
 	test("closes an open call with invalid input as INVALID_TOOL_INPUT", () => {
@@ -350,7 +352,7 @@ describe("toChatAgentParts", () => {
 	});
 
 	test("leaves failed, streaming, undeclared and fitting calls as they are", () => {
-		const parts = [
+		const parts: ChatMessagePart[] = [
 			call("deleteBot", {
 				state: "output-error",
 				input: {
@@ -393,9 +395,9 @@ describe("toChatAgentParts", () => {
 					id: "approval-2",
 				},
 			}),
-		] as ChatAgentUIMessage["parts"];
+		];
 
-		expect(toChatAgentParts(parts)).toBe(parts);
+		expect<unknown>(toChatAgentParts(parts)).toBe(parts);
 	});
 });
 
@@ -463,7 +465,7 @@ describe("a stored call of an earlier input shape", () => {
 
 	test("reads as an untyped call", () => {
 		expect(
-			toChatAgentParts(earlier as ChatAgentUIMessage["parts"]).map(
+			toChatAgentParts(readableChatMessageParts(earlier)).map(
 				(part) => part.type,
 			),
 		).toEqual([
@@ -556,6 +558,82 @@ describe("a stored call of an earlier input shape", () => {
 					},
 				],
 				providerOptions: undefined,
+			},
+		]);
+	});
+});
+
+describe("a stored steering message", () => {
+	test("reaches the model as a user message between the steps around it", async () => {
+		const prompt = await requestFor([
+			{
+				type: "step-start",
+			},
+			{
+				type: "text",
+				text: "Looking at all years.",
+				state: "done",
+			},
+			{
+				type: "steering-message",
+				id: "steer-1",
+				parts: [
+					{
+						type: "text",
+						text: "Only the 2025 figures.",
+					},
+				],
+			},
+			{
+				type: "step-start",
+			},
+			{
+				type: "text",
+				text: "The 2025 figures are in.",
+				state: "done",
+			},
+		]);
+
+		expect(
+			prompt
+				?.filter((message) => message.role !== "system")
+				.map(({ role, content }) => ({
+					role,
+					content,
+				})),
+		).toMatchObject([
+			{
+				role: "user",
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "text",
+						text: "Looking at all years.",
+					},
+				],
+			},
+			{
+				role: "user",
+				content: [
+					{
+						type: "text",
+						text: "Only the 2025 figures.",
+					},
+				],
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "text",
+						text: "The 2025 figures are in.",
+					},
+				],
+			},
+			{
+				role: "user",
 			},
 		]);
 	});
