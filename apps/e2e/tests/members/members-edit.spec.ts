@@ -68,14 +68,17 @@ test("members: the edit page shows what an admin may know about a user", async (
 	await expect(
 		page.getByText(message("members_verification_not_verified")),
 	).toBeVisible();
-	const accessRow = page
-		.getByRole("region", {
-			name: message("members_access_overview_title"),
-		})
-		.getByRole("row")
-		.filter({
-			hasText: blockName,
-		});
+	// Public resources of every organisation are listed too, so the row may sit
+	// on a later page until the table is searched for it.
+	const access = page.getByRole("region", {
+		name: message("members_access_overview_title"),
+	});
+	await access
+		.getByPlaceholder(message("members_access_overview_search_placeholder"))
+		.fill(blockName);
+	const accessRow = access.getByRole("row").filter({
+		hasText: blockName,
+	});
 	await expect(
 		accessRow.getByRole("link", {
 			name: blockName,
