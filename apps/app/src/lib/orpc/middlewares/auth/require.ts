@@ -3,7 +3,7 @@ import { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import { middlewareGen } from "@orpc/effect";
 import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
-import type { auth as betterAuth } from "@/lib/auth/auth";
+import type { Auth } from "@/lib/auth/auth";
 import { requireSignedIn, signedInSession } from "@/lib/auth/signed-in";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { isInstanceAdminRole } from "@/lib/instance/instance-role";
@@ -13,8 +13,8 @@ import type { AuthContext } from ".";
 
 type IncomingAuth = {
 	isAuthenticated?: boolean;
-	session?: typeof betterAuth.$Infer.Session.session;
-	user?: typeof betterAuth.$Infer.Session.user;
+	session?: Auth["$Infer"]["Session"]["session"];
+	user?: Auth["$Infer"]["Session"]["user"];
 };
 
 /** The session a surrounding procedure already resolved, so a nested procedure call keeps it. */

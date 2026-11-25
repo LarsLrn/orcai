@@ -5,8 +5,10 @@ import {
 	INSTANCE_DEFAULT_ROLE,
 	INSTANCE_ROLES,
 } from "@orcai/core";
-import { dbSchema } from "@orcai/db";
+import { type DB, dbSchema } from "@orcai/db";
 import { enqueueNotification } from "@orcai/notifications";
+import { withActiveSpan } from "@orcai/observability";
+import type { PgBossService } from "@orcai/pg-boss";
 import {
 	LOCALES,
 	localeSchema,
@@ -25,8 +27,10 @@ import {
 import { admin, twoFactor } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
+import type { SqlClient } from "effect/sql";
 import { v4 as uuidv4 } from "uuid";
 import { authDb } from "@/lib/auth/auth-db";
 import {
@@ -35,7 +39,7 @@ import {
 	soleOrganizationOf,
 } from "@/lib/auth/invitation-signup";
 import { secureCookiesFor, zedTokenCookieOptions } from "@/lib/authz/zed-token";
-import { runPromise } from "@/lib/effect/runtime";
+import type { AuthzService } from "@/lib/effect/services/authz";
 import { loadAppConfigSync } from "@/lib/effect/services/config";
 import { acceptInvitation } from "@/lib/organizations/organization-membership";
 import {
@@ -46,8 +50,15 @@ import {
 	getLocale,
 } from "@/paraglide/runtime";
 import { COOKIES } from "@/settings/constants";
+import { BetterAuth } from "./better-auth";
 
 const cfg = loadAppConfigSync();
+
+/** The services the callbacks' effects use. */
+type AuthServices = DB | SqlClient.SqlClient | PgBossService | AuthzService;
+
+/** Runs an effect from a callback as part of the request's trace. */
+type Run = <A, E>(effect: Effect.Effect<A, E, AuthServices>) => Promise<A>;
 
 /** The user's stored locale, else the request's. */
 const emailLocaleOf = (
@@ -95,12 +106,13 @@ const requireUserVerified = (userVerified: boolean | undefined) => {
  * error.
  */
 const sendSecurityNotice = (
+	run: Run,
 	type: "auth.two-factor-disabled" | "auth.passkey-added",
 	user: User & {
 		locale?: string | null;
 	},
 ) =>
-	runPromise(
+	run(
 		enqueueNotification(
 			{
 				type,
@@ -120,295 +132,310 @@ const sendSecurityNotice = (
 const completesSignIn = (path: string) =>
 	path.startsWith("/sign-in") || SIGN_IN_COMPLETIONS.includes(path);
 
-export const auth = betterAuth({
-	appName: "OrcAI",
-	baseURL: cfg.auth.url,
-	secret: Redacted.value(cfg.auth.secret),
-	telemetry: {
-		enabled: false,
-	},
-	// The admin plugin only supplies the role and ban fields. Its endpoints
-	// stay server-side: the app's procedures guard the last organization admin
-	// and run the permission outbox, and impersonation or a set password would
-	// bypass the second factor.
-	disabledPaths: [
-		"/admin/ban-user",
-		"/admin/create-user",
-		"/admin/get-user",
-		"/admin/has-permission",
-		"/admin/impersonate-user",
-		"/admin/list-user-sessions",
-		"/admin/list-users",
-		"/admin/remove-user",
-		"/admin/revoke-user-session",
-		"/admin/revoke-user-sessions",
-		"/admin/set-role",
-		"/admin/set-user-password",
-		"/admin/stop-impersonating",
-		"/admin/unban-user",
-		"/admin/update-user",
-	],
-	trustedOrigins: [
-		cfg.auth.url,
-		"http://localhost:3000",
-	],
-	// tanstackStartCookies plugin must be last in the array
-	plugins: [
-		admin({
-			adminRoles: [
-				INSTANCE_ADMIN_ROLE,
-			],
-			defaultRole: INSTANCE_DEFAULT_ROLE,
-		}),
-		twoFactor(),
-		passkey({
-			// The relying party ID is the host of `baseURL`, so passkeys belong
-			// to this domain.
-			origin: cfg.auth.url,
-			authenticatorSelection: {
-				residentKey: "required",
-				userVerification: "required",
-			},
-			registration: {
-				afterVerification: ({ verification }) => {
-					requireUserVerified(verification.registrationInfo?.userVerified);
-					return {
-						name: getAuthenticatorName(verification.registrationInfo?.aaguid),
-					};
+const makeAuth = (run: Run) =>
+	betterAuth({
+		appName: "OrcAI",
+		baseURL: cfg.auth.url,
+		secret: Redacted.value(cfg.auth.secret),
+		telemetry: {
+			enabled: false,
+		},
+		// The admin plugin only supplies the role and ban fields. Its endpoints
+		// stay server-side: the app's procedures guard the last organization admin
+		// and run the permission outbox, and impersonation or a set password would
+		// bypass the second factor.
+		disabledPaths: [
+			"/admin/ban-user",
+			"/admin/create-user",
+			"/admin/get-user",
+			"/admin/has-permission",
+			"/admin/impersonate-user",
+			"/admin/list-user-sessions",
+			"/admin/list-users",
+			"/admin/remove-user",
+			"/admin/revoke-user-session",
+			"/admin/revoke-user-sessions",
+			"/admin/set-role",
+			"/admin/set-user-password",
+			"/admin/stop-impersonating",
+			"/admin/unban-user",
+			"/admin/update-user",
+		],
+		trustedOrigins: [
+			cfg.auth.url,
+			"http://localhost:3000",
+		],
+		// tanstackStartCookies plugin must be last in the array
+		plugins: [
+			admin({
+				adminRoles: [
+					INSTANCE_ADMIN_ROLE,
+				],
+				defaultRole: INSTANCE_DEFAULT_ROLE,
+			}),
+			twoFactor(),
+			passkey({
+				// The relying party ID is the host of `baseURL`, so passkeys belong
+				// to this domain.
+				origin: cfg.auth.url,
+				authenticatorSelection: {
+					residentKey: "required",
+					userVerification: "required",
 				},
-			},
-			authentication: {
-				afterVerification: ({ verification }) =>
-					requireUserVerified(verification.authenticationInfo.userVerified),
-			},
-		}),
-		tanstackStartCookies(),
-	],
-	database: drizzleAdapter(authDb, {
-		provider: "pg",
-		schema: {
-			user: dbSchema.user,
-			account: dbSchema.account,
-			session: dbSchema.session,
-			verification: dbSchema.verification,
-			twoFactor: dbSchema.twoFactor,
-			passkey: dbSchema.passkey,
-		},
-	}),
-	emailAndPassword: {
-		enabled: true,
-		minPasswordLength: PASSWORD_MIN_LENGTH,
-		maxPasswordLength: PASSWORD_MAX_LENGTH,
-		requireEmailVerification: false,
-		revokeSessionsOnPasswordReset: true,
-		sendResetPassword: async ({ user, url, token }, _request) => {
-			const locale = emailLocaleOf(user);
-			await runPromise(
-				enqueueNotification(
-					{
-						type: "auth.reset-password",
-						recipient: user.email,
-						recipientName: user.name,
-						resetUrl: url,
-						locale,
+				registration: {
+					afterVerification: ({ verification }) => {
+						requireUserVerified(verification.registrationInfo?.userVerified);
+						return {
+							name: getAuthenticatorName(verification.registrationInfo?.aaguid),
+						};
 					},
-					`auth.reset-password:${createHash("sha256").update(token).digest("hex")}`,
-				),
-			);
-		},
-	},
-	emailVerification: {
-		sendOnSignUp: true,
-		sendOnSignIn: false,
-		// A verification link must not open a session the second factor never saw.
-		autoSignInAfterVerification: false,
-		sendVerificationEmail: async ({ user, url, token }) => {
-			const locale = emailLocaleOf(user);
-			await runPromise(
-				enqueueNotification(
-					{
-						type: "auth.verify-email",
-						recipient: user.email,
-						recipientName: user.name,
-						verificationUrl: url,
-						locale,
-					},
-					`auth.verify-email:${createHash("sha256").update(token).digest("hex")}`,
-				),
-			);
-		},
-	},
-	rateLimit: {
-		enabled: Option.getOrUndefined(cfg.auth.rateLimit),
-	},
-	advanced: {
-		database: {
-			generateId: () => uuidv4(),
-		},
-	},
-	hooks: {
-		after: createAuthMiddleware(async (ctx) => {
-			if (ctx.path === "/two-factor/disable") {
-				const disabled = ctx.context.newSession;
-				if (!disabled || ctx.context.returned instanceof APIError) return;
-
-				await sendSecurityNotice("auth.two-factor-disabled", disabled.user);
-				return;
-			}
-
-			if (ctx.path === "/passkey/verify-registration") {
-				if (ctx.context.returned instanceof APIError) return;
-				const session = await getSessionFromCtx(ctx);
-				if (session)
-					await sendSecurityNotice("auth.passkey-added", session.user);
-				return;
-			}
-
-			/** A new browser follows the stored locale; users without one keep
-			 * the request's. */
-			const user = ctx.context.newSession?.user;
-			if (!completesSignIn(ctx.path) || !user) return;
-
-			const stored = localeSchema.safeParse(
-				"locale" in user ? user.locale : undefined,
-			);
-			if (stored.success) {
-				ctx.setCookie(cookieName, stored.data, {
-					path: "/",
-					maxAge: cookieMaxAge,
-					sameSite: cookieSameSite,
-					secure:
-						cookieSecure === "auto"
-							? ctx.context.baseURL.startsWith("https:")
-							: cookieSecure,
-				});
-				return;
-			}
-
-			await ctx.context.internalAdapter.updateUser(user.id, {
-				locale: getLocale(),
-			});
-		}),
-	},
-	databaseHooks: {
-		user: {
-			update: {
-				before: (user) => {
-					if ("role" in user) validateInstanceRole(user.role);
-					rejectImage(user.image);
-					return Promise.resolve();
 				},
+				authentication: {
+					afterVerification: ({ verification }) =>
+						requireUserVerified(verification.authenticationInfo.userVerified),
+				},
+			}),
+			tanstackStartCookies(),
+		],
+		database: drizzleAdapter(authDb, {
+			provider: "pg",
+			schema: {
+				user: dbSchema.user,
+				account: dbSchema.account,
+				session: dbSchema.session,
+				verification: dbSchema.verification,
+				twoFactor: dbSchema.twoFactor,
+				passkey: dbSchema.passkey,
 			},
-			create: {
-				// Registration is by invitation. The bootstrap flow inserts its
-				// user with Drizzle rather than through Better Auth, so the first
-				// account of an instance does not pass through here and needs no
-				// exception.
-				before: async (user, ctx) => {
-					const requestLocale = getLocale();
-					validateInstanceRole("role" in user ? user.role : "user");
-					rejectImage(user.image ?? undefined);
-					const invitationId = organizationInvitationIdSchema.safeParse(
-						ctx?.body?.invitationId,
-					);
-					const invitations = await runPromise(
-						pendingInvitationsFor(user.email),
-					);
-
-					if (
-						!invitationId.success ||
-						!invitations.some(
-							(invitation) => invitation.id === invitationId.data,
-						)
-					) {
-						throw new APIError("FORBIDDEN", {
-							code: "INVITATION_REQUIRED",
-							message:
-								"Registration is by invitation. Ask an organisation administrator to invite this address.",
-						});
-					}
-
-					return {
-						data: {
-							...user,
-							locale: user.locale ?? requestLocale,
+		}),
+		emailAndPassword: {
+			enabled: true,
+			minPasswordLength: PASSWORD_MIN_LENGTH,
+			maxPasswordLength: PASSWORD_MAX_LENGTH,
+			requireEmailVerification: false,
+			revokeSessionsOnPasswordReset: true,
+			sendResetPassword: async ({ user, url, token }, _request) => {
+				const locale = emailLocaleOf(user);
+				await run(
+					enqueueNotification(
+						{
+							type: "auth.reset-password",
+							recipient: user.email,
+							recipientName: user.name,
+							resetUrl: url,
+							locale,
 						},
-					};
-				},
-				after: async (user, ctx) => {
-					const userId = userIdSchema.parse(user.id);
+						`auth.reset-password:${createHash("sha256").update(token).digest("hex")}`,
+					),
+				);
+			},
+		},
+		emailVerification: {
+			sendOnSignUp: true,
+			sendOnSignIn: false,
+			// A verification link must not open a session the second factor never saw.
+			autoSignInAfterVerification: false,
+			sendVerificationEmail: async ({ user, url, token }) => {
+				const locale = emailLocaleOf(user);
+				await run(
+					enqueueNotification(
+						{
+							type: "auth.verify-email",
+							recipient: user.email,
+							recipientName: user.name,
+							verificationUrl: url,
+							locale,
+						},
+						`auth.verify-email:${createHash("sha256").update(token).digest("hex")}`,
+					),
+				);
+			},
+		},
+		rateLimit: {
+			enabled: Option.getOrUndefined(cfg.auth.rateLimit),
+		},
+		advanced: {
+			database: {
+				generateId: () => uuidv4(),
+			},
+		},
+		hooks: {
+			after: createAuthMiddleware(async (ctx) => {
+				if (ctx.path === "/two-factor/disable") {
+					const disabled = ctx.context.newSession;
+					if (!disabled || ctx.context.returned instanceof APIError) return;
 
-					const { zedToken } = await runPromise(
-						acceptInvitation({
-							invitationId: organizationInvitationIdSchema.parse(
-								ctx?.body?.invitationId,
-							),
-							userId,
-							email: user.email,
-						}),
+					await sendSecurityNotice(
+						run,
+						"auth.two-factor-disabled",
+						disabled.user,
 					);
+					return;
+				}
 
-					/** The membership is delivered inline, so the sign-up response
-					 * hands its revision to the new session. */
-					if (zedToken && ctx)
-						ctx.setCookie(
-							COOKIES.ZED_TOKEN.name,
-							zedToken,
-							zedTokenCookieOptions(secureCookiesFor(cfg.auth.url)),
+				if (ctx.path === "/passkey/verify-registration") {
+					if (ctx.context.returned instanceof APIError) return;
+					const session = await getSessionFromCtx(ctx);
+					if (session)
+						await sendSecurityNotice(run, "auth.passkey-added", session.user);
+					return;
+				}
+
+				/** A new browser follows the stored locale; users without one keep
+				 * the request's. */
+				const user = ctx.context.newSession?.user;
+				if (!completesSignIn(ctx.path) || !user) return;
+
+				const stored = localeSchema.safeParse(
+					"locale" in user ? user.locale : undefined,
+				);
+				if (stored.success) {
+					ctx.setCookie(cookieName, stored.data, {
+						path: "/",
+						maxAge: cookieMaxAge,
+						sameSite: cookieSameSite,
+						secure:
+							cookieSecure === "auto"
+								? ctx.context.baseURL.startsWith("https:")
+								: cookieSecure,
+					});
+					return;
+				}
+
+				await ctx.context.internalAdapter.updateUser(user.id, {
+					locale: getLocale(),
+				});
+			}),
+		},
+		databaseHooks: {
+			user: {
+				update: {
+					before: (user) => {
+						if ("role" in user) validateInstanceRole(user.role);
+						rejectImage(user.image);
+						return Promise.resolve();
+					},
+				},
+				create: {
+					// Registration is by invitation. The bootstrap flow inserts its
+					// user with Drizzle rather than through Better Auth, so the first
+					// account of an instance does not pass through here and needs no
+					// exception.
+					before: async (user, ctx) => {
+						const requestLocale = getLocale();
+						validateInstanceRole("role" in user ? user.role : "user");
+						rejectImage(user.image ?? undefined);
+						const invitationId = organizationInvitationIdSchema.safeParse(
+							ctx?.body?.invitationId,
+						);
+						const invitations = await run(pendingInvitationsFor(user.email));
+
+						if (
+							!invitationId.success ||
+							!invitations.some(
+								(invitation) => invitation.id === invitationId.data,
+							)
+						) {
+							throw new APIError("FORBIDDEN", {
+								code: "INVITATION_REQUIRED",
+								message:
+									"Registration is by invitation. Ask an organisation administrator to invite this address.",
+							});
+						}
+
+						return {
+							data: {
+								...user,
+								locale: user.locale ?? requestLocale,
+							},
+						};
+					},
+					after: async (user, ctx) => {
+						const userId = userIdSchema.parse(user.id);
+
+						const { zedToken } = await run(
+							acceptInvitation({
+								invitationId: organizationInvitationIdSchema.parse(
+									ctx?.body?.invitationId,
+								),
+								userId,
+								email: user.email,
+							}),
 						);
 
-					await runPromise(activateSoleOrganizationForSessions(userId));
+						/** The membership is delivered inline, so the sign-up response
+						 * hands its revision to the new session. */
+						if (zedToken && ctx)
+							ctx.setCookie(
+								COOKIES.ZED_TOKEN.name,
+								zedToken,
+								zedTokenCookieOptions(secureCookiesFor(cfg.auth.url)),
+							);
+
+						await run(activateSoleOrganizationForSessions(userId));
+					},
+				},
+			},
+			session: {
+				create: {
+					/** Default a session to its sole organisation.
+					 * The picker still handles pending invitations. */
+					before: async (session) => {
+						if (session.activeOrganizationId) {
+							return;
+						}
+
+						const organizationId = await run(
+							soleOrganizationOf(userIdSchema.parse(session.userId)),
+						);
+
+						if (!organizationId) {
+							return;
+						}
+
+						return {
+							data: {
+								...session,
+								activeOrganizationId: organizationId,
+							},
+						};
+					},
+				},
+			},
+		},
+		user: {
+			additionalFields: {
+				locale: {
+					type: [
+						...LOCALES,
+					],
+					required: false,
+					input: true,
+					validator: {
+						input: localeSchema,
+					},
 				},
 			},
 		},
 		session: {
-			create: {
-				/** Default a session to its sole organisation.
-				 * The picker still handles pending invitations. */
-				before: async (session) => {
-					if (session.activeOrganizationId) {
-						return;
-					}
-
-					const organizationId = await runPromise(
-						soleOrganizationOf(userIdSchema.parse(session.userId)),
-					);
-
-					if (!organizationId) {
-						return;
-					}
-
-					return {
-						data: {
-							...session,
-							activeOrganizationId: organizationId,
-						},
-					};
+			additionalFields: {
+				activeOrganizationId: {
+					type: "string",
+					required: false,
+					input: true,
 				},
 			},
 		},
-	},
-	user: {
-		additionalFields: {
-			locale: {
-				type: [
-					...LOCALES,
-				],
-				required: false,
-				input: true,
-				validator: {
-					input: localeSchema,
-				},
-			},
-		},
-	},
-	session: {
-		additionalFields: {
-			activeOrganizationId: {
-				type: "string",
-				required: false,
-				input: true,
-			},
-		},
-	},
-});
+	});
+
+export type Auth = ReturnType<typeof makeAuth>;
+
+export const BetterAuthLive = Layer.effect(
+	BetterAuth,
+	Effect.gen(function* () {
+		const services = yield* Effect.context<AuthServices>();
+		return makeAuth((effect) =>
+			Effect.runPromiseWith(services)(withActiveSpan(effect)),
+		);
+	}),
+);

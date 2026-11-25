@@ -1,11 +1,12 @@
 import * as Effect from "effect/Effect";
-import { auth as betterAuth } from "@/lib/auth/auth";
+import type { Auth } from "@/lib/auth/auth";
+import { BetterAuth } from "@/lib/auth/better-auth";
 import { requiresTwoFactor } from "@/lib/auth/two-factor-policy";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { recordRequestUser } from "@/lib/observability/request-span";
 
-type Session = typeof betterAuth.$Infer.Session;
+type Session = Auth["$Infer"]["Session"];
 
 /** The rules every signed-in surface applies: a session, and the second factor the policy demands. */
 export const requireSignedIn = (
@@ -49,10 +50,12 @@ export const requireSignedIn = (
 /** The request's session under those rules. */
 export const signedInSession = (headers: Headers) =>
 	// getSession answers null without a session, so a throw is a backend failure.
-	Effect.tryPromise(() =>
-		betterAuth.api.getSession({
-			headers,
-		}),
+	BetterAuth.use((auth) =>
+		Effect.tryPromise(() =>
+			auth.api.getSession({
+				headers,
+			}),
+		),
 	).pipe(Effect.flatMap(requireSignedIn));
 
 /** Answers a plain HTTP route for a signed-in user: 401 without a session, 403 before the required second factor. */

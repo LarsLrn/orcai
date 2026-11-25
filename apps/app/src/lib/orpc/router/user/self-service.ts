@@ -1,7 +1,7 @@
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, ne } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { auth } from "@/lib/auth/auth";
+import { BetterAuth } from "@/lib/auth/better-auth";
 import { permissionDenied } from "@/lib/authz/permission-denied";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage, setImage } from "@/lib/images/images";
@@ -43,6 +43,7 @@ const updatePassword = authed.user.updatePassword.effect(function* ({
 }) {
 	const db = yield* DB;
 
+	const auth = yield* BetterAuth;
 	const ctx = yield* Effect.promise(() => auth.$context);
 
 	const passwordMatches = yield* db.query.account

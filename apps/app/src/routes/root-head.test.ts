@@ -1,8 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
 
-mock.module("@/lib/auth/auth", () => ({
-	auth: {},
-}));
 mock.module("@/lib/effect/runtime", () => ({
 	runPromise: () => Promise.reject(new Error("not in unit tests")),
 }));

@@ -7,13 +7,6 @@ let session: {
 	user: Record<string, unknown>;
 } | null = null;
 
-mock.module("@/lib/auth/auth", () => ({
-	auth: {
-		api: {
-			getSession: () => Promise.resolve(session),
-		},
-	},
-}));
 mock.module("@/lib/images/images", () => ({
 	imageResponse: () => Effect.succeed(new Response("image")),
 }));
@@ -35,6 +28,7 @@ mock.module("@orcai/s3/server", () => ({
 }));
 
 const { AppConfigService } = await import("@/lib/effect/services/config");
+const { BetterAuth } = await import("@/lib/auth/better-auth");
 
 mock.module("@/lib/effect/runtime", () => ({
 	runPromise: (effect: Effect.Effect<Response, unknown, never>) =>
@@ -45,6 +39,11 @@ mock.module("@/lib/effect/runtime", () => ({
 						auth: {
 							twoFactorPolicy: "all",
 						},
+					},
+				} as never),
+				Effect.provideService(BetterAuth, {
+					api: {
+						getSession: () => Promise.resolve(session),
 					},
 				} as never),
 			),
