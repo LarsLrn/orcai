@@ -6,6 +6,7 @@ import { QuotaReservationsLive } from "@orcai/quota";
 import { S3Live } from "@orcai/s3/server";
 import { SpiceDbLive } from "@orcai/spice-db";
 import * as Layer from "effect/Layer";
+import { BetterAuthLive } from "@/lib/auth/auth";
 import { ProceduresLive } from "@/lib/orpc/implementation/procedures-live";
 import { AuthzLive, AuthzReplayLive } from "./services/authz";
 import { AppConfigLive } from "./services/config";
@@ -31,7 +32,11 @@ export const AppServices = Layer.mergeAll(
 	ObservabilityLive,
 	AiTelemetryLive,
 	ProceduresLive,
-	AppInfra,
+	// Its callbacks run with the services it captures, tracer and logger included.
+	BetterAuthLive.pipe(
+		Layer.provide(ObservabilityLive),
+		Layer.provideMerge(AppInfra),
+	),
 );
 
 /** The app's services with pg-boss and the outbox replay loop. */

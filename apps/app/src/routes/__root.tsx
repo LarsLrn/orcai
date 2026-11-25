@@ -26,7 +26,7 @@ import { ConfirmDialogProvider } from "@/components/ui/composed/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getRenderTimeZone } from "@/hooks/use-display-time";
-import { auth } from "@/lib/auth/auth";
+import { BetterAuth } from "@/lib/auth/better-auth";
 import { requiresTwoFactor } from "@/lib/auth/two-factor-policy";
 import { currentActiveOrganization } from "@/lib/authz/organization-access";
 import { runPromise } from "@/lib/effect/runtime";
@@ -45,6 +45,7 @@ const getSession = createServerFn({
 	runPromise(
 		Effect.gen(function* () {
 			const { headers } = getRequest();
+			const auth = yield* BetterAuth;
 			const sessionData = yield* Effect.tryPromise(() =>
 				auth.api.getSession({
 					headers,

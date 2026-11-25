@@ -3,7 +3,14 @@ import { INSTANCE_ADMIN_ROLE } from "@orcai/core";
 import { userIdSchema } from "@orcai/schema";
 import { call, ORPCError, os } from "@orpc/server";
 import * as Context from "effect/Context";
+import { BetterAuth } from "@/lib/auth/better-auth";
+import { AppConfigService } from "@/lib/effect/services/config";
+import { mapEffectErrors } from "@/lib/orpc/implementation/error-mapping";
 import type { AppEffectContext } from "@/lib/orpc/implementation/os";
+import {
+	requiredAuthMiddleware,
+	requireInstanceAdminMiddleware,
+} from "./require";
 
 const USER_ID = userIdSchema.parse("7b6d7c0e-2a3f-4c1d-9e8f-0a1b2c3d4e5f");
 
@@ -14,22 +21,6 @@ let session: {
 } | null = null;
 
 const getSession = mock(() => Promise.resolve(session));
-
-mock.module("@/lib/auth/auth", () => ({
-	auth: {
-		api: {
-			getSession,
-		},
-	},
-}));
-
-const { AppConfigService } = await import("@/lib/effect/services/config");
-const { mapEffectErrors } = await import(
-	"@/lib/orpc/implementation/error-mapping"
-);
-const { requiredAuthMiddleware, requireInstanceAdminMiddleware } = await import(
-	"./require"
-);
 
 const base = os.$context<
 	AppEffectContext & {
@@ -63,7 +54,13 @@ const requestContext = () => ({
 		docs: undefined,
 		publicConfig: {},
 		warnings: [],
-	}) as AppEffectContext["effect/context"],
+	}).pipe(
+		Context.add(BetterAuth, {
+			api: {
+				getSession,
+			},
+		} as never),
+	) as AppEffectContext["effect/context"],
 	"effect/wrap": mapEffectErrors,
 });
 

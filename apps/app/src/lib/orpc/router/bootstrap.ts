@@ -2,7 +2,7 @@ import { INSTANCE_ADMIN_ROLE, normalizeEmail } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { count, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { auth } from "@/lib/auth/auth";
+import { BetterAuth } from "@/lib/auth/better-auth";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { insertOrganization } from "@/lib/organizations/organization-lifecycle";
@@ -66,6 +66,7 @@ const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 	input,
 }) {
 	const db = yield* DB;
+	const auth = yield* BetterAuth;
 	const authContext = yield* Effect.promise(() => auth.$context);
 	const email = normalizeEmail(input.email);
 	const now = new Date();
