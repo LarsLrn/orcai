@@ -10,6 +10,7 @@ import { groupOutline } from "./group-outline";
 
 export const createGroupTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Create a new group in the active organisation. To rename or describe an existing group, use updateGroup.",
 		inputSchema: createGroupInputSchema,

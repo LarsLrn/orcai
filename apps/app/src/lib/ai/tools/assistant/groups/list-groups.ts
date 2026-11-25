@@ -6,6 +6,7 @@ import { listGroupsInputSchema } from "./list-groups.declaration";
 
 export const listGroupsTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description: `List the groups of the active organisation that the user can see, newest first, optionally only those whose name matches. System groups such as All members are managed by OrcAI. ${PAGING_NOTE}`,
 		inputSchema: listGroupsInputSchema,
 		run: ({ query, page }) =>

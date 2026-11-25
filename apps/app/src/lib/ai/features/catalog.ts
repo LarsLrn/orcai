@@ -53,10 +53,11 @@ export const featureCatalog = {
 	webSearch: feature({
 		settingsSchema: webSearchSettingsSchema,
 		// Each search tool describes itself, so a turn without one reads nothing about search.
-		buildTools: ({ settings, turn }) =>
+		buildTools: ({ context, settings, turn }) =>
 			buildWebSearchTools({
 				webSearch: turn.webSearch,
 				allowedDomains: settings.allowedDomains,
+				context,
 			}),
 		prompt: () => "",
 	}),

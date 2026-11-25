@@ -15,6 +15,7 @@ import { revokeAccessInputSchema } from "./revoke-access.declaration";
 
 export const revokeAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Remove one user's or group's direct grant on a bot, block or asset. Access they have through a group, or through a bot or block it belongs to, stays. The last manager keeps the role.",
 		inputSchema: revokeAccessInputSchema,

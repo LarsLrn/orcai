@@ -6,6 +6,7 @@ import { listMembersInputSchema } from "./list-members.declaration";
 
 export const listMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description: `List the members of the active organisation with their names, emails and organisation roles, newest first. Use it to find the user id the people tools take. ${PAGING_NOTE}`,
 		inputSchema: listMembersInputSchema,
 		run: ({ query, page }) =>

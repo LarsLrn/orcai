@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import {
+	answers,
+	fakeContext,
+	procedureCalls,
+	resetProcedures,
+} from "../test-procedures";
+import { createAssistantTurn } from "../turn-state";
+import { prepareAssetAgainTool } from "./prepare-asset-again";
 
 beforeEach(() => {
 	resetProcedures();
@@ -17,15 +23,12 @@ beforeEach(() => {
 		});
 });
 
-const { prepareAssetAgainTool } = await import("./prepare-asset-again");
-const { createAssistantTurn } = await import("../turn-state");
-
 const assetId = crypto.randomUUID() as AssetId;
 const repositoryId = crypto.randomUUID() as BlockId;
 
 const run = (input: { assetId: AssetId; repositoryId?: BlockId }) =>
 	prepareAssetAgainTool({
-		context: {} as ORPCContext,
+		context: fakeContext,
 		turn: createAssistantTurn({
 			zedToken: undefined,
 		}),

@@ -1,6 +1,7 @@
-import { mock } from "bun:test";
+import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
 	type ProcedureClients,
 	Procedures,
@@ -82,15 +83,14 @@ const fakeProcedures = new Proxy(
 /** The fake procedure clients. */
 export const FakeServices = Layer.succeed(Procedures, fakeProcedures);
 
+/** A request context whose effects, tool runs among them, call the fakes. */
+export const fakeContext = {
+	secureCookies: false,
+	"effect/context": Context.make(Procedures, fakeProcedures),
+} as ORPCContext;
+
 /** Runs with the fakes; the real runtime builds the app's layers, which need its configuration. */
 export const runPromise = <A, E>(
 	effect: Effect.Effect<A, E, Procedures>,
 	options?: Effect.RunOptions,
 ) => Effect.runPromise(Effect.provide(effect, FakeServices), options);
-
-mock.module("@/lib/effect/runtime", () => ({
-	runtime: {
-		runPromise,
-	},
-	runPromise,
-}));

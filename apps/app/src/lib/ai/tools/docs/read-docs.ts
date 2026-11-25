@@ -4,6 +4,7 @@ import * as Effect from "effect/Effect";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { DocsConfig } from "@/lib/effect/services/config";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { readDocsModelOutput } from "./outputs";
 import { readDocsInputSchema } from "./read-docs.declaration";
 
@@ -94,8 +95,15 @@ export const readDocs = ({
 		}),
 	);
 
-export const readDocsTool = ({ docs }: { docs: DocsConfig | undefined }) =>
+export const readDocsTool = ({
+	docs,
+	context,
+}: {
+	docs: DocsConfig | undefined;
+	context: ORPCContext;
+}) =>
 	effectTool({
+		context,
 		description:
 			"Read the OrcAI docs: without a path the index of all pages with their descriptions, with a path one page as Markdown in a <docs-page> tag with its ref, title and path.",
 		inputSchema: readDocsInputSchema,

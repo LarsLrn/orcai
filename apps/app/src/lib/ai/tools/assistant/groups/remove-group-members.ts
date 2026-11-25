@@ -10,6 +10,7 @@ import { removeGroupMembersToolInputSchema } from "./remove-group-members.declar
 
 export const removeGroupMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Remove members from a custom group, by user id from listGroupMembers. They lose the access the group holds and stay members of the organisation.",
 		inputSchema: removeGroupMembersToolInputSchema,

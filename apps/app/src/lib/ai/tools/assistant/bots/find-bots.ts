@@ -22,6 +22,7 @@ const toFoundBot = (bot: {
 
 export const findBotsTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description: `Find bots by name among the published bots the user can use and the drafts they can edit, sorted by name. Without a query it pages through all of them. \`favourite\` marks the published bots the user made a favourite. ${PAGING_NOTE}`,
 		inputSchema: findBotsInputSchema,
 		run: ({ query, page }) =>

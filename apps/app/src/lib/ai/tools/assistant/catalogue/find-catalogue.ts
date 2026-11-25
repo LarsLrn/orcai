@@ -6,6 +6,7 @@ import { findCatalogueInputSchema } from "./find-catalogue.declaration";
 
 export const findCatalogueTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description: `Find what organisations on this instance list in the Catalogue: bots, behaviours and repositories, newest first. Pass an entry's \`entry\` to addFromCatalogue. \`state\` tells whether the active organisation is the entry's home organisation, added it already, or can add it with addFromCatalogue. A bot's \`model\` is what its home organisation's setup asks for. ${PAGING_NOTE}`,
 		inputSchema: findCatalogueInputSchema,
 		run: ({ query, kind, page }) =>

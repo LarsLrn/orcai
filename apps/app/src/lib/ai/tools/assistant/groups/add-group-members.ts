@@ -10,6 +10,7 @@ import { addGroupMembersToolInputSchema } from "./add-group-members.declaration"
 
 export const addGroupMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Add members of the active organisation to a custom group, by user id from listMembers. They gain the access the group holds.",
 		inputSchema: addGroupMembersToolInputSchema,

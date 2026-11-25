@@ -31,10 +31,12 @@ const chatTools = ({
 	repositoryTools,
 	citations,
 	history,
+	context,
 }: {
 	repositoryTools: ReturnType<typeof buildRepositoryTools>;
 	citations: boolean;
 	history: readonly UIMessage[];
+	context: ORPCContext;
 }) => ({
 	...repositoryTools,
 	...buildGenUiTools({
@@ -44,7 +46,7 @@ const chatTools = ({
 		history,
 	}),
 	// Search runs only where the turn offers it; these read stored calls.
-	...storedWebSearchTools(),
+	...storedWebSearchTools(context),
 });
 
 export type ChatTools = ReturnType<typeof chatTools>;
@@ -101,6 +103,7 @@ export const createChatAgent = (params: {
 		repositoryTools,
 		citations,
 		history: params.history,
+		context: params.context,
 	});
 	const offeredBuilt: ToolSet = hasRepositories
 		? {

@@ -1,9 +1,10 @@
-import { logErrorCause } from "@orcai/observability";
+import { logErrorCause, withActiveSpan } from "@orcai/observability";
 import { ORPCError } from "@orpc/client";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
-import { type AppRuntimeContext, runPromise } from "@/lib/effect/runtime";
+import type { AppRuntimeContext } from "@/lib/effect/runtime";
 import { isErrorReason } from "@/lib/errors/is-error-reason";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 
 /**
  * A failed call as the model reads it: the reason code, then the server
@@ -74,31 +75,40 @@ const isAnswered = (error: unknown): boolean =>
 		: error instanceof ORPCError && error.code !== "INTERNAL_SERVER_ERROR";
 
 /**
- * Runs a tool's effect with the call's abort signal. A failure or defect
- * rejects with an `AssistantToolError`, which the SDK turns into the tool
- * error; one that failed on the server is logged and kept as its cause.
+ * Runs a tool's effect with the services of the call's context and its abort
+ * signal. A failure or defect rejects with an `AssistantToolError`, which the
+ * SDK turns into the tool error; one that failed on the server is logged and
+ * kept as its cause.
  */
 export const runAssistantTool = <A, E>(
 	effect: Effect.Effect<A, E, AppRuntimeContext>,
-	abortSignal: AbortSignal | undefined,
+	{
+		context,
+		abortSignal,
+	}: {
+		context: ORPCContext;
+		abortSignal: AbortSignal | undefined;
+	},
 ): Promise<A> =>
-	runPromise(
-		effect.pipe(
-			Effect.catchCause(
-				(cause): Effect.Effect<never, E | AssistantToolError> => {
-					if (Cause.hasInterruptsOnly(cause)) return Effect.failCause(cause);
-					const error = Cause.squash(cause);
-					const failed = Effect.fail(
-						new AssistantToolError(toolErrorText(error), {
-							cause: error,
-						}),
-					);
-					return isAnswered(error)
-						? failed
-						: logErrorCause("Assistant tool failed", cause).pipe(
-								Effect.andThen(failed),
-							);
-				},
+	Effect.runPromiseWith(context["effect/context"])(
+		withActiveSpan(
+			effect.pipe(
+				Effect.catchCause(
+					(cause): Effect.Effect<never, E | AssistantToolError> => {
+						if (Cause.hasInterruptsOnly(cause)) return Effect.failCause(cause);
+						const error = Cause.squash(cause);
+						const failed = Effect.fail(
+							new AssistantToolError(toolErrorText(error), {
+								cause: error,
+							}),
+						);
+						return isAnswered(error)
+							? failed
+							: logErrorCause("Assistant tool failed", cause).pipe(
+									Effect.andThen(failed),
+								);
+					},
+				),
 			),
 		),
 		{

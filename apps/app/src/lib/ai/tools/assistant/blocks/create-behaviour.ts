@@ -10,6 +10,7 @@ import { createBehaviourInputSchema } from "./create-behaviour.declaration";
 
 export const createBehaviourTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Create a new behaviour: the reusable system prompt that sets how a bot answers. To change an existing one, use updateBehaviour.",
 		inputSchema: createBehaviourInputSchema,

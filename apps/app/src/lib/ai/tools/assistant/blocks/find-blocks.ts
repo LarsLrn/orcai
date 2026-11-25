@@ -6,6 +6,7 @@ import { findBlocksInputSchema } from "./find-blocks.declaration";
 
 export const findBlocksTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description: `Find behaviours or repositories by name among the published ones the user can read and the drafts they can edit, newest first. Without a query it pages through all of them. ${PAGING_NOTE}`,
 		inputSchema: findBlocksInputSchema,
 		run: ({ type, query, page }) =>

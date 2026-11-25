@@ -3,8 +3,10 @@ import { providerCompaction } from "@orcai/ai";
 import type { ModelProviderKind } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { resetProcedures } from "../tools/assistant/test-procedures";
+import {
+	fakeContext,
+	resetProcedures,
+} from "../tools/assistant/test-procedures";
 import { answerSetup, assistantRow, conversation } from "../turn/test-turn";
 import type { Body } from "./test-provider";
 
@@ -321,9 +323,7 @@ describe("a stored loadTools result replayed on Anthropic", () => {
 				providerId: "provider",
 				modelId: "claude-opus-5-5",
 			},
-			context: {
-				secureCookies: false,
-			} as ORPCContext,
+			context: fakeContext,
 			sources: chatSources([]),
 			turn: createAssistantTurn({
 				zedToken: undefined,
@@ -486,9 +486,7 @@ describe("tool executions", () => {
 				providerId: "provider",
 				modelId: "claude-opus-5-5",
 			},
-			context: {
-				secureCookies: false,
-			} as ORPCContext,
+			context: fakeContext,
 			sources: chatSources([]),
 			turn: createAssistantTurn({
 				zedToken: undefined,

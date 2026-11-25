@@ -7,6 +7,7 @@ import { expectTarget, toResourceIdentity } from "./resource-target";
 
 export const listAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"List who has access to a bot, block or asset: direct grants with their roles (viewer, editor, manager, as in grantAccess), and the users and groups that reach it through a bot or block it belongs to. The user needs Can manage on the item.",
 		inputSchema: listAccessInputSchema,

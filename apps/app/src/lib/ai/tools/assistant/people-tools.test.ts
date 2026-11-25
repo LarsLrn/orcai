@@ -3,14 +3,23 @@ import type { GroupId, OrganizationInvitationId, UserId } from "@orcai/core";
 import { ORPCError } from "@orpc/client";
 import type { Tool } from "ai";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { cookieName } from "@/paraglide/runtime";
+import { deleteGroups } from "./groups/delete-group";
+import {
+	cancelInvitations,
+	cancelInvitationTool,
+} from "./members/cancel-invitation";
+import { changeMemberRoleTool } from "./members/change-member-role";
+import { inviteMembers } from "./members/invite-members";
+import { removeMembers, removeMembersTool } from "./members/remove-members";
 import {
 	answers,
+	fakeContext,
 	procedureCalls,
 	resetProcedures,
 	runPromise,
 } from "./test-procedures";
+import { createAssistantTurn } from "./turn-state";
 
 const id = (index: number) =>
 	`6a1f1c1e-2a3f-4c1d-9e8f-0a1b2c3d4e${String(index).padStart(2, "0")}`;
@@ -114,22 +123,11 @@ beforeEach(() => {
 		});
 });
 
-const { deleteGroups } = await import("./groups/delete-group");
-const { removeMembers, removeMembersTool } = await import(
-	"./members/remove-members"
-);
-const { changeMemberRoleTool } = await import("./members/change-member-role");
-const { cancelInvitations, cancelInvitationTool } = await import(
-	"./members/cancel-invitation"
-);
-const { inviteMembers } = await import("./members/invite-members");
-const { createAssistantTurn } = await import("./turn-state");
-
 const deps = (reqHeaders?: Headers) => ({
 	context: {
-		secureCookies: false,
+		...fakeContext,
 		reqHeaders,
-	} as ORPCContext,
+	},
 	turn: createAssistantTurn({
 		zedToken: undefined,
 	}),

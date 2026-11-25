@@ -45,6 +45,7 @@ export const removeMembers = (
 
 export const removeMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Remove members from the active organisation. They lose their role, their group memberships and the access granted to them there. The bots, blocks and Library assets they own here go to one receiver, and the result names the receiver and what moved. Chats and chat uploads stay theirs. Only admins can remove admins, and the last admin stays.",
 		inputSchema: removeMembersInputSchema,

@@ -1,21 +1,11 @@
-import { describe, expect, mock, test } from "bun:test";
-import type * as Effect from "effect/Effect";
+import { describe, expect, test } from "bun:test";
+import { listInvitationsTool } from "@/lib/ai/tools/assistant/members/list-invitations";
+import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import { mapEffectErrors } from "@/lib/orpc/implementation/error-mapping";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions } = appIntegration();
-
-// Assistant tools run on the app's runtime; here it is the test's.
-mock.module("@/lib/effect/runtime", () => ({
-	runPromise: <A, E>(effect: Effect.Effect<A, E, never>) => run(effect),
-}));
-const { listInvitationsTool } = await import(
-	"@/lib/ai/tools/assistant/members/list-invitations"
-);
-const { createAssistantTurn } = await import(
-	"@/lib/ai/tools/assistant/turn-state"
-);
 
 /** A manager the admin demotes to member, and the tokens from before and after. */
 const demotedManager = async () => {

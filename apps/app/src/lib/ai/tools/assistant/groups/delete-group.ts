@@ -34,6 +34,7 @@ export const deleteGroups = (deps: AssistantToolDeps, ids: GroupId[]) =>
 
 export const deleteGroupTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Delete groups of the active organisation. Their members lose the access the groups granted. System groups such as All members cannot be deleted.",
 		inputSchema: deleteGroupInputSchema,

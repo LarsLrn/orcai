@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { BlockId } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import {
+	answers,
+	fakeContext,
+	procedureCalls,
+	resetProcedures,
+} from "../test-procedures";
+import { createAssistantTurn } from "../turn-state";
+import { createBehaviourTool } from "./create-behaviour";
 import { createBehaviourInputSchema } from "./create-behaviour.declaration";
 
 const behaviourId = crypto.randomUUID() as BlockId;
@@ -19,9 +25,6 @@ beforeEach(() => {
 		});
 });
 
-const { createBehaviourTool } = await import("./create-behaviour");
-const { createAssistantTurn } = await import("../turn-state");
-
 describe("createBehaviourTool", () => {
 	test("the schema requires a name and a system prompt", () => {
 		expect(
@@ -33,7 +36,7 @@ describe("createBehaviourTool", () => {
 
 	test("a create is a draft with the given system prompt", async () => {
 		const output = await createBehaviourTool({
-			context: {} as ORPCContext,
+			context: fakeContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),

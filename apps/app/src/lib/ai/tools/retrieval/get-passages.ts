@@ -44,6 +44,7 @@ export const getPassagesTool = ({
 		(POINT_ID.test(refOrId) ? refOrId : undefined);
 
 	return effectTool({
+		context,
 		description:
 			"Read the text around passages from earlier results, such as the rest of a list or an argument that breaks off. Passages next to each other in one asset come back joined as one passage. For an image description, it returns the text on the image's page instead. Use it only when you need that context, since searchRepositories already returns each passage in full.",
 		inputSchema: getPassagesInputSchema,

@@ -9,6 +9,7 @@ import { generateAssetMetadataInputSchema } from "./generate-asset-metadata.decl
 
 export const generateAssetMetadataTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Generate metadata (title, source type, bibliographic fields, citation label, description, language) for Library assets with the organisation's utility model, in the background. Only assets whose metadata was never generated or failed are queued. Only empty fields are filled, and the title only while it is still the uploaded file's name. To replace values, point the user to Generate with AI in the asset's metadata editor, or use updateAsset with the values the user gives.",
 		inputSchema: generateAssetMetadataInputSchema,

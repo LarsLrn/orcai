@@ -10,6 +10,7 @@ import { updateAssetInputSchema } from "./update-asset.declaration";
 
 export const updateAssetTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Change an asset's title or metadata. Only the given metadata fields change. To add new assets, use requestUpload.",
 		inputSchema: updateAssetInputSchema,

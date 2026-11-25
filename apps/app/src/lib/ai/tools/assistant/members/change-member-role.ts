@@ -11,6 +11,7 @@ import { receiverOf } from "./receiver";
 
 export const changeMemberRoleTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Change a member's role in the active organisation. Only admins can make or unmake admins, and the last admin keeps the role. A Viewer cannot own content, so a member made a Viewer hands the bots, blocks and Library assets they own here to one receiver, and the result names the receiver and what moved.",
 		inputSchema: changeMemberRoleInputSchema,

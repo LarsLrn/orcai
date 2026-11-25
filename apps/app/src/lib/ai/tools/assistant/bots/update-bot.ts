@@ -50,6 +50,7 @@ export const updateBotPayload = (
 
 export const updateBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Update an existing bot: name, description, behaviour, repositories, features and its model in the active organisation, with how many of its audience a quota pool covers. Give only the fields that change. Everything else, including the status and the rich description, is kept. A setup that fails comes back as setupError while the other changes are saved. To create a bot, use createBot.",
 		inputSchema: updateBotInputSchema,

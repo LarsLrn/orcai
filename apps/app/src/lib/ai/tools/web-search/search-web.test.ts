@@ -1,11 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import type { WebSearchQuery } from "@orcai/ai";
 import * as Effect from "effect/Effect";
-import "../assistant/test-procedures";
-
-const { AssistantToolError } = await import("@/lib/ai/tools/tool-error");
-const { searchWebTool } = await import("./search-web");
-const { searchWebModelOutput } = await import("./outputs");
+import { AssistantToolError } from "@/lib/ai/tools/tool-error";
+import { fakeContext } from "../assistant/test-procedures";
+import { searchWebModelOutput } from "./outputs";
+import { searchWebTool } from "./search-web";
 
 const call = {
 	toolCallId: "search",
@@ -16,6 +15,7 @@ describe("searchWebTool", () => {
 	test("searches within the allowed domains and answers with url, title and content", async () => {
 		const searches: WebSearchQuery[] = [];
 		const tool = searchWebTool({
+			context: fakeContext,
 			search: (query) => {
 				searches.push(query);
 				return Effect.succeed([
@@ -60,6 +60,7 @@ describe("searchWebTool", () => {
 
 	test("a failed search reaches the model as the tool's error", async () => {
 		const tool = searchWebTool({
+			context: fakeContext,
 			search: () =>
 				Effect.fail(
 					new AssistantToolError(

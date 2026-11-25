@@ -3,20 +3,14 @@ import type { ReadRevision } from "@orcai/spice-db";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import { readRevision } from "@/lib/authz/zed-token";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import type { ProcedureClients } from "@/lib/orpc/implementation/procedures";
+import { AssistantToolError, runAssistantTool } from "../tool-error";
 import type { ProcedureOptions } from "./procedure-tool";
-import { runPromise } from "./test-procedures";
+import { callProcedure, expectType, mutation } from "./procedure-tool";
+import { fakeContext, runPromise } from "./test-procedures";
 import { createAssistantTurn } from "./turn-state";
 
-const { callProcedure, expectType, mutation } = await import(
-	"./procedure-tool"
-);
-const { AssistantToolError, runAssistantTool } = await import("../tool-error");
-
-const context = {
-	secureCookies: false,
-} as ORPCContext;
+const context = fakeContext;
 
 const rejection = (promise: Promise<unknown>) =>
 	promise.then(
@@ -25,6 +19,12 @@ const rejection = (promise: Promise<unknown>) =>
 		},
 		(error: unknown) => error,
 	);
+
+/** A call without an abort signal. */
+const noSignal = {
+	context: fakeContext,
+	abortSignal: undefined,
+};
 
 describe("callProcedure", () => {
 	test("calls in the user's context, reading at the turn's newest zedToken", async () => {
@@ -95,7 +95,7 @@ describe("expectType", () => {
 		const error = await rejection(
 			runAssistantTool(
 				notFound("GROUP_NOT_FOUND").pipe(expectType("group", "g-1")),
-				undefined,
+				noSignal,
 			),
 		);
 
@@ -120,7 +120,7 @@ describe("expectType", () => {
 						"r-2",
 					]),
 				),
-				undefined,
+				noSignal,
 			),
 		);
 
@@ -131,12 +131,12 @@ describe("expectType", () => {
 
 	test("a bare NOT_FOUND counts; another type's reason passes unchanged", async () => {
 		const bare = await rejection(
-			runAssistantTool(notFound().pipe(expectType("bot", "b-1")), undefined),
+			runAssistantTool(notFound().pipe(expectType("bot", "b-1")), noSignal),
 		);
 		const other = await rejection(
 			runAssistantTool(
 				notFound("MEMBER_NOT_FOUND").pipe(expectType("group", "g-1")),
-				undefined,
+				noSignal,
 			),
 		);
 
@@ -149,7 +149,7 @@ describe("expectType", () => {
 
 describe("mutation", () => {
 	const mutate = (effect: Effect.Effect<unknown, unknown>) =>
-		rejection(runAssistantTool(effect.pipe(mutation("getBot")), undefined));
+		rejection(runAssistantTool(effect.pipe(mutation("getBot")), noSignal));
 
 	test.each([
 		[

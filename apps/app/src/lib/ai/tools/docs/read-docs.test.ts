@@ -2,11 +2,10 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as TestClock from "effect/testing/TestClock";
-import "../assistant/test-procedures";
+import { AssistantToolError } from "@/lib/ai/tools/tool-error";
+import { fakeContext } from "../assistant/test-procedures";
 import type { DocsFetch } from "./read-docs";
-
-const { AssistantToolError } = await import("@/lib/ai/tools/tool-error");
-const { docsPageTitle, readDocs, readDocsTool } = await import("./read-docs");
+import { docsPageTitle, readDocs, readDocsTool } from "./read-docs";
 
 const INDEX = `# OrcAI
 
@@ -280,6 +279,7 @@ describe("readDocsTool", () => {
 	test("fails with the docs' message, which the model reads", async () => {
 		const execute = readDocsTool({
 			docs: undefined,
+			context: fakeContext,
 		}).execute;
 
 		await expect(

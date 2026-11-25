@@ -41,6 +41,7 @@ export const cancelInvitations = (
 
 export const cancelInvitationTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Withdraw invitations to the active organisation, so they can no longer be accepted.",
 		inputSchema: cancelInvitationInputSchema,

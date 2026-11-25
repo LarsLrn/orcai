@@ -10,6 +10,7 @@ import { toCatalogueEntry } from "./catalogue-entry-input";
 
 export const addFromCatalogueTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Add a bot, behaviour or repository from the Catalogue to the active organisation's Library. For new files, use requestUpload instead. Nobody in the organisation can use it until it is shared with grantAccess, for use only (role viewer). Set an added bot's model with updateBotSetup. Adding what the organisation has already changes nothing, and with withBlocks the blocks it has already are skipped.",
 		inputSchema: addFromCatalogueInputSchema,

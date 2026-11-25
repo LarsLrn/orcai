@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import {
+	answers,
+	fakeContext,
+	procedureCalls,
+	resetProcedures,
+} from "../test-procedures";
+import { createAssistantTurn } from "../turn-state";
+import { generateAssetMetadataTool } from "./generate-asset-metadata";
 
 beforeEach(() => {
 	resetProcedures();
@@ -11,9 +17,6 @@ beforeEach(() => {
 			count: 1,
 		});
 });
-
-const { generateAssetMetadataTool } = await import("./generate-asset-metadata");
-const { createAssistantTurn } = await import("../turn-state");
 
 const assetIds = [
 	crypto.randomUUID() as AssetId,
@@ -24,7 +27,7 @@ describe("generateAssetMetadataTool", () => {
 	test("queues the assets and counts those it skipped", async () => {
 		expect(
 			await generateAssetMetadataTool({
-				context: {} as ORPCContext,
+				context: fakeContext,
 				turn: createAssistantTurn({
 					zedToken: undefined,
 				}),
@@ -56,7 +59,7 @@ describe("generateAssetMetadataTool", () => {
 
 		expect(
 			await generateAssetMetadataTool({
-				context: {} as ORPCContext,
+				context: fakeContext,
 				turn: createAssistantTurn({
 					zedToken: undefined,
 				}),

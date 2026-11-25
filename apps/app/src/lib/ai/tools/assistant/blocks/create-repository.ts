@@ -16,6 +16,7 @@ import { createRepositoryInputSchema } from "./create-repository.declaration";
 
 export const createRepositoryTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Create a new repository with the default retrieval settings, optionally holding Library assets. To change an existing one, use updateRepository.",
 		inputSchema: createRepositoryInputSchema,

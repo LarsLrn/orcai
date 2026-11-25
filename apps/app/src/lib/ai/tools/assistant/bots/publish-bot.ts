@@ -11,6 +11,7 @@ import { publishBotToolInputSchema } from "./publish-bot.declaration";
 
 export const publishBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Publish a draft bot so the people it is shared with can chat with it. It needs a published behaviour, and every linked repository published with at least one asset. Otherwise the error names what is missing.",
 		inputSchema: publishBotToolInputSchema,

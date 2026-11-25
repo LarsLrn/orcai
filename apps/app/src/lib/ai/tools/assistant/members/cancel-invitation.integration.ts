@@ -1,17 +1,11 @@
-import { describe, expect, mock, test } from "bun:test";
-import type * as Effect from "effect/Effect";
+import { describe, expect, test } from "bun:test";
 import { mapEffectErrors } from "@/lib/orpc/implementation/error-mapping";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
+import { createAssistantTurn } from "../turn-state";
+import { cancelInvitations } from "./cancel-invitation";
 
 const { run, organizationWith, procedureOptions } = appIntegration();
-
-// Assistant tools run on the app's runtime; here it is the test's.
-mock.module("@/lib/effect/runtime", () => ({
-	runPromise: <A, E>(effect: Effect.Effect<A, E, never>) => run(effect),
-}));
-const { cancelInvitations } = await import("./cancel-invitation");
-const { createAssistantTurn } = await import("../turn-state");
 
 describe("cancelInvitation", () => {
 	test(

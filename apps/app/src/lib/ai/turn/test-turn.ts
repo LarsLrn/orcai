@@ -20,10 +20,13 @@ import type { ChatConfig, ClientToolOutput } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { AppConfigService } from "@/lib/effect/services/config";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { memberCapabilities, scriptedFetch } from "../agents/test-provider";
 import { RunningCallsWait } from "../tools/assistant/running-calls";
-import { answers, FakeServices } from "../tools/assistant/test-procedures";
+import {
+	answers,
+	FakeServices,
+	fakeContext,
+} from "../tools/assistant/test-procedures";
 import type { ReplyStore, StoredChat } from "./reply-store";
 
 /**
@@ -66,9 +69,7 @@ export const requester = {
 		name: "Ada",
 		email: "ada@example.org",
 	},
-	context: {
-		secureCookies: false,
-	} as ORPCContext,
+	context: fakeContext,
 };
 
 export const chatRow = (chat: Partial<StoredChat> = {}): StoredChat => ({

@@ -11,6 +11,7 @@ import { updateGroupInputSchema } from "./update-group.declaration";
 
 export const updateGroupTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Rename an existing group or change its description. Give only the fields that change. System groups such as All members cannot be changed. To create a group, use createGroup.",
 		inputSchema: updateGroupInputSchema,

@@ -3,8 +3,14 @@ import type { BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
 import type { BotEditor, BotSetup, BotSetupFields } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import {
+	answers,
+	fakeContext,
+	procedureCalls,
+	resetProcedures,
+} from "../test-procedures";
+import { createAssistantTurn } from "../turn-state";
+import { createBotPayload, createBotTool } from "./create-bot";
 import { createBotInputSchema } from "./create-bot.declaration";
 
 beforeEach(() => {
@@ -18,9 +24,6 @@ beforeEach(() => {
 			data: editor,
 		});
 });
-
-const { createBotPayload, createBotTool } = await import("./create-bot");
-const { createAssistantTurn } = await import("../turn-state");
 
 const botId = crypto.randomUUID() as BotId;
 const behaviourId = crypto.randomUUID() as BlockId;
@@ -110,7 +113,7 @@ describe("createBotPayload", () => {
 describe("createBotTool", () => {
 	const create = (toolCallId: string, setup?: BotSetupFields | null) =>
 		createBotTool({
-			context: {} as ORPCContext,
+			context: fakeContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
@@ -249,7 +252,7 @@ describe("createBotTool", () => {
 			);
 		await expect(
 			createBotTool({
-				context: {} as ORPCContext,
+				context: fakeContext,
 				turn: createAssistantTurn({
 					zedToken: undefined,
 				}),

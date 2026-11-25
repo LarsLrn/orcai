@@ -6,6 +6,7 @@ import { listInvitationsInputSchema } from "./list-invitations.declaration";
 
 export const listInvitationsTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description: `List the invitations of the active organisation with one status, pending unless you pass another, newest first. A pending invitation past its expiry can no longer be accepted. ${PAGING_NOTE}`,
 		inputSchema: listInvitationsInputSchema,
 		run: ({ status, page }) =>

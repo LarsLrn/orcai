@@ -1,5 +1,6 @@
 import * as Effect from "effect/Effect";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import type { MeteredWebSearch } from "./metered-web-search";
 import { type SearchWebOutput, searchWebModelOutput } from "./outputs";
 import { searchWebInputSchema } from "./search-web.declaration";
@@ -9,11 +10,14 @@ const WEB_SEARCH_MAX_RESULTS = 5;
 export const searchWebTool = ({
 	search,
 	allowedDomains,
+	context,
 }: {
 	search: MeteredWebSearch;
 	allowedDomains: readonly string[];
+	context: ORPCContext;
 }) =>
 	effectTool({
+		context,
 		description: [
 			"Search the web and return the best matching pages, each in a <web-result> tag with its ref, title and url around the text that matches the query.",
 			"Use it for current events, facts you are unsure of, and anything after your knowledge cutoff.",

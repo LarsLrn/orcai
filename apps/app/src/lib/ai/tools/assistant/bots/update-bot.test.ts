@@ -3,8 +3,14 @@ import type { BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
 import type { BotEditor, BotSetupFields } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import {
+	answers,
+	fakeContext,
+	procedureCalls,
+	resetProcedures,
+} from "../test-procedures";
+import { createAssistantTurn } from "../turn-state";
+import { updateBotPayload, updateBotTool } from "./update-bot";
 
 beforeEach(() => {
 	resetProcedures();
@@ -17,9 +23,6 @@ beforeEach(() => {
 			data: editor,
 		});
 });
-
-const { updateBotPayload, updateBotTool } = await import("./update-bot");
-const { createAssistantTurn } = await import("../turn-state");
 
 const botId = crypto.randomUUID() as BotId;
 const behaviourId = crypto.randomUUID() as BlockId;
@@ -160,7 +163,7 @@ describe("updateBotPayload", () => {
 describe("updateBotTool", () => {
 	test("an update reads the editor record and saves it back merged", async () => {
 		const tool = updateBotTool({
-			context: {} as ORPCContext,
+			context: fakeContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
@@ -216,7 +219,7 @@ describe("updateBotTool", () => {
 
 	const run = (input: Record<string, unknown>) =>
 		updateBotTool({
-			context: {} as ORPCContext,
+			context: fakeContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
@@ -395,7 +398,7 @@ describe("updateBotTool", () => {
 
 		await expect(
 			updateBotTool({
-				context: {} as ORPCContext,
+				context: fakeContext,
 				turn,
 			}).execute?.(
 				{

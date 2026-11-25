@@ -15,6 +15,7 @@ import { updateBehaviourInputSchema } from "./update-behaviour.declaration";
 
 export const updateBehaviourTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Update an existing behaviour: name, description, system prompt and status. Give only the fields that change. Everything else, including its rich content, is kept. To create one, use createBehaviour.",
 		inputSchema: updateBehaviourInputSchema,

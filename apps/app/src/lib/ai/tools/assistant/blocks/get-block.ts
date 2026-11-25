@@ -25,6 +25,7 @@ const readinessOf = (deps: AssistantToolDeps, repositoryId: BlockId) =>
 
 export const getBlockTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Read one behaviour or repository by id: name, description, status and what the user may do with it. A behaviour comes with its system prompt. A repository comes with its asset totals and each asset's preparation state there: queued, processing, indexing, ready or failed, with the failed stage and reason. Only ready assets are searchable.",
 		inputSchema: getBlockInputSchema,
