@@ -3,7 +3,7 @@ title: Localisation
 description: How interface copy is translated, how messages are named, and how tests find translated text.
 ---
 
-The app is translated with [Paraglide](https://inlang.com/m/gerre34r/library-inlang-paraglideJs). Copy lives in `apps/app/messages/<locale>.json`, one file per locale, and compiles to typed message functions under `apps/app/src/paraglide`. That output is generated, not committed. `bun run test` and `bun run ci` compile it first, and the Vite plugin does the same during `dev` and `build`, but the app's own `test` script expects it already compiled.
+The app is translated with [Paraglide](https://paraglidejs.com). Copy lives in `apps/app/messages/<locale>.json`, one file per locale, and compiles to typed message functions under `apps/app/src/paraglide`. That output is generated, not committed. `bun run test` and `bun run ci` compile it first, and the Vite plugin does the same during `dev` and `build`, but the app's own `test` script expects it already compiled. `apps/app/project.inlang/paraglide.config.ts` holds the options that the compile script and the Vite plugin share: one module per message on disk, because tests and scripts load the messages without Vite, and TypeScript declarations, which type checks read instead of the generated JavaScript.
 
 ## Locale resolution
 
@@ -58,7 +58,7 @@ Notification emails have their own catalogue in `packages/notifications/messages
 - Verification and password reset emails use the recipient's stored locale, falling back to the locale of the request that sent them.
 - Invitations use the language the inviter picks in the invitation form, which defaults to the inviter's own. The invitation stores no language and its link carries none, so the account creation page follows the visitor's cookie or browser.
 
-The catalogue compiles to `packages/notifications/src/paraglide`, which is generated, not committed. The package has no bundler plugin, so its `paraglide:compile` script runs before the app's and the workers' `dev` and `build` (which the workers image runs), `bun run lint` and `bun run test`. A message change needs a restart of the dev server or workers.
+The catalogue compiles to `packages/notifications/src/paraglide` with TypeScript declarations, like the app's, and that output is generated, not committed. The package has no bundler plugin, so its `paraglide:compile` script runs before the app's and the workers' `dev` and `build` (which the workers image runs), `bun run lint` and `bun run test`. A message change needs a restart of the dev server or workers.
 
 ## German
 

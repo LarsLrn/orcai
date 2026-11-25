@@ -3,7 +3,6 @@
 	"include": [
 		"src/**/*.ts",
 		"src/**/*.tsx",
-		"src/paraglide/**/*.js",
 		"project.inlang/paraglide.config.ts",
 		"test/**/*.ts",
 		"test/**/*.tsx"

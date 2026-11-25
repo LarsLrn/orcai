@@ -49,6 +49,7 @@ yarn-error.log*
 /src/paraglide
 /apps/*/src/paraglide
 /packages/*/src/paraglide
+**/project.inlang/cache
 
 # devtools
 .devtools
