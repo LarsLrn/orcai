@@ -76,6 +76,7 @@
 				"noVar": "error",
 				"useAwait": "warn", // Typically async functions without await don't need it
 				"noDeprecatedImports": "error",
+				"noImportCycles": "error",
 				"noDrizzleDeleteWithoutWhere": {
 					"level": "error",
 					"options": {
@@ -125,6 +126,19 @@
 		}
 	},
 	"overrides": [
+		{
+			// Foreign keys reference each other's tables inside lazy `.references()` callbacks.
+			"includes": [
+				"packages/db/src/schema/**"
+			],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noImportCycles": "off"
+					}
+				}
+			}
+		},
 		{
 			// Test helpers that keep zedTokens are async; an unawaited call reads stale.
 			"includes": [

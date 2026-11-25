@@ -309,7 +309,7 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run start`: run the production server from `apps/app/.output`
 - `bun run workers:dev`: start worker process directly on the host
 - `bun run workers:start`: run the worker bundle from `apps/workers/dist`
-- `bun run lint`: run Biome, the Effect-aware TypeScript check, the migration check, and Knip. Biome also fails a module in `apps/app/src/lib` that imports from `components`, `hooks` or `routes`
+- `bun run lint`: run Biome, the Effect-aware TypeScript check, the migration check, and Knip. Biome also fails a module in `apps/app/src/lib` that imports from `components`, `hooks` or `routes`, and any import cycle outside the Drizzle schema files
 - `bun run ci`: run the same lint, test, docs type-check, and build suite used by GitHub Actions
 - `bun run prompt-evals`: run the prompt evals against real models through OpenRouter, on demand for prompt changes (see `.agents/skills/prompting/EVALS.md`)
 - `bun run stack exec -- bun run retrieval-evals`: run the retrieval evals against the stack's Qdrant and real models, on demand for extraction, indexing and search changes (see the contributing docs)
