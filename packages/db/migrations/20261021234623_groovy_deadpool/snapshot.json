@@ -1,6 +1,6 @@
 {
   "type": "diff",
-  "version": "9",
+  "version": "10",
   "dialect": "postgres",
   "id": "0fd4a731-31bd-4838-a0e5-e33059f24e2a",
   "prevIds": [
@@ -154,7 +154,6 @@
         "where": "\"event_type\" = 'finalized'",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -178,7 +177,6 @@
         "where": "\"event_type\" = 'finalized'",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -202,7 +200,6 @@
         "where": "\"bot_id\" IS NOT NULL",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
