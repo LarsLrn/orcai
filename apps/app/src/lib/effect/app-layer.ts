@@ -6,7 +6,7 @@ import { QuotaReservationsLive } from "@orcai/quota";
 import { S3Live } from "@orcai/s3/server";
 import { SpiceDbLive } from "@orcai/spice-db";
 import * as Layer from "effect/Layer";
-import { ProceduresLive } from "@/lib/orpc/implementation/procedures";
+import { ProceduresLive } from "@/lib/orpc/implementation/procedures-live";
 import { AuthzLive, AuthzReplayLive } from "./services/authz";
 import { AppConfigLive } from "./services/config";
 import { ObservabilityLive } from "./services/observability";
