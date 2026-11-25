@@ -12,7 +12,7 @@
 			"@effect/platform-bun": "4.1.4",
 			"@effect/opentelemetry": "4.1.4",
 			"@effect/sql-pg": "4.1.4",
-			"@inlang/paraglide-js": "2.29.3",
+			"@inlang/paraglide-js": "3.2.2",
 			"@kreuzberg/node": "4.10.2",
 			"@orpc/contract": "2.0.0-beta.48",
 			"@orpc/openapi": "2.0.0-beta.48",

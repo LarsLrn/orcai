@@ -19,7 +19,6 @@
 		"types": [
 			"bun"
 		],
-		"allowJs": true,
 		"verbatimModuleSyntax": true,
 		"moduleResolution": "bundler",
 		"noEmit": true,
