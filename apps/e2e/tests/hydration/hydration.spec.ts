@@ -1,5 +1,10 @@
-import type { Page } from "@playwright/test";
+import type {
+	BrowserContext,
+	BrowserContextOptions,
+	Page,
+} from "@playwright/test";
 import { uploadTogether } from "../../fixtures/activity/uploads";
+import { createApiClient } from "../../fixtures/api";
 import { createBot } from "../../fixtures/assistant/approval";
 import {
 	createMockModel,
@@ -12,42 +17,105 @@ import {
 	behaviourInput,
 	botSave,
 } from "../../fixtures/authz/resources";
-import { setUpChatModel } from "../../fixtures/chat/chat";
+import {
+	chatName,
+	createChat,
+	sendTurn,
+	setUpChatModel,
+} from "../../fixtures/chat/chat";
 import { serverHtml } from "../../fixtures/hydration/server-html";
 import {
 	type ApiClient,
 	expect,
+	signIn,
 	test,
+	WELL_KNOWN_ADMIN,
 	type WorkerOrganisation,
 } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { awaitHydration, enterApp, open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
+import { addMember, createUser } from "../../fixtures/users";
 
-// Far from the server's UTC, so a date written in the wrong zone reads differently.
-const TIME_ZONE = "Pacific/Kiritimati";
+// A date written in UTC instead of the browser's zone reads differently: each
+// test opens its page in a zone where its date falls on another day than in UTC.
+const AHEAD = "Pacific/Kiritimati";
+const BEHIND = "Etc/GMT+12";
 
 test.use({
-	timezoneId: TIME_ZONE,
+	timezoneId: AHEAD,
 });
 
-/** Sets the cookie the app sets after a page loads, so the next load renders in the zone. */
-const seedTimeZone = (page: Page, origin: string) =>
-	page.context().addCookies([
+const dateOf = (value: Date | string | null | undefined) => {
+	if (!value) throw new Error("No date to show");
+	return new Date(value);
+};
+
+/** 14 hours ahead from 10:00 UTC, 12 hours behind before. */
+const zoneAcrossTheDateLine = (at: Date) =>
+	at.getUTCHours() >= 10 ? AHEAD : BEHIND;
+
+/** A date as the app writes it in English in `timeZone`. */
+const inZone = (at: Date, style: "date" | "datetime", timeZone: string) =>
+	new Intl.DateTimeFormat("en-GB", {
+		dateStyle: "medium",
+		timeStyle: style === "datetime" ? "short" : undefined,
+		timeZone,
+	}).format(at);
+
+/** A page and the date of what the test created that it shows. */
+type Shown = {
+	path: string;
+	at: Date;
+	style: "date" | "datetime";
+};
+
+type ContextFixtures = {
+	appBaseURL: string;
+	newContext: (options?: BrowserContextOptions) => Promise<BrowserContext>;
+	seedZedToken: (page: Page) => Promise<void>;
+};
+
+/**
+ * A page in the zone across the date line from `at`, carrying the cookie the
+ * app sets after a page loads, so the next load renders in the zone.
+ */
+const pageInZone = async (
+	{ appBaseURL, newContext, seedZedToken }: ContextFixtures,
+	storageState: BrowserContextOptions["storageState"],
+	at: Date,
+) => {
+	const timeZone = zoneAcrossTheDateLine(at);
+	const context = await newContext({
+		storageState,
+		timezoneId: timeZone,
+	});
+	await context.addCookies([
 		{
 			name: "time_zone",
-			value: TIME_ZONE,
-			url: origin,
+			value: timeZone,
+			url: appBaseURL,
 			sameSite: "Lax",
 		},
 	]);
+	const page = await context.newPage();
+	await seedZedToken(page);
+	return {
+		page,
+		timeZone,
+	};
+};
 
-/** Open a page and check the server rendered it in the zone. */
-const openInTimeZone = async (page: Page, path: string) => {
-	const response = await page.goto(path);
-	expect(await response?.text(), "server render time zone").toContain(
-		`"${TIME_ZONE}"`,
+/** Open the page and check the server rendered it, and its date, in the zone. */
+const openInTimeZone = async (page: Page, timeZone: string, shown: Shown) => {
+	const date = inZone(shown.at, shown.style, timeZone);
+	expect(date, "date written in UTC").not.toBe(
+		inZone(shown.at, shown.style, "UTC"),
 	);
+	const response = await page.goto(shown.path);
+	const html = await response?.text();
+	expect(html, "server render time zone").toContain(`"${timeZone}"`);
+	expect(html, "server rendered date").toContain(date);
 	await awaitHydration(page);
 };
 
@@ -64,80 +132,225 @@ const createProvider = (admin: ApiClient) =>
 		}),
 	);
 
-// Each page in a test of its own, so a test's time stays flat. Entering the
-// organisation loads a page before the time zone cookie is set and sets it, the
-// page under test loads with it. The shared fixtures fail the test on a
-// hydration mismatch.
+const createTitledChat = async (client: ApiClient) => {
+	const title = `Time zone ${runId()}`;
+	const { data: chat } = await client.chat.create({
+		title,
+	});
+	return {
+		title,
+		updatedAt: dateOf(chat.updatedAt),
+	};
+};
+
+// Each page in a test of its own, so a test's time stays flat. The shared
+// fixtures fail the test on a hydration mismatch. Home writes a date only for a
+// chat older than a week, which no public API creates.
 const organisationPages: {
 	readonly name: string;
-	readonly path: (
-		admin: ApiClient,
-		org: WorkerOrganisation,
-	) => Promise<string> | string;
+	readonly show: (admin: ApiClient, org: WorkerOrganisation) => Promise<Shown>;
 }[] = [
 	{
-		name: "the Home page",
-		path: () => "/app",
-	},
-	{
 		name: "the Chat page",
-		path: () => "/app/chat",
-	},
-	{
-		name: "a chat",
-		path: async (admin) => {
-			const { data: chat } = await admin.chat.create({
-				title: `Time zone ${runId()}`,
-			});
-			return `/app/chat/${chat.id}`;
+		show: async (admin) => {
+			const chat = await createTitledChat(admin);
+			return {
+				path: `/app/chat?query=${encodeURIComponent(chat.title)}`,
+				at: chat.updatedAt,
+				style: "datetime",
+			};
 		},
 	},
 	{
-		name: "the History page",
-		path: () => "/history",
-	},
-	{
 		name: "the Providers page",
-		path: async (admin) => {
-			await createProvider(admin);
-			return "/app/providers";
+		show: async (admin) => {
+			const { data: provider } = await createProvider(admin);
+			return {
+				path: "/app/providers",
+				at: dateOf(provider.createdAt),
+				style: "datetime",
+			};
 		},
 	},
 	{
 		name: "the Providers page with invalid paging",
-		path: async (admin) => {
-			await createProvider(admin);
-			return "/app/providers?pageIndex=-1&pageSize=abc";
+		show: async (admin) => {
+			const { data: provider } = await createProvider(admin);
+			return {
+				path: "/app/providers?pageIndex=-1&pageSize=abc",
+				at: dateOf(provider.createdAt),
+				style: "datetime",
+			};
 		},
 	},
 	{
 		name: "the Models page",
-		path: () => "/app/models",
+		show: async (admin) => {
+			const { data: provider } = await createProvider(admin);
+			const name = `Time zone ${runId()}`;
+			const { data: model } = await admin.model.create({
+				providerId: provider.id,
+				providerModelId: `time-zone-${runId()}`,
+				name,
+				description: "Time zone",
+				isDeprecated: false,
+				capabilities: [
+					"text",
+				],
+			});
+			return {
+				path: `/app/models?query=${encodeURIComponent(name)}`,
+				at: dateOf(model.createdAt),
+				style: "datetime",
+			};
+		},
 	},
 	{
 		name: "a member's edit page",
-		path: (_, org) => `/app/members/${org.users.member.id}/edit`,
+		show: async (admin, org) => {
+			const { data: member } = await admin.organizationMember.find({
+				userId: org.users.member.id,
+			});
+			return {
+				path: `/app/members/${org.users.member.id}/edit`,
+				at: dateOf(member.createdAt),
+				style: "date",
+			};
+		},
 	},
 ];
 
-for (const { name, path } of organisationPages) {
+for (const { name, show } of organisationPages) {
 	test(`hydration: ${name} matches the server in another time zone`, async ({
 		api,
+		appBaseURL,
+		newContext,
 		org,
-		pageAs,
+		seedZedToken,
 	}) => {
-		const target = await path(api.as("admin"), org);
-		const page = await pageAs("admin");
+		const shown = await show(api.as("admin"), org);
+		const { page, timeZone } = await pageInZone(
+			{
+				appBaseURL,
+				newContext,
+				seedZedToken,
+			},
+			org.storageStates.admin,
+			shown.at,
+		);
 
 		await enterApp(page, org.slug);
-		await openInTimeZone(page, target);
+		await openInTimeZone(page, timeZone, shown);
 	});
 }
 
+test("hydration: a chat with branches of one title matches the server in another time zone", async ({
+	api,
+	appBaseURL,
+	inference,
+	newContext,
+	org,
+	seedZedToken,
+}) => {
+	const model = await setUpChatModel(api, inference);
+	const member = api.as("member");
+	const chatId = await createChat(member, model, chatName("Time zone"));
+	await sendTurn({
+		client: member,
+		inference,
+		chatId,
+		turn: {
+			question: "Hello?",
+			reply: "Hello.",
+		},
+	});
+	const messages = await member.chatMessage.list({
+		chatId,
+		limit: 10,
+	});
+	const reply = messages.data.at(-1);
+	if (!reply) throw new Error("Missing stored reply");
+	// Branches of one title carry their creation time.
+	const branch = () =>
+		member.chat.branch({
+			chatId,
+			messageId: reply.id,
+		});
+	await branch();
+	const { data: latest } = await branch();
+	const shown: Shown = {
+		path: `/app/chat/${chatId}`,
+		at: dateOf(latest.createdAt),
+		style: "datetime",
+	};
+	const { page, timeZone } = await pageInZone(
+		{
+			appBaseURL,
+			newContext,
+			seedZedToken,
+		},
+		org.storageStates.member,
+		shown.at,
+	);
+
+	await enterApp(page, org.slug);
+	await openInTimeZone(page, timeZone, shown);
+});
+
+test("hydration: the History page matches the server in another time zone", async ({
+	api,
+	appBaseURL,
+	newContext,
+	org,
+	seedZedToken,
+	zedTokens,
+}) => {
+	// The history lists the chats of organisations the user has left.
+	const user = await createUser("time-zone-history");
+	await addMember(api.as("admin"), {
+		user,
+		role: "member",
+		zedTokens,
+	});
+	const session = await signIn(appBaseURL, user);
+	const client = createApiClient(appBaseURL, session.cookieHeader, zedTokens);
+	await untilAllowed(() =>
+		client.user.setActiveOrganization({
+			organizationId: org.id,
+		}),
+	);
+	const chat = await createTitledChat(client);
+	await api.as("admin").organizationMember.delete({
+		refs: [
+			{
+				userId: user.id,
+			},
+		],
+	});
+	const shown: Shown = {
+		path: "/history",
+		at: chat.updatedAt,
+		style: "date",
+	};
+	const { page, timeZone } = await pageInZone(
+		{
+			appBaseURL,
+			newContext,
+			seedZedToken,
+		},
+		session.storageState,
+		shown.at,
+	);
+
+	await openInTimeZone(page, timeZone, shown);
+});
+
 test("hydration: invitations show their expiry in the browser's time zone and match the server", async ({
 	api,
+	appBaseURL,
+	newContext,
 	org,
-	pageAs,
+	seedZedToken,
 }) => {
 	const invitee = `time-zone-${runId()}@e2e.orcai.test`;
 	const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -150,63 +363,132 @@ test("hydration: invitations show their expiry in the browser's time zone and ma
 			},
 		],
 	});
-	const page = await pageAs("admin");
+	const shown: Shown = {
+		path: "/app/members/invitations",
+		at: expiresAt,
+		style: "datetime",
+	};
+	const { page, timeZone } = await pageInZone(
+		{
+			appBaseURL,
+			newContext,
+			seedZedToken,
+		},
+		org.storageStates.admin,
+		shown.at,
+	);
 
 	await enterApp(page, org.slug);
-	await openInTimeZone(page, "/app/members/invitations");
+	await openInTimeZone(page, timeZone, shown);
 	await expect(
 		page.getByRole("row").filter({
 			hasText: invitee,
 		}),
-	).toContainText(
-		new Intl.DateTimeFormat("en-GB", {
-			dateStyle: "medium",
-			timeStyle: "short",
-			timeZone: TIME_ZONE,
-		}).format(expiresAt),
-	);
+	).toContainText(inZone(expiresAt, "datetime", timeZone));
 });
 
+// The overview only redirects to the health page.
 const instancePages: {
 	readonly name: string;
-	readonly path: (org: WorkerOrganisation) => string;
+	readonly show: (admin: ApiClient, org: WorkerOrganisation) => Promise<Shown>;
 }[] = [
 	{
-		name: "overview",
-		path: () => "/instance",
-	},
-	{
 		name: "health page",
-		path: () => "/instance/health",
+		show: async (admin) => {
+			const { data: health } = await admin.health.instance({});
+			return {
+				path: "/instance/health",
+				at: dateOf(health.versions.migration?.appliedAt),
+				style: "datetime",
+			};
+		},
 	},
 	{
 		name: "users page",
-		path: () => "/instance/users",
+		show: async (admin, org) => {
+			const { data: user } = await admin.instance.user({
+				id: org.users.admin.id,
+			});
+			return {
+				path: `/instance/users?query=${encodeURIComponent(user.email)}`,
+				at: dateOf(user.createdAt),
+				style: "datetime",
+			};
+		},
 	},
 	{
 		name: "organisations page",
-		path: () => "/instance/organizations",
+		show: async (admin, org) => {
+			const { data: organization } = await admin.instance.organization({
+				id: org.id,
+			});
+			return {
+				path: `/instance/organizations?query=${encodeURIComponent(org.slug)}`,
+				at: dateOf(organization.createdAt),
+				style: "datetime",
+			};
+		},
 	},
 	{
 		name: "page of a user",
-		path: (org) => `/instance/users/${org.users.admin.id}`,
+		show: async (admin, org) => {
+			const memberships = await admin.instance.userMemberships({
+				userId: org.users.admin.id,
+				pageIndex: 0,
+				pageSize: 10,
+				query: org.name,
+			});
+			const membership = memberships.data.find(
+				(row) => row.organizationId === org.id,
+			);
+			return {
+				path: `/instance/users/${org.users.admin.id}?query=${encodeURIComponent(org.name)}`,
+				at: dateOf(membership?.joinedAt),
+				style: "date",
+			};
+		},
 	},
 	{
 		name: "page of an organisation",
-		path: (org) => `/instance/organizations/${org.id}`,
+		show: async (admin, org) => {
+			const email = org.users.admin.email;
+			const members = await admin.instance.organizationMembers({
+				organizationId: org.id,
+				pageIndex: 0,
+				pageSize: 10,
+				query: email,
+			});
+			const member = members.data.find((row) => row.email === email);
+			return {
+				path: `/instance/organizations/${org.id}?query=${encodeURIComponent(email)}`,
+				at: dateOf(member?.joinedAt),
+				style: "date",
+			};
+		},
 	},
 ];
 
-for (const { name, path } of instancePages) {
+for (const { name, show } of instancePages) {
 	test(`hydration: the instance ${name} matches the server in another time zone`, async ({
+		api,
 		appBaseURL,
+		newContext,
 		org,
-		pageAsWellKnownAdmin,
+		seedZedToken,
 	}) => {
-		const page = await pageAsWellKnownAdmin();
-		await seedTimeZone(page, appBaseURL);
+		const shown = await show(api.asWellKnownAdmin(), org);
+		const admin = await signIn(appBaseURL, WELL_KNOWN_ADMIN);
+		const { page, timeZone } = await pageInZone(
+			{
+				appBaseURL,
+				newContext,
+				seedZedToken,
+			},
+			admin.storageState,
+			shown.at,
+		);
 
-		await openInTimeZone(page, path(org));
+		await openInTimeZone(page, timeZone, shown);
 	});
 }
 
