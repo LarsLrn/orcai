@@ -10,6 +10,7 @@ import { prepareAssetAgainInputSchema } from "./prepare-asset-again.declaration"
 
 export const prepareAssetAgainTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Prepare an asset again, as Prepare again does in the app. Without a repository, OrcAI reads the uploaded file again, for a Ready or a Failed asset. With a repository, it retries the asset there after a failure: its processing when the file failed, otherwise its indexing in that repository. An asset still being prepared has nothing to retry.",
 		inputSchema: prepareAssetAgainInputSchema,

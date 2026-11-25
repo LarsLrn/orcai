@@ -77,9 +77,10 @@ const displayToolsFor = (docs: DocsConfig | undefined) =>
 	docs ? displayTools.docs : displayTools.none;
 
 const builds = {
-	readDocs: ({ docs }: BuildDeps) =>
+	readDocs: ({ docs, context }: BuildDeps) =>
 		readDocsTool({
 			docs,
+			context,
 		}),
 	askUser: () => askUserTool,
 	showChecklist: ({ docs }: BuildDeps) => displayToolsFor(docs).showChecklist,

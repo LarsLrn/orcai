@@ -12,6 +12,7 @@ import { getBotInputSchema } from "./get-bot.declaration";
 /** Editors get the links from the editor view; readers get the linked blocks they can read. */
 export const getBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Read one bot: its name, description, status, features, behaviour and repositories, its model in the active organisation (with quota pool coverage for its editors), and what the user may do with it.",
 		inputSchema: getBotInputSchema,

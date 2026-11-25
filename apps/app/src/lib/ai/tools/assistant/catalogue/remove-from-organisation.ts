@@ -10,6 +10,7 @@ import { removeFromOrganisationInputSchema } from "./remove-from-organisation.de
 
 export const removeFromOrganisationTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Remove a bot, behaviour or repository the active organisation added from the Catalogue. Its grants here, a bot's model setup here, and the organisation's bots' and chats' links to a block go with it. Chats with a removed bot turn read-only until it is added and shared again.",
 		inputSchema: removeFromOrganisationInputSchema,

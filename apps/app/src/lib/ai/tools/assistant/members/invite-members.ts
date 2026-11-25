@@ -39,6 +39,7 @@ export const inviteMembers = (
 
 export const inviteMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Invite people by email to join the active organisation with a role. Each gets an email with a link to join that is valid for 7 days. An address that already belongs to a member, or already has an invitation that has not expired, gets no new email and comes back in skipped with the reason. An expired invitation is replaced by a new one.",
 		inputSchema: inviteMembersInputSchema,

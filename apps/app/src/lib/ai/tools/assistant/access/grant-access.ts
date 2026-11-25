@@ -15,6 +15,7 @@ import {
 
 export const grantAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Give users or groups a role on one bot, block or asset. Someone who already has a role there gets the new one instead. It grants on the named item only, not on a bot's behaviour or repositories. The user needs Can manage on the item.",
 		inputSchema: grantAccessInputSchema,

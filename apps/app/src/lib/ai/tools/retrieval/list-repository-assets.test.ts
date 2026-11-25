@@ -1,14 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
 	answers,
+	fakeContext,
 	procedureCalls,
 	resetProcedures,
 } from "../assistant/test-procedures";
-
-const { listRepositoryAssetsTool } = await import("./list-repository-assets");
+import { listRepositoryAssetsTool } from "./list-repository-assets";
 
 afterEach(resetProcedures);
 
@@ -71,7 +70,7 @@ describe("listRepositoryAssets", () => {
 					config: {},
 				},
 			] as unknown as Repository[],
-			context: {} as ORPCContext,
+			context: fakeContext,
 		}).execute?.(
 			{
 				limit: 30,
@@ -123,7 +122,7 @@ describe("listRepositoryAssets", () => {
 					config: {},
 				}),
 			) as unknown as Repository[],
-			context: {} as ORPCContext,
+			context: fakeContext,
 		}).execute?.(
 			{
 				limit: 30,

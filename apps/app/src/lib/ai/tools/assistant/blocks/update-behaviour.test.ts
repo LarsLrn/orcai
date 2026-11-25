@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { BlockId } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import {
+	answers,
+	fakeContext,
+	procedureCalls,
+	resetProcedures,
+} from "../test-procedures";
+import { createAssistantTurn } from "../turn-state";
+import { updateBehaviourTool } from "./update-behaviour";
 
 const behaviourId = crypto.randomUUID() as BlockId;
 
@@ -37,12 +43,9 @@ beforeEach(() => {
 		});
 });
 
-const { updateBehaviourTool } = await import("./update-behaviour");
-const { createAssistantTurn } = await import("../turn-state");
-
 const run = (input: Record<string, unknown>) =>
 	updateBehaviourTool({
-		context: {} as ORPCContext,
+		context: fakeContext,
 		turn: createAssistantTurn({
 			zedToken: undefined,
 		}),

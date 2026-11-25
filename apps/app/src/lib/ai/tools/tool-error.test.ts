@@ -2,9 +2,14 @@ import { describe, expect, test } from "bun:test";
 import { ORPCError } from "@orpc/client";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
-import "./assistant/test-procedures";
+import { fakeContext } from "./assistant/test-procedures";
+import { AssistantToolError, runAssistantTool } from "./tool-error";
 
-const { AssistantToolError, runAssistantTool } = await import("./tool-error");
+/** A call without an abort signal. */
+const noSignal = {
+	context: fakeContext,
+	abortSignal: undefined,
+};
 
 class ConnectionRefused extends Data.TaggedError("ConnectionRefused")<{
 	readonly message: string;
@@ -33,7 +38,10 @@ describe("runAssistantTool", () => {
 					}),
 				),
 			),
-			controller.signal,
+			{
+				context: fakeContext,
+				abortSignal: controller.signal,
+			},
 		);
 		await started.promise;
 		controller.abort();
@@ -55,7 +63,7 @@ describe("runAssistantTool", () => {
 						},
 					}),
 				),
-				undefined,
+				noSignal,
 			),
 		);
 
@@ -78,7 +86,7 @@ describe("runAssistantTool", () => {
 						message: "Bot not found",
 					}),
 				),
-				undefined,
+				noSignal,
 			),
 		);
 
@@ -112,7 +120,7 @@ describe("runAssistantTool", () => {
 			),
 		],
 	])("%s does not leak its message", async (_, effect) => {
-		const error = await rejection(runAssistantTool(effect, undefined));
+		const error = await rejection(runAssistantTool(effect, noSignal));
 
 		expect(error).toBeInstanceOf(AssistantToolError);
 		expect((error as Error).message).toBe(
@@ -123,7 +131,7 @@ describe("runAssistantTool", () => {
 	test("a failure on the server keeps its cause", async () => {
 		const failure = new Error("connection to db-primary:5432 refused");
 		const error = await rejection(
-			runAssistantTool(Effect.fail(failure), undefined),
+			runAssistantTool(Effect.fail(failure), noSignal),
 		);
 
 		expect((error as Error).cause).toBe(failure);

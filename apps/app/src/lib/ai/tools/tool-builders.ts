@@ -2,6 +2,7 @@ import type { Schema, ToolExecutionOptions, ToolResultPart } from "ai";
 import type * as Effect from "effect/Effect";
 import type { z } from "zod/v4";
 import type { AppRuntimeContext } from "@/lib/effect/runtime";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { toolInputSchema } from "./input-schema";
 import { runAssistantTool } from "./tool-error";
 
@@ -45,13 +46,15 @@ export const assistantTool = <Input, Output>({
 });
 
 /**
- * A tool whose call runs `run` with the call's abort signal. A failure or
- * defect becomes the tool error the model reads.
+ * A tool whose call runs `run` with the services of `context` and the call's
+ * abort signal. A failure or defect becomes the tool error the model reads.
  */
 export const effectTool = <Input, Output>({
+	context,
 	run,
 	...definition
 }: Omit<Definition<Input, Output>, "execute"> & {
+	context: ORPCContext;
 	run: (
 		input: Input,
 		options: ToolExecutionOptions<NoToolContext>,
@@ -60,5 +63,8 @@ export const effectTool = <Input, Output>({
 	assistantTool({
 		...definition,
 		execute: (input, options) =>
-			runAssistantTool(run(input, options), options.abortSignal),
+			runAssistantTool(run(input, options), {
+				context,
+				abortSignal: options.abortSignal,
+			}),
 	});

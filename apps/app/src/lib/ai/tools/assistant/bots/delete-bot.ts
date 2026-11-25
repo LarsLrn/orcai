@@ -6,6 +6,7 @@ import { deleteBotInputSchema } from "./delete-bot.declaration";
 
 export const deleteBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Delete bots for good, with their chats' link to them. Skips bots the user may not delete.",
 		inputSchema: deleteBotInputSchema,

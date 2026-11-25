@@ -6,6 +6,7 @@ import { findAssetsInputSchema } from "./find-assets.declaration";
 
 export const findAssetsTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description: `Find assets by title among those the user can read, optionally only those in one repository, newest first. Without a query it pages through all of them. Each comes with its preparation state (processingStatus) and where it is kept (keptIn). An asset with keptIn chat is a chat upload, which stays out of repositories until someone adds it to the Library. ${PAGING_NOTE}`,
 		inputSchema: findAssetsInputSchema,
 		run: ({ query, repositoryId, keptIn, page }) =>

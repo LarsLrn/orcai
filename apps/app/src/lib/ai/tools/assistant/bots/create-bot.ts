@@ -29,6 +29,7 @@ export const createBotPayload = (
 
 export const createBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Create a new draft bot with its name and description, and optionally its behaviour, repositories, features and its model in the active organisation. The result says how many of the bot's audience a quota pool covers. A setup that fails comes back as setupError next to the created bot, so fix it with updateBot. To change an existing bot, use updateBot. To publish it, use publishBot.",
 		inputSchema: createBotInputSchema,

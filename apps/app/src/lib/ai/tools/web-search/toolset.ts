@@ -3,6 +3,7 @@ import type { ModelProviderKind } from "@orcai/core";
 import { type Tool, type ToolSet, tool } from "ai";
 import * as Effect from "effect/Effect";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import type { MeteredWebSearch } from "./metered-web-search";
 import { nativeWebSearch } from "./native-web-search.declaration";
 import { searchWebTool } from "./search-web";
@@ -29,9 +30,11 @@ export const NO_WEB_SEARCH: TurnWebSearch = {
 export const buildWebSearchTools = ({
 	webSearch,
 	allowedDomains,
+	context,
 }: {
 	webSearch: TurnWebSearch;
 	allowedDomains: readonly string[];
+	context: ORPCContext;
 }): ToolSet => {
 	switch (webSearch.kind) {
 		case "none":
@@ -41,6 +44,7 @@ export const buildWebSearchTools = ({
 				searchWeb: searchWebTool({
 					search: webSearch.search,
 					allowedDomains,
+					context,
 				}),
 			};
 		case "native": {
@@ -55,13 +59,14 @@ export const buildWebSearchTools = ({
 };
 
 /** The search tools a chat declares for its stored calls where the turn offers no search; every provider's native call passes. */
-export const storedWebSearchTools = () => ({
+export const storedWebSearchTools = (context: ORPCContext) => ({
 	searchWeb: searchWebTool({
 		search: () =>
 			Effect.fail(
 				new AssistantToolError("TOOL_NOT_AVAILABLE: Web search is off."),
 			),
 		allowedDomains: [],
+		context,
 	}),
 	[NATIVE_WEB_SEARCH_TOOL_NAME]: tool({
 		inputSchema: nativeWebSearch.inputSchema,

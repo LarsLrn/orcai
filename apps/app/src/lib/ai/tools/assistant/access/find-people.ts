@@ -7,6 +7,7 @@ import { expectTarget, toResourceIdentity } from "./resource-target";
 
 export const findPeopleTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description: `Find the users and groups of the active organisation that could be given access to a bot, block or asset, by name: users sorted by name, then groups. Use it to resolve names to ids before grantAccess. The user needs Can manage on the item. ${PAGING_NOTE}`,
 		inputSchema: findPeopleInputSchema,
 		run: ({ granteeType, query, excludeGranted, page, ...target }) =>

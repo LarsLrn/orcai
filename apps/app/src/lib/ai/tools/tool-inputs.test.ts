@@ -6,21 +6,15 @@ import { chatSources } from "@/lib/ai/citations/chat-sources";
 import { featureCatalog } from "@/lib/ai/features/catalog";
 import { createAssistantSession } from "@/lib/ai/tools/assistant/session";
 import { buildGenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import "./assistant/test-procedures";
+import { fakeContext } from "./assistant/test-procedures";
+import { buildAssistantTools } from "./assistant/toolset";
 import { createAssistantTurn } from "./assistant/turn-state";
 import { buildQuestionTools } from "./questions/toolset";
 import { buildRepositoryTools } from "./retrieval/toolset";
 import { storedWebSearchTools } from "./web-search/toolset";
 
-const { buildAssistantTools } = await import("./assistant/toolset");
-
-const context = {
-	secureCookies: false,
-} as ORPCContext;
-
 const assistantTools: ToolSet = buildAssistantTools({
-	context,
+	context: fakeContext,
 	turn: createAssistantTurn({
 		zedToken: undefined,
 	}),
@@ -42,7 +36,7 @@ const featureTools: ToolSet = Object.assign(
 	{},
 	...Object.values(featureCatalog).map((entry) =>
 		entry.buildTools({
-			context,
+			context: fakeContext,
 			settings: {
 				allowedDomains: [],
 			},
@@ -62,7 +56,7 @@ const featureTools: ToolSet = Object.assign(
 const { [NATIVE_WEB_SEARCH_TOOL_NAME]: _, ...chatTools }: ToolSet = {
 	...buildRepositoryTools({
 		blocks: [],
-		context,
+		context: fakeContext,
 		sources: chatSources([]),
 	}),
 	...buildGenUiTools({
@@ -71,7 +65,7 @@ const { [NATIVE_WEB_SEARCH_TOOL_NAME]: _, ...chatTools }: ToolSet = {
 	...buildQuestionTools({
 		history: [],
 	}),
-	...storedWebSearchTools(),
+	...storedWebSearchTools(fakeContext),
 	...featureTools,
 };
 

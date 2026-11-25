@@ -7,6 +7,7 @@ import { findModelsInputSchema } from "./find-models.declaration";
 /** Only models that can serve chats: enabled provider, not deprecated, text and tool calling. */
 export const findModelsTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description: `Find the chat models of the active organisation by name, for a bot's setup, newest first. It lists only models that can serve chats. Pass a model's id as setup.modelId to createBot, updateBot or updateBotSetup. ${PAGING_NOTE}`,
 		inputSchema: findModelsInputSchema,
 		run: ({ query, page }) =>

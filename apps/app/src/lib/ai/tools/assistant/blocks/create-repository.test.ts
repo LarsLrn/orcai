@@ -2,8 +2,14 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import { defaultRepositoryConfig } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import {
+	answers,
+	fakeContext,
+	procedureCalls,
+	resetProcedures,
+} from "../test-procedures";
+import { createAssistantTurn } from "../turn-state";
+import { createRepositoryTool } from "./create-repository";
 import { createRepositoryInputSchema } from "./create-repository.declaration";
 
 const repositoryId = crypto.randomUUID() as BlockId;
@@ -22,9 +28,6 @@ beforeEach(() => {
 		});
 });
 
-const { createRepositoryTool } = await import("./create-repository");
-const { createAssistantTurn } = await import("../turn-state");
-
 describe("createRepositoryTool", () => {
 	test("the schema requires a name", () => {
 		expect(createRepositoryInputSchema.safeParse({}).success).toBe(false);
@@ -32,7 +35,7 @@ describe("createRepositoryTool", () => {
 
 	test("a create is a draft with the default retrieval settings", async () => {
 		const output = await createRepositoryTool({
-			context: {} as ORPCContext,
+			context: fakeContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),

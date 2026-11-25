@@ -3,18 +3,17 @@ import type { AssetPoint, Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
 import { sourceRef } from "@/lib/ai/citations/source-ref";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
 	answers,
+	fakeContext,
 	procedureCalls,
 	resetProcedures,
 } from "../assistant/test-procedures";
+import { getAssetPageTool } from "./get-asset-page";
+import { getPassagesTool } from "./get-passages";
+import { searchRepositoriesTool } from "./search-repositories";
 import { assetPoint } from "./test-points";
 import type { Passage } from "./types";
-
-const { getPassagesTool } = await import("./get-passages");
-const { getAssetPageTool } = await import("./get-asset-page");
-const { searchRepositoriesTool } = await import("./search-repositories");
 
 const deps = {
 	blocks: [
@@ -24,9 +23,7 @@ const deps = {
 			config: {},
 		},
 	] as unknown as Repository[],
-	context: {
-		secureCookies: false,
-	} as ORPCContext,
+	context: fakeContext,
 	sources: chatSources([]),
 };
 

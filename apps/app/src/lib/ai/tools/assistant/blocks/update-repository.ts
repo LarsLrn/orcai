@@ -16,6 +16,7 @@ import { updateRepositoryInputSchema } from "./update-repository.declaration";
 
 export const updateRepositoryTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description:
 			"Update an existing repository: name, description, status and which assets it holds. Give only the fields that change. Everything else, including the retrieval settings and rich content, is kept. To add or remove one asset, read the current ones with findAssets (repositoryId) and send the full new assetIds. To create one, use createRepository.",
 		inputSchema: updateRepositoryInputSchema,

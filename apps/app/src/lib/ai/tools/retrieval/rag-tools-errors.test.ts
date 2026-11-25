@@ -3,13 +3,15 @@ import type { Repository } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { answers, resetProcedures } from "../assistant/test-procedures";
-
-const { getPassagesTool } = await import("./get-passages");
-const { getAssetPageTool } = await import("./get-asset-page");
-const { listRepositoryAssetsTool } = await import("./list-repository-assets");
-const { searchRepositoriesTool } = await import("./search-repositories");
+import {
+	answers,
+	fakeContext,
+	resetProcedures,
+} from "../assistant/test-procedures";
+import { getAssetPageTool } from "./get-asset-page";
+import { getPassagesTool } from "./get-passages";
+import { listRepositoryAssetsTool } from "./list-repository-assets";
+import { searchRepositoriesTool } from "./search-repositories";
 
 const deps = {
 	blocks: [
@@ -19,9 +21,7 @@ const deps = {
 			config: {},
 		},
 	] as unknown as Repository[],
-	context: {
-		secureCookies: false,
-	} as ORPCContext,
+	context: fakeContext,
 	sources: chatSources([]),
 };
 

@@ -19,6 +19,7 @@ export const listRepositoryAssetsTool = ({
 	context: ORPCContext;
 }) =>
 	effectTool({
+		context,
 		description:
 			"List the assets in the repositories with their ids, titles, citation labels, descriptions and preparation states. Use it when the user asks what you can search, or names an asset whose id you need. Only ready assets are searchable: one that is queued, processing or indexing is still being prepared, and a failed one names its failure. Tell the user about such an asset rather than treating it as empty.",
 		inputSchema: listRepositoryAssetsInputSchema,

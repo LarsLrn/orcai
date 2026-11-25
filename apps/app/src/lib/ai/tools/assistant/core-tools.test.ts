@@ -3,20 +3,21 @@ import type { AssetId, BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
 import { ORPCError } from "@orpc/client";
 import type { Tool } from "ai";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { findAssetsTool } from "./assets/find-assets";
+import { findBlocksTool } from "./blocks/find-blocks";
+import { findBotsTool } from "./bots/find-bots";
+import { getBotTool } from "./bots/get-bot";
 import { LIST_PAGE_SIZE } from "./list-input";
-import { answers, procedureCalls, resetProcedures } from "./test-procedures";
-
-const { findBotsTool } = await import("./bots/find-bots");
-const { getBotTool } = await import("./bots/get-bot");
-const { findBlocksTool } = await import("./blocks/find-blocks");
-const { findAssetsTool } = await import("./assets/find-assets");
-const { createAssistantTurn } = await import("./turn-state");
+import {
+	answers,
+	fakeContext,
+	procedureCalls,
+	resetProcedures,
+} from "./test-procedures";
+import { createAssistantTurn } from "./turn-state";
 
 const deps = () => ({
-	context: {
-		secureCookies: false,
-	} as ORPCContext,
+	context: fakeContext,
 	turn: createAssistantTurn({
 		zedToken: undefined,
 	}),

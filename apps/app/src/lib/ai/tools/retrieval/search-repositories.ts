@@ -63,6 +63,7 @@ export const searchRepositoriesTool = ({
 	context: ORPCContext;
 }) =>
 	effectTool({
+		context,
 		description:
 			"Search the repositories by topic, name, quote or claim, and return the full text of the best matching passages, each with the ref you cite it by. Use it first for any question the repositories may answer; for a page the user names, use getAssetPage, and for the list of assets, listRepositoryAssets. Only ready assets are searchable: the result names repositories with assets still being prepared or that failed, and the answer may be in those, so tell the user.",
 		inputSchema: searchRepositoriesInputSchema,

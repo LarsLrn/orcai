@@ -24,6 +24,7 @@ export const getAssetPageTool = ({
 	context: ORPCContext;
 }) =>
 	effectTool({
+		context,
 		description:
 			"Read the passages on a page of an asset, and optionally the pages around it. Use it when the user asks about a page. Pass assetId when you know it, or else assetTitleQuery with words from the title; with neither, it reads the page in up to five assets. When the page has no text, the result lists the matching assets instead, so you can pick another.",
 		inputSchema: getAssetPageInputSchema,

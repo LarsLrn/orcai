@@ -10,6 +10,7 @@ import { listGroupMembersInputSchema } from "./list-group-members.declaration";
 
 export const listGroupMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
+		context: deps.context,
 		description: `List the members of a group, sorted by name. The All members group holds every member of the organisation, with source implicit. ${PAGING_NOTE}`,
 		inputSchema: listGroupMembersInputSchema,
 		run: ({ groupId, query, page }) =>
