@@ -1,6 +1,6 @@
 {
   "type": "diff",
-  "version": "9",
+  "version": "10",
   "dialect": "postgres",
   "id": "150bcc14-ebd5-4c38-ab19-83062aacf6f4",
   "prevIds": [
@@ -1361,7 +1361,6 @@
         "where": null,
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1392,7 +1391,6 @@
         "where": "\"asset_id\" is not null",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1416,7 +1414,6 @@
         "where": "\"data_export_id\" is not null",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1440,7 +1437,6 @@
         "where": "'pending' in (\"processing_state\", \"metadata_state\", \"indexing_state\")",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1464,7 +1460,6 @@
         "where": null,
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1495,7 +1490,6 @@
         "where": null,
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1519,7 +1513,6 @@
         "where": "\"processing_status\" = 'failed'",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1543,7 +1536,6 @@
         "where": "\"processing_failure_id\" is not null",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1567,7 +1559,6 @@
         "where": "\"metadata_failure_id\" is not null",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1591,7 +1582,6 @@
         "where": "\"metadata_status\" = 'failed' or \"metadata_suggestion\" is not null",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1615,7 +1605,6 @@
         "where": "\"index_failure_id\" is not null",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },
@@ -1639,7 +1628,6 @@
         "where": "\"index_status\" = 'failed'",
         "with": "",
         "method": "btree",
-        "concurrently": false,
         "entityType": "indexes"
       }
     },

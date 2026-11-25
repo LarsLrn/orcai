@@ -1,6 +1,6 @@
 {
   "type": "diff",
-  "version": "9",
+  "version": "10",
   "dialect": "postgres",
   "id": "7eaa3073-c365-4397-8d06-56f3db751b57",
   "prevIds": [
@@ -48,7 +48,6 @@
         "where": null,
         "with": "",
         "method": "gin",
-        "concurrently": false,
         "entityType": "indexes"
       }
     }
