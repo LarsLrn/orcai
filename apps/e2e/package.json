@@ -16,7 +16,7 @@
 		"@orcai/notifications": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"@orcai/spice-db": "workspace:*",
-		"@orpc/client": "2.0.0-beta.48",
+		"@orpc/client": "2.0.0-beta.53",
 		"@playwright/test": "1.65.1",
 		"@types/node": "catalog:",
 		"@types/pg": "catalog:",
