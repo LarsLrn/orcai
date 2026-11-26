@@ -1,11 +1,12 @@
 import { makeObservabilityLayer } from "@orcai/observability";
 import { ORPCInstrumentation } from "@orpc/opentelemetry";
+import { ORPCError } from "@orpc/server";
 import {
 	getTracer,
+	type Promisable,
 	setTracer,
 	type Tracer,
 	type TracingAttributeValue,
-	type TracingException,
 	type TracingExceptionLevel,
 	type TracingHeaders,
 	type TracingSpan,
@@ -13,10 +14,8 @@ import {
 import { isClientErrorCode } from "@/lib/effect/services/client-error-code";
 import { version } from "../../../../package.json" with { type: "json" };
 
-const isClientORPCError = (exception: TracingException) =>
-	exception.name === "ORPCError" &&
-	typeof exception.code === "string" &&
-	isClientErrorCode(exception.code);
+const isClientORPCError = (error: unknown) =>
+	error instanceof ORPCError && isClientErrorCode(error.code);
 
 class ClientErrorAwareSpan implements TracingSpan {
 	constructor(readonly inner: TracingSpan) {}
@@ -33,10 +32,10 @@ class ClientErrorAwareSpan implements TracingSpan {
 		this.inner.addEvent(name);
 	}
 
-	recordException(level: TracingExceptionLevel, exception: TracingException) {
+	recordException(level: TracingExceptionLevel, error: unknown) {
 		this.inner.recordException(
-			isClientORPCError(exception) ? "info" : level,
-			exception,
+			isClientORPCError(error) ? "info" : level,
+			error,
 		);
 	}
 
@@ -72,7 +71,7 @@ export class ClientErrorAwareTracer implements Tracer {
 		return span && wrap(span);
 	}
 
-	withActiveSpan<T>(span: TracingSpan, fn: () => T | Promise<T>) {
+	withActiveSpan<T>(span: TracingSpan, fn: () => Promisable<T>) {
 		return this.inner.withActiveSpan(unwrap(span), fn);
 	}
 

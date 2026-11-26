@@ -2,7 +2,6 @@
 export const toFetchResponse = {
 	eventStream: {
 		keepAlive: {
-			enabled: true,
 			interval: 5_000,
 		},
 	},

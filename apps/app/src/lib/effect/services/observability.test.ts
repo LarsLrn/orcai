@@ -1,15 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import type {
-	Tracer,
-	TracingException,
-	TracingExceptionLevel,
-	TracingSpan,
-} from "@orpc/shared";
+import { ORPCError } from "@orpc/server";
+import type { Tracer, TracingExceptionLevel, TracingSpan } from "@orpc/shared";
 import { ClientErrorAwareTracer } from "./observability";
 
 const recorded: [
 	TracingExceptionLevel,
-	TracingException,
+	unknown,
 ][] = [];
 const innerSpan: TracingSpan = {
 	setAttribute: () => undefined,
@@ -40,27 +36,25 @@ describe("ClientErrorAwareTracer", () => {
 	test("a client ORPCError is recorded at info and anything else keeps its level", () => {
 		recorded.length = 0;
 		const span = tracer.startSpan("call_procedure");
-		span.recordException("error", {
-			name: "ORPCError",
-			code: "FORBIDDEN",
-			message: "Forbidden",
-		});
-		span.recordException("error", {
-			name: "ORPCError",
-			code: "INTERNAL_SERVER_ERROR",
-			message: "Internal Server Error",
-		});
-		span.recordException("error", {
-			name: "Error",
-			code: "NOT_FOUND",
-			message: "not an oRPC error",
-		});
+		const errors = [
+			new ORPCError("FORBIDDEN"),
+			new ORPCError("INTERNAL_SERVER_ERROR"),
+			new ORPCError("UNKNOWN_CODE"),
+			Object.assign(new Error("not an oRPC error"), {
+				code: "NOT_FOUND",
+			}),
+		];
+		for (const error of errors) span.recordException("error", error);
 
 		expect(recorded.map(([level]) => level)).toEqual([
 			"info",
 			"error",
 			"error",
+			"error",
 		]);
+		recorded.forEach(([, error], index) => {
+			expect(error).toBe(errors[index]);
+		});
 	});
 
 	test("the inner tracer gets its own span back as a parent", () => {
