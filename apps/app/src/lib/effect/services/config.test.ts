@@ -45,6 +45,43 @@ describe("TWO_FACTOR_REQUIRED", () => {
 	});
 });
 
+const trustedProxiesFrom = (env: Record<string, string>) =>
+	Effect.runSync(
+		appConfig
+			.parse(
+				ConfigProvider.fromEnv({
+					env: {
+						BETTER_AUTH_SECRET: "secret",
+						BETTER_AUTH_URL: "http://localhost:3000",
+						...env,
+					},
+				}),
+			)
+			.pipe(Effect.map((config) => config.auth.trustedProxies)),
+	);
+
+describe("BETTER_AUTH_TRUSTED_PROXIES", () => {
+	test("trusts no proxy when unset or empty", () => {
+		expect(trustedProxiesFrom({})).toEqual([]);
+		expect(
+			trustedProxiesFrom({
+				BETTER_AUTH_TRUSTED_PROXIES: "",
+			}),
+		).toEqual([]);
+	});
+
+	test("reads a comma-separated list", () => {
+		expect(
+			trustedProxiesFrom({
+				BETTER_AUTH_TRUSTED_PROXIES: "192.0.2.10, 10.0.0.0/24",
+			}),
+		).toEqual([
+			"192.0.2.10",
+			"10.0.0.0/24",
+		]);
+	});
+});
+
 describe("resolveDeploymentConfig", () => {
 	test("has no docs and no analytics when nothing is set", () => {
 		expect(resolveDeploymentConfig({})).toEqual({

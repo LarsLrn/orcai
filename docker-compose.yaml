@@ -106,6 +106,7 @@ services:
       WEB_URL: ${WEB_URL:-}
       WEB_INTERNAL_URL: ${WEB_INTERNAL_URL:-http://web:3001}
       TWO_FACTOR_REQUIRED: ${TWO_FACTOR_REQUIRED:-none}
+      BETTER_AUTH_TRUSTED_PROXIES: ${BETTER_AUTH_TRUSTED_PROXIES:-}
 
       # Secrets (from environment)
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}

@@ -245,7 +245,8 @@ Runtime configuration is loaded across app and package config modules. Every val
 - `WEB_URL`: Public docs site base URL used by the app dashboard and the Assistant's docs links (optional). The Assistant also reads the docs from it unless `WEB_INTERNAL_URL` is set; without it the Assistant cannot read the docs.
 - `WEB_INTERNAL_URL`: Docs site origin the app server fetches for the Assistant (optional, defaults to `WEB_URL`; Docker Compose sets `http://web:3001`).
 - `BETTER_AUTH_SECRET`: Better Auth signing secret.
-- `BETTER_AUTH_RATE_LIMIT`: `false` turns off Better Auth's rate limiting (optional; on in production by default). It keys clients by `X-Forwarded-For`; requests without exactly one address in it share one limit.
+- `BETTER_AUTH_RATE_LIMIT`: `false` turns off Better Auth's rate limiting (optional; on in production by default). It keys clients by `X-Forwarded-For`; requests without exactly one address in it share one limit, unless `BETTER_AUTH_TRUSTED_PROXIES` lists the proxies that added the others.
+- `BETTER_AUTH_TRUSTED_PROXIES`: Comma-separated IP addresses or CIDR ranges of the reverse proxies in front of the app (optional, empty by default). Better Auth then reads `X-Forwarded-For` from the right, skips these addresses and takes the next one as the client's, for rate limiting and session IP addresses. List only the proxies' own addresses, not a private range clients also use.
 - `ENCRYPTION_KEY`: 32 to 64 character application encryption key. Provider API keys are stored encrypted with it, so the app and the workers need the same value.
 - `TWO_FACTOR_REQUIRED`: Who must use two-factor authentication: `none` (default), `admins` (instance admins) or `all` (optional). A covered user without it is sent to set it up before using the app.
 

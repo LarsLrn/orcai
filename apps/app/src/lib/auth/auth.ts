@@ -241,6 +241,11 @@ const makeAuth = (run: Run) =>
 			enabled: Option.getOrUndefined(cfg.auth.rateLimit),
 		},
 		advanced: {
+			ipAddress: {
+				trustedProxies: [
+					...cfg.auth.trustedProxies,
+				],
+			},
 			database: {
 				generateId: () => uuidv4(),
 			},
