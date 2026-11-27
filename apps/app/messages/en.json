@@ -3266,7 +3266,6 @@
 	"error_passkey_already_registered": "This passkey is already registered.",
 	"error_passkey_cancelled": "The passkey prompt was cancelled.",
 	"error_passkey_sign_in_failed": "The passkey could not sign you in.",
-	"error_passkey_user_not_verified": "This passkey does not check who you are. Use one that asks for your PIN, fingerprint or face.",
 	"error_password_not_set": "This account has no password.",
 	"error_passwords_mismatch": "Passwords must match.",
 	"error_permission_denied": "You do not have permission to do this.",

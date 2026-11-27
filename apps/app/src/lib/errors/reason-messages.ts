@@ -152,7 +152,6 @@ const reasonMessages: ReasonMessages = {
 	PASSKEY_ALREADY_REGISTERED: m.error_passkey_already_registered,
 	PASSKEY_CANCELLED: m.error_passkey_cancelled,
 	PASSKEY_SIGN_IN_FAILED: m.error_passkey_sign_in_failed,
-	PASSKEY_USER_NOT_VERIFIED: m.error_passkey_user_not_verified,
 	PASSWORDS_MISMATCH: m.error_passwords_mismatch,
 	PERMISSION_DENIED: m.error_permission_denied,
 	PERMISSIONS_UNAVAILABLE: m.error_permissions_unavailable,
