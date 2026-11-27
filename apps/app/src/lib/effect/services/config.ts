@@ -3,6 +3,7 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Schema from "effect/Schema";
 import { z } from "zod/v4";
 import { TWO_FACTOR_POLICIES } from "@/lib/auth/two-factor-policy";
 
@@ -12,6 +13,10 @@ export const appConfig = Config.all({
 		url: Config.String("BETTER_AUTH_URL"),
 		// Unset keeps Better Auth's default: on in production.
 		rateLimit: Config.option(Config.Boolean("BETTER_AUTH_RATE_LIMIT")),
+		trustedProxies: Config.Array(
+			Schema.Trim,
+			"BETTER_AUTH_TRUSTED_PROXIES",
+		).pipe(Config.withDefault([])),
 		twoFactorPolicy: Config.Literals(
 			TWO_FACTOR_POLICIES,
 			"TWO_FACTOR_REQUIRED",

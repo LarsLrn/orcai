@@ -36,7 +36,8 @@ The app sends a Content Security Policy with every response. Browsers then load 
 | Variable | Required | Notes |
 | --- | --- | --- |
 | `BETTER_AUTH_SECRET` | Yes | Better Auth signing secret. |
-| `BETTER_AUTH_RATE_LIMIT` | No | `false` turns off Better Auth's rate limiting, which is on in production by default. It keys clients by `X-Forwarded-For`, and requests without exactly one address in it share one limit. |
+| `BETTER_AUTH_RATE_LIMIT` | No | `false` turns off Better Auth's rate limiting, which is on in production by default. It keys clients by `X-Forwarded-For`, and requests without exactly one address in it share one limit, unless `BETTER_AUTH_TRUSTED_PROXIES` lists the proxies that added the others. |
+| `BETTER_AUTH_TRUSTED_PROXIES` | No | Comma-separated IP addresses or CIDR ranges of the reverse proxies in front of the app. Empty by default. Better Auth then reads `X-Forwarded-For` from the right, skips these addresses and takes the next one as the client's, for rate limiting and session IP addresses. List only the proxies' own addresses, not a private range clients also use, and make sure clients can reach the app only through these proxies. An entry that is not an IP address or CIDR range is ignored with a warning in the log. |
 | `ENCRYPTION_KEY` | Yes | Application encryption key. Any string works, but use a random value of 32 to 64 characters. Provider API keys are stored encrypted with it, so the app and the workers need the same value. |
 | `TWO_FACTOR_REQUIRED` | No | Who must use two-factor authentication: `none` (default), `admins` (instance admins) or `all`. A covered user without it is sent to set it up before using the app. |
 
