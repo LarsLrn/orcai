@@ -91,15 +91,6 @@ const SIGN_IN_COMPLETIONS = [
 	"/passkey/verify-authentication",
 ];
 
-/** A passkey replaces the password and the second factor, so the authenticator must have verified the user. */
-const requireUserVerified = (userVerified: boolean | undefined) => {
-	if (!userVerified)
-		throw new APIError("UNAUTHORIZED", {
-			code: "PASSKEY_USER_NOT_VERIFIED",
-			message: "The passkey did not verify the user.",
-		});
-};
-
 /**
  * Emails the user about a change to how they sign in. The change has already
  * happened, so a notice that cannot be queued is logged, not answered as an
@@ -180,19 +171,14 @@ const makeAuth = (run: Run) =>
 				origin: cfg.auth.url,
 				authenticatorSelection: {
 					residentKey: "required",
+					// A passkey replaces the password and the second factor, so the
+					// authenticator must verify the user.
 					userVerification: "required",
 				},
 				registration: {
-					afterVerification: ({ verification }) => {
-						requireUserVerified(verification.registrationInfo?.userVerified);
-						return {
-							name: getAuthenticatorName(verification.registrationInfo?.aaguid),
-						};
-					},
-				},
-				authentication: {
-					afterVerification: ({ verification }) =>
-						requireUserVerified(verification.authenticationInfo.userVerified),
+					afterVerification: ({ verification }) => ({
+						name: getAuthenticatorName(verification.registrationInfo?.aaguid),
+					}),
 				},
 			}),
 			tanstackStartCookies(),

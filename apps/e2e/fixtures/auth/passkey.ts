@@ -95,6 +95,70 @@ export const dropSession = async (page: Page): Promise<void> => {
 	});
 };
 
+/** The passkeys Better Auth has stored for the signed-in user. */
+export const storedPasskeys = async (page: Page): Promise<unknown[]> =>
+	await (await page.request.get("/api/auth/passkey/list-user-passkeys")).json();
+
+/** The session the browser's cookies open, or null. */
+export const currentSession = async (
+	page: Page,
+): Promise<{
+	user: {
+		email: string;
+	};
+} | null> => await (await page.request.get("/api/auth/get-session")).json();
+
+const USER_VERIFIED = 0x04;
+
+/** `authData`, as the CBOR text key of an attestation object. */
+const AUTH_DATA_KEY = Buffer.concat([
+	Buffer.from([
+		0x68,
+	]),
+	Buffer.from("authData"),
+]);
+
+/** Where the authenticator data starts, after its CBOR byte string header. */
+const authDataStart = (attestationObject: Buffer) => {
+	const key = attestationObject.indexOf(AUTH_DATA_KEY);
+	if (key === -1) throw new Error("The attestation object has no authData.");
+	const header = attestationObject[key + AUTH_DATA_KEY.length];
+	if (header === 0x58) return key + AUTH_DATA_KEY.length + 2;
+	if (header === 0x59) return key + AUTH_DATA_KEY.length + 3;
+	throw new Error("Unexpected authData length encoding.");
+};
+
+/**
+ * Clears the user-verified flag in every passkey registration `page` sends
+ * until the returned function runs. A `none` attestation signs nothing, so
+ * the server sees a key that only proved presence.
+ */
+export const forgeUnverifiedRegistrations = async (
+	page: Page,
+): Promise<() => Promise<void>> => {
+	const url = "**/api/auth/passkey/verify-registration";
+	await page.route(url, async (route) => {
+		const body = route.request().postDataJSON() as {
+			response: {
+				response: {
+					attestationObject: string;
+				};
+			};
+		};
+		const attestation = Buffer.from(
+			body.response.response.attestationObject,
+			"base64url",
+		);
+		const flags = authDataStart(attestation) + 32;
+		attestation[flags] = (attestation[flags] ?? 0) & ~USER_VERIFIED;
+		body.response.response.attestationObject = base64url(attestation);
+		await route.continue({
+			postData: JSON.stringify(body),
+		});
+	});
+	return () => page.unroute(url);
+};
+
 const base64url = (bytes: Buffer) => bytes.toString("base64url");
 
 const signCountAfter = (signCount: number) => {

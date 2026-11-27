@@ -3266,7 +3266,6 @@
 	"error_passkey_already_registered": "Dieser Passkey ist bereits registriert.",
 	"error_passkey_cancelled": "Die Passkey-Abfrage wurde abgebrochen.",
 	"error_passkey_sign_in_failed": "Der Passkey konnte Sie nicht anmelden.",
-	"error_passkey_user_not_verified": "Dieser Passkey prüft nicht, wer Sie sind. Verwenden Sie einen, der nach PIN, Fingerabdruck oder Gesicht fragt.",
 	"error_password_not_set": "Für dieses Konto ist kein Passwort festgelegt.",
 	"error_passwords_mismatch": "Die Passwörter müssen übereinstimmen.",
 	"error_permission_denied": "Sie sind dazu nicht berechtigt.",
