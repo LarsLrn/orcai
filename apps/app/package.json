@@ -7,8 +7,8 @@
 	"type": "module",
 	"scripts": {
 		"ai:devtools": "bunx @ai-sdk/devtools",
-		"build": "bun run --filter @orcai/notifications paraglide:compile && vite build",
-		"dev": "bun run --filter @orcai/notifications paraglide:compile && vite dev --host 127.0.0.1",
+		"build": "bun run --filter @orcai/notifications paraglide:compile && bun --bun vite build",
+		"dev": "bun run --filter @orcai/notifications paraglide:compile && bun --bun vite dev --host 127.0.0.1",
 		"machine-translate": "inlang machine translate --project project.inlang",
 		"paraglide:compile": "paraglide-js compile --project ./project.inlang --silent",
 		"start": "bun .output/server/index.mjs",
