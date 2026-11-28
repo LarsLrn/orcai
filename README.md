@@ -267,7 +267,7 @@ Runtime configuration is loaded across app and package config modules. Every val
 
 PostgreSQL optional:
 
-- `POSTGRES_POOL_MAX`: The most connections each pool opens, default `10`. The app runs three pools (queries, Better Auth, pg-boss) and the workers two (queries, pg-boss); keep the total for all processes below PostgreSQL's `max_connections` (100 by default).
+- `POSTGRES_POOL_MAX`: The most connections each pool opens, default `10`. The app runs three pools (queries, Better Auth, pg-boss) and the workers two (queries, pg-boss), so one app and one worker process open at most 50. Keep `POSTGRES_POOL_MAX × (3 × app processes + 2 × worker processes)` below `max_connections − 3 − other clients`: PostgreSQL accepts 100 connections by default and keeps 3 for superusers, and migrations, backups and admin sessions use some of the rest. Two app processes and one worker fit the defaults (80). For more, lower `POSTGRES_POOL_MAX` or raise `max_connections`. See [Self-hosting docs: Services](apps/web/content/docs/self-hosting/services.mdx#connections).
 
 The query pools of the app and the workers turn off PostgreSQL's JIT compilation on their connections, because compiling the app's short queries takes longer than running them. The Better Auth and pg-boss pools keep the server's setting.
 

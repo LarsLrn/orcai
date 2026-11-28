@@ -35,6 +35,18 @@ Workers run background jobs for asset preparation (including indexing), metadata
 
 PostgreSQL stores application data. The Compose stack uses the `pgvector/pgvector:0.8.7-pg17` image, although retrieval vectors are stored in Qdrant. That tag moves to each new PostgreSQL minor release, so `docker-compose.yaml` pins it by digest to the build on PostgreSQL 17.12. Only a dependency update moves the digest, on purpose.
 
+### Connections
+
+Each app process opens up to three connection pools: queries, Better Auth and pg-boss. Each worker process opens two: queries and pg-boss. `POSTGRES_POOL_MAX` caps every pool, default `10`. One app and one worker process therefore open at most 50 connections.
+
+PostgreSQL accepts 100 connections by default (`max_connections`) and keeps 3 of them for superusers. The migrations service, backups and admin sessions need some of what remains. Size the budget with this sum:
+
+```text
+POSTGRES_POOL_MAX × (3 × app processes + 2 × worker processes) < max_connections − 3 − other clients
+```
+
+With the defaults, two app processes and one worker process need up to 80 connections and still fit. Three app processes and one worker process need up to 110 and do not. For them, lower `POSTGRES_POOL_MAX` (8 gives 88) or raise `max_connections` on the server. Each connection costs server memory, so raise `max_connections` only as far as the host allows.
+
 ## SeaweedFS or S3-compatible storage
 
 Uploaded files and processed artifacts are stored in S3-compatible object storage. Compose runs SeaweedFS in single-container mode, which creates the required buckets on startup and takes its credentials from `S3_ACCESS_KEY` and `S3_SECRET_KEY`.
