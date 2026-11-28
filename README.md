@@ -90,6 +90,7 @@ Useful commands:
 
 Notes:
 - `stack up` is idempotent and reuses an existing `.env`.
+- The app and docs dev servers run Vite with `bun --bun`, so development runs on Bun like production, even where Node.js is installed.
 - `stack reset`, `stack e2e` without `--no-reset`, and `stack down --volumes` are potentially destructive in the current environment and ask for confirmation first.
 - Machine-wide overrides belong in `~/.config/orcai/dev.env` (or the file named by `ORCAI_DEV_ENV_FILE`). They are merged whenever `.env` is created.
 - `stack up` and `stack reset` seed a placeholder embedding setting (`http://127.0.0.1:11434/v1`, model `baai/bge-m3`, 1024 dimensions) unless one is stored. Change it to a real endpoint on the instance Settings page (`/instance/settings`).
